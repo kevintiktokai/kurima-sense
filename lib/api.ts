@@ -1,3 +1,5 @@
+import { supabase, authReadyPromise } from '@/lib/supabase';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export interface ChatPayload {
@@ -5,6 +7,29 @@ export interface ChatPayload {
     session_id: string;
     message: string;
     location?: { lat: number; lon: number };
+}
+
+/**
+ * Get auth headers with Supabase JWT token for backend requests.
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+    };
+
+    if (typeof window === "undefined") return headers;
+
+    try {
+        await authReadyPromise;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+            headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+    } catch (e) {
+        console.error("[lib/api] Error getting auth session:", e);
+    }
+
+    return headers;
 }
 
 export async function sendToAgronomist(payload: ChatPayload) {
@@ -20,11 +45,10 @@ export async function sendToAgronomist(payload: ChatPayload) {
     };
 
     try {
+        const headers = await getAuthHeaders();
         const response = await fetch(`${API_URL}/router`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers,
             body: JSON.stringify(seed),
         });
 

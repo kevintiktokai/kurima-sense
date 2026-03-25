@@ -108,7 +108,8 @@ export const api = {
             }
 
             // Fallback to backend API
-            const res = await fetch(`${API_BASE_URL}/user`);
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/user`, { headers });
             if (!res.ok) throw new Error('Failed to fetch user');
             return await res.json();
         } catch (e) {
@@ -162,9 +163,10 @@ export const api = {
 
     async chatWithAgronomist(message: string, context?: any, image?: string) {
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/chat/send`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ message, context, image })
             });
             const data = await res.json();
@@ -198,9 +200,10 @@ export const api = {
 
     async logInput(payload: { field_id: string, input_type: string, quantity: number, unit: string }) {
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/inputs`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error('Failed to log input');
@@ -212,8 +215,10 @@ export const api = {
     },
     async analyzeField(fieldId: string) {
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/analyze`, {
-                method: 'POST'
+                method: 'POST',
+                headers
             });
             if (!res.ok) throw new Error('Failed to start analysis');
             return await res.json();
@@ -224,7 +229,8 @@ export const api = {
     },
     async getFieldHistory(fieldId: string) {
         try {
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/history`);
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/history`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -234,7 +240,8 @@ export const api = {
     },
     async getChatHistory() {
         try {
-            const res = await fetch(`${API_BASE_URL}/chat/history`);
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/history`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -245,6 +252,7 @@ export const api = {
 
     async getProactiveInsight(context: any) {
         try {
+            const headers = await getAuthHeaders();
             const seed = {
                 intent_classification: "general_advice",
                 raw_message: "Give me a single, short, high-impact agronomic tip for my farm right now. Keep it under 20 words.",
@@ -252,7 +260,7 @@ export const api = {
             };
             const res = await fetch(`${API_BASE_URL}/proactive`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ seeds: [seed] })
             });
             const data = await res.json();
@@ -299,7 +307,8 @@ export const api = {
         if (cached) return cached;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/market/prices?region=${encodeURIComponent(region)}`);
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/market/prices?region=${encodeURIComponent(region)}`, { headers });
             if (!res.ok) throw new Error("Market prices fetch failed");
             const data = await res.json();
             setCache(cacheKey, data, CACHE_TTL.MARKET);
@@ -502,7 +511,8 @@ export const api = {
         max_history_turns: number;
     }> {
         try {
-            const res = await fetch(`${API_BASE_URL}/ai/capabilities`);
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/ai/capabilities`, { headers });
             if (!res.ok) throw new Error("Failed to fetch AI capabilities");
             return await res.json();
         } catch (e) {
