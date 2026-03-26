@@ -20,17 +20,61 @@ interface GrowthStageTrackerProps {
     cropType?: string;
 }
 
-// Default maize growth stages
-const DEFAULT_MAIZE_STAGES: GrowthStage[] = [
-    { id: 'VE', name: 'Emergence', shortName: 'VE', description: 'Seedling emerges from soil', daysFromPlanting: 7, status: 'completed' },
-    { id: 'V3', name: 'Third Leaf', shortName: 'V3', description: '3 leaves with visible collar', daysFromPlanting: 21, status: 'completed' },
-    { id: 'V6', name: 'Sixth Leaf', shortName: 'V6', description: 'Growing point above soil', daysFromPlanting: 35, status: 'completed' },
-    { id: 'V12', name: 'Twelfth Leaf', shortName: 'V12', description: 'Rapid growth phase', daysFromPlanting: 56, status: 'current' },
-    { id: 'VT', name: 'Tasseling', shortName: 'VT', description: 'Tassel fully emerged', daysFromPlanting: 70, status: 'upcoming' },
-    { id: 'R1', name: 'Silking', shortName: 'R1', description: 'Silks visible, pollination', daysFromPlanting: 75, status: 'upcoming' },
-    { id: 'R3', name: 'Milk', shortName: 'R3', description: 'Kernels contain milky fluid', daysFromPlanting: 90, status: 'upcoming' },
-    { id: 'R6', name: 'Maturity', shortName: 'R6', description: 'Black layer formed, harvest ready', daysFromPlanting: 120, status: 'upcoming' },
+// Crop-specific growth stages — each crop shows its own phenological timeline
+const CROP_STAGES: Record<string, GrowthStage[]> = {
+    Maize: [
+        { id: 'VE', name: 'Emergence', shortName: 'VE', description: 'Seedling emerges from soil', daysFromPlanting: 10, status: 'upcoming' },
+        { id: 'V3', name: 'Early Veg', shortName: 'V3', description: 'V1-V3: early vegetative', daysFromPlanting: 21, status: 'upcoming' },
+        { id: 'V6', name: 'Mid Veg', shortName: 'V6', description: 'V4-V6: top-dress window', daysFromPlanting: 35, status: 'upcoming' },
+        { id: 'V10', name: 'Late Veg', shortName: 'V10', description: 'V7-V10: rapid growth', daysFromPlanting: 49, status: 'upcoming' },
+        { id: 'VT', name: 'Tasseling', shortName: 'VT', description: 'Peak water demand', daysFromPlanting: 63, status: 'upcoming' },
+        { id: 'R1', name: 'Silking', shortName: 'R1', description: 'Pollination period', daysFromPlanting: 73, status: 'upcoming' },
+        { id: 'R3', name: 'Grain Fill', shortName: 'R3', description: 'Kernel development', daysFromPlanting: 96, status: 'upcoming' },
+        { id: 'R6', name: 'Maturity', shortName: 'R6', description: 'Black layer — harvest ready', daysFromPlanting: 130, status: 'upcoming' },
+    ],
+    Soybean: [
+        { id: 'VE', name: 'Emergence', shortName: 'VE', description: 'Seedling emerges', daysFromPlanting: 8, status: 'upcoming' },
+        { id: 'V3', name: 'Vegetative', shortName: 'V3', description: 'V1-V6: check nodulation', daysFromPlanting: 26, status: 'upcoming' },
+        { id: 'R1', name: 'Flowering', shortName: 'R1', description: 'R1-R2: critical water period', daysFromPlanting: 50, status: 'upcoming' },
+        { id: 'R3', name: 'Pod Set', shortName: 'R3', description: 'R3-R4: pod development', daysFromPlanting: 72, status: 'upcoming' },
+        { id: 'R5', name: 'Seed Fill', shortName: 'R5', description: 'R5-R6: seed enlargement', daysFromPlanting: 90, status: 'upcoming' },
+        { id: 'R8', name: 'Maturity', shortName: 'R8', description: '95% pods mature — harvest', daysFromPlanting: 120, status: 'upcoming' },
+    ],
+    Tobacco: [
+        { id: 'TP', name: 'Transplant', shortName: 'TP', description: 'Establishment period', daysFromPlanting: 10, status: 'upcoming' },
+        { id: 'RG', name: 'Rapid Growth', shortName: 'RG', description: 'Rapid leaf expansion', daysFromPlanting: 38, status: 'upcoming' },
+        { id: 'TOP', name: 'Topping', shortName: 'TOP', description: 'Remove flower head', daysFromPlanting: 63, status: 'upcoming' },
+        { id: 'RIP', name: 'Ripening', shortName: 'RIP', description: 'Leaf yellowing & harvest', daysFromPlanting: 85, status: 'upcoming' },
+        { id: 'HRV', name: 'Harvest', shortName: 'HRV', description: 'Priming & curing', daysFromPlanting: 100, status: 'upcoming' },
+    ],
+    Groundnuts: [
+        { id: 'VE', name: 'Emergence', shortName: 'VE', description: 'Seedling emerges', daysFromPlanting: 10, status: 'upcoming' },
+        { id: 'VEG', name: 'Vegetative', shortName: 'VEG', description: 'Canopy development', daysFromPlanting: 27, status: 'upcoming' },
+        { id: 'FL', name: 'Flowering', shortName: 'FL', description: 'Flowering & pegging', daysFromPlanting: 55, status: 'upcoming' },
+        { id: 'PF', name: 'Pod Fill', shortName: 'PF', description: 'Pod development', daysFromPlanting: 85, status: 'upcoming' },
+        { id: 'MAT', name: 'Maturity', shortName: 'MAT', description: 'Lift & dry', daysFromPlanting: 115, status: 'upcoming' },
+    ],
+};
+
+// Fallback for any unlisted crop
+const DEFAULT_GENERIC_STAGES: GrowthStage[] = [
+    { id: 'EST', name: 'Establishment', shortName: 'EST', description: 'Germination & emergence', daysFromPlanting: 14, status: 'upcoming' },
+    { id: 'VEG', name: 'Vegetative', shortName: 'VEG', description: 'Leaf & stem growth', daysFromPlanting: 42, status: 'upcoming' },
+    { id: 'REP', name: 'Reproductive', shortName: 'REP', description: 'Flowering & fruiting', daysFromPlanting: 70, status: 'upcoming' },
+    { id: 'MAT', name: 'Maturity', shortName: 'MAT', description: 'Harvest ready', daysFromPlanting: 100, status: 'upcoming' },
 ];
+
+const getStagesForCrop = (cropType: string): GrowthStage[] => {
+    // Normalise crop name to match keys
+    const normalised = cropType?.trim() || 'Maize';
+    for (const [key, stages] of Object.entries(CROP_STAGES)) {
+        if (normalised.toLowerCase() === key.toLowerCase()) return stages;
+    }
+    // Check plural forms
+    if (normalised.toLowerCase() === 'soybeans') return CROP_STAGES.Soybean;
+    if (normalised.toLowerCase() === 'groundnut') return CROP_STAGES.Groundnuts;
+    return DEFAULT_GENERIC_STAGES;
+};
 
 const stageColors = {
     completed: {
@@ -54,12 +98,16 @@ const stageColors = {
 };
 
 export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
-    stages = DEFAULT_MAIZE_STAGES,
+    stages,
     currentStage,
     daysToHarvest,
     plantingDate,
     cropType = 'Maize'
 }) => {
+    // Use crop-specific stages if none provided
+    if (!stages || stages.length === 0) {
+        stages = getStagesForCrop(cropType);
+    }
     // Calculate days since planting
     let daysSincePlanting = 0;
     if (plantingDate) {

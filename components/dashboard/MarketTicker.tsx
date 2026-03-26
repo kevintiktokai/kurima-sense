@@ -24,11 +24,11 @@ const MarketTicker: React.FC = () => {
                 setPrices(priceArray);
             } catch (err) {
                 console.error("Market ticker error:", err);
-                // Fallback to static data
+                // Fallback — indicative reference prices
                 setPrices([
-                    { crop: 'Maize', price: '$285/t', trend: '+1.8%' },
-                    { crop: 'Wheat', price: '$340/t', trend: '-0.3%' },
-                    { crop: 'Soybean', price: '$520/t', trend: '+2.4%' },
+                    { crop: 'Maize', price: '~$285/t', trend: '+1.8%' },
+                    { crop: 'Soybean', price: '~$520/t', trend: '+2.4%' },
+                    { crop: 'Tobacco', price: '~$3.45/kg', trend: '+1.2%' },
                 ]);
             }
         };
@@ -50,6 +50,7 @@ const MarketTicker: React.FC = () => {
     return (
         <div className="bg-brand-dark py-2 overflow-hidden whitespace-nowrap border-b border-brand-lime/10">
             <div className="inline-block animate-marquee">
+                <span className="mx-4 text-[10px] font-medium text-slate-500 uppercase tracking-wider">Indicative Prices</span>
                 {prices.map((p, i) => (
                     <span key={i} className="mx-8 text-xs font-bold">
                         <span className="text-slate-400 mr-2 uppercase">{p.crop}</span>
@@ -58,6 +59,7 @@ const MarketTicker: React.FC = () => {
                     </span>
                 ))}
                 {/* Duplicate for seamless scroll */}
+                <span className="mx-4 text-[10px] font-medium text-slate-500 uppercase tracking-wider">Indicative Prices</span>
                 {prices.map((p, i) => (
                     <span key={`dup-${i}`} className="mx-8 text-xs font-bold">
                         <span className="text-slate-400 mr-2 uppercase">{p.crop}</span>

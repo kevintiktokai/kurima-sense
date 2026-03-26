@@ -17,19 +17,15 @@ const generateProjectionData = (bands: { low: number, mid: number, high: number 
     const mid = typeof bands.mid === 'number' ? bands.mid : 12.5;
     const high = typeof bands.high === 'number' ? bands.high : 15;
 
-    // Simulate a growth season curve
+    // Show projected accumulation curve (model-based, not observed)
     const months = ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Harvest'];
     return months.map((month, index) => {
         const progress = (index + 1) / months.length;
-        // Simple linear growth simulation for accumulation
-
         return {
             name: month,
             low: +(low * progress).toFixed(1),
             mid: +(mid * progress).toFixed(1),
             high: +(high * progress).toFixed(1),
-            // Simulate actual data for first 3 months
-            actual: index < 3 ? +(mid * progress * (0.95 + ((mid * 0.05) % 0.1))).toFixed(1) : undefined
         };
     });
 };
@@ -66,7 +62,11 @@ const Overview: React.FC = () => {
 
         // Phase 2: load AI extras without blocking UI
         try {
-            api.getProactiveInsight({ user_id: 'web-user-01', location: { lat: -17.82, lon: 31.05 } })
+            // Use actual field coordinates if available, otherwise default to Harare
+            const fieldCoords = currentFieldsData?.[0]?.coordinates?.[0];
+            const lat = fieldCoords?.[1] || fieldCoords?.lat || -17.82;
+            const lon = fieldCoords?.[0] || fieldCoords?.lng || fieldCoords?.lon || 31.05;
+            api.getProactiveInsight({ location: { lat, lon } })
                 .then(setInsight)
                 .catch(() => {});
 
@@ -152,7 +152,9 @@ const Overview: React.FC = () => {
                         <p className="text-brand-dark font-bold text-sm lg:text-lg">💡 Tip: {insight}</p>
                     </div>
                     <p className="text-slate-500 font-medium text-base lg:text-xl max-w-lg leading-relaxed">
-                        Your farm assets in Zimbabwe are thriving. {activeFieldsCount} active fields monitored.
+                        {activeFieldsCount > 0
+                            ? `${activeFieldsCount} active field${activeFieldsCount > 1 ? 's' : ''} monitored across ${totalHectares.toFixed(1)} ha.`
+                            : 'Add your first field to get started with precision farming.'}
                     </p>
                     <div className="flex flex-wrap gap-4 lg:gap-6 mt-8 lg:mt-10">
                         <div className="bg-brand-beige/50 backdrop-blur-sm px-6 lg:px-8 py-3 lg:py-4 rounded-2xl lg:rounded-[2rem] flex-1 min-w-[140px]">
@@ -232,7 +234,7 @@ const Overview: React.FC = () => {
 
                 {/* Yield Confidence Chart (Left 8) */}
                 <div className="col-span-12 lg:col-span-8">
-                    {yieldAnalysis ? (
+                    {yieldAnalysis && yieldAnalysis.confidence_bands ? (
                         <YieldConfidenceChart
                             data={generateProjectionData(yieldAnalysis.confidence_bands)}
                             projectedYield={yieldAnalysis.projected_yield}
@@ -243,6 +245,12 @@ const Overview: React.FC = () => {
                             disclaimer={yieldAnalysis.disclaimer}
                             title={`${primaryField?.name || 'Field'} Projection`}
                         />
+                    ) : yieldAnalysis === null && !loading ? (
+                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
+                            <span className="text-4xl mb-3">📊</span>
+                            <p className="font-bold text-brand-dark">Yield projection unavailable</p>
+                            <p className="text-sm text-slate-400 mt-1 text-center max-w-sm">Set a planting date and crop variety on your field to generate an agronomic yield projection.</p>
+                        </div>
                     ) : (
                         <ChartSkeleton />
                     )}
@@ -261,11 +269,11 @@ const Overview: React.FC = () => {
                         currentStage={
                             typeof yieldAnalysis?.current_stage === 'string'
                                 ? yieldAnalysis.current_stage.split(' ')[0]
-                                : 'V3'
+                                : undefined
                         }
                         daysToHarvest={yieldAnalysis?.days_to_harvest}
                         plantingDate={primaryField?.planting_date}
-                        cropType={primaryField?.crop_type || 'Maize'}
+                        cropType={primaryField?.crop_type || primaryField?.crop || 'Maize'}
                     />
                 </div>
             </div>

@@ -286,18 +286,9 @@ export const api = {
             return await res.json();
         } catch (e) {
             console.error("Yield Gen Error", e);
-            // Return fallback structure matching new schema
-            return {
-                current_stage: "Vegetative (V3)",
-                days_to_harvest: 120,
-                projected_yield: 12.5,
-                yield_potential: 15.0,
-                confidence_bands: { low: 10.0, mid: 12.5, high: 14.2 },
-                confidence_factors: ["Using historical averages (offline)", "No recent sat data"],
-                yield_gap_analysis: "Moisture stress detected.",
-                next_actions: ["Irrigate immediately", "Scout for pests"],
-                full_plan: []
-            };
+            // Return null to indicate no data available — let the UI handle it
+            // rather than showing fake numbers that could mislead the farmer
+            return null;
         }
     },
 
@@ -315,15 +306,17 @@ export const api = {
             return data;
         } catch (e) {
             console.error("Market Prices Error", e);
-            // Fallback prices
+            // Fallback — indicative reference prices (not live)
             return {
                 region,
                 prices: {
                     "Maize": { price: 285, unit: "$/t", trend: "+1.8%" },
-                    "Wheat": { price: 340, unit: "$/t", trend: "-0.3%" },
-                    "Soybean": { price: 520, unit: "$/t", trend: "+2.4%" }
+                    "Soybean": { price: 520, unit: "$/t", trend: "+2.4%" },
+                    "Tobacco": { price: 3.45, unit: "$/kg", trend: "+1.2%" },
                 },
-                currency: "USD"
+                currency: "USD",
+                price_type: "indicative",
+                disclaimer: "Indicative reference prices — verify with buyers before sales decisions.",
             };
         }
     },
