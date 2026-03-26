@@ -58,7 +58,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [availableVarieties, setAvailableVarieties] = useState<any[]>([]);
 
     // Crops that are typically transplanted (not direct-seeded)
-    const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Pepper', 'Eggplant', 'Lettuce', 'Paprika'];
+    const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Pepper', 'Eggplant', 'Lettuce', 'Paprika', 'Green Pepper', 'Strawberries', 'Tea', 'Blueberries'];
     const isTransplantedCrop = TRANSPLANTED_CROPS.includes(newFieldCrop);
 
     useEffect(() => {
@@ -158,6 +158,8 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         <option value="Cotton">Cotton</option>
                                         <option value="Sunflower">Sunflower</option>
                                         <option value="Paprika">Paprika / Chillies</option>
+                                        <option value="Sesame">Sesame</option>
+                                        <option value="Tea">Tea</option>
                                     </optgroup>
 
                                     {/* Legumes & Oilseeds */}
@@ -167,16 +169,28 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         <option value="Sugar Beans">Sugar Beans</option>
                                         <option value="Cowpeas">Cowpeas (Nyemba)</option>
                                         <option value="Bambara Nuts">Bambara Nuts (Nyimo)</option>
+                                        <option value="Peas">Peas</option>
+                                        <option value="Green Beans">Green Beans</option>
                                     </optgroup>
 
                                     {/* Vegetables & Root Crops */}
                                     <optgroup label="Vegetables & Root Crops">
                                         <option value="Potato">Potato</option>
                                         <option value="Sweet Potato">Sweet Potato</option>
+                                        <option value="Cassava">Cassava</option>
                                         <option value="Tomato">Tomato</option>
                                         <option value="Onion">Onion</option>
                                         <option value="Cabbage">Cabbage</option>
                                         <option value="Butternut">Butternut / Pumpkin</option>
+                                        <option value="Green Pepper">Green Pepper</option>
+                                        <option value="Garlic">Garlic</option>
+                                    </optgroup>
+
+                                    {/* Export Horticulture & Fruits */}
+                                    <optgroup label="Export Horticulture & Fruits">
+                                        <option value="Snow Peas">Snow Peas / Mange Tout</option>
+                                        <option value="Blueberries">Blueberries</option>
+                                        <option value="Strawberries">Strawberries</option>
                                     </optgroup>
                                 </select>
                             </div>
