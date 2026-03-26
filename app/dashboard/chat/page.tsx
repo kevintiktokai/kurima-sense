@@ -1,5 +1,12 @@
 import AIAgronomistChat from "@/components/dashboard/AIAgronomistChat";
 
 export default function ChatPage() {
-    return <AIAgronomistChat />;
+    return (
+        <div
+            className="h-full w-full"
+            style={{ background: 'var(--ee-bg)' }}
+        >
+            <AIAgronomistChat />
+        </div>
+    );
 }

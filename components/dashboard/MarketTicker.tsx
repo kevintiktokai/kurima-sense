@@ -41,30 +41,30 @@ const MarketTicker: React.FC = () => {
 
     if (prices.length === 0) {
         return (
-            <div className="bg-brand-dark py-2 overflow-hidden whitespace-nowrap border-b border-brand-lime/10">
-                <div className="text-center text-slate-400 text-xs font-bold">Loading market data...</div>
+            <div className="py-2.5 overflow-hidden whitespace-nowrap" style={{ backgroundColor: 'var(--ee-bg-dim)' }}>
+                <div className="text-center text-xs font-semibold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Loading market data...</div>
             </div>
         );
     }
 
     return (
-        <div className="bg-brand-dark py-2 overflow-hidden whitespace-nowrap border-b border-brand-lime/10">
+        <div className="py-2.5 overflow-hidden whitespace-nowrap" style={{ backgroundColor: 'var(--ee-bg-dim)' }}>
             <div className="inline-block animate-marquee">
-                <span className="mx-4 text-[10px] font-medium text-slate-500 uppercase tracking-wider">Indicative Prices</span>
+                <span className="mx-4 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Indicative Prices</span>
                 {prices.map((p, i) => (
-                    <span key={i} className="mx-8 text-xs font-bold">
-                        <span className="text-slate-400 mr-2 uppercase">{p.crop}</span>
-                        <span className="text-white mr-2">{p.price}</span>
-                        <span className={p.trend.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}>{p.trend}</span>
+                    <span key={i} className="mx-8 text-xs font-bold" style={{ fontFamily: 'var(--font-body)' }}>
+                        <span className="mr-2 uppercase" style={{ color: 'var(--ee-muted)' }}>{p.crop}</span>
+                        <span className="mr-2" style={{ color: 'var(--ee-text)' }}>{p.price}</span>
+                        <span style={{ color: p.trend.startsWith('+') ? 'var(--ee-primary)' : '#e06060' }}>{p.trend}</span>
                     </span>
                 ))}
                 {/* Duplicate for seamless scroll */}
-                <span className="mx-4 text-[10px] font-medium text-slate-500 uppercase tracking-wider">Indicative Prices</span>
+                <span className="mx-4 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Indicative Prices</span>
                 {prices.map((p, i) => (
-                    <span key={`dup-${i}`} className="mx-8 text-xs font-bold">
-                        <span className="text-slate-400 mr-2 uppercase">{p.crop}</span>
-                        <span className="text-white mr-2">{p.price}</span>
-                        <span className={p.trend.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}>{p.trend}</span>
+                    <span key={`dup-${i}`} className="mx-8 text-xs font-bold" style={{ fontFamily: 'var(--font-body)' }}>
+                        <span className="mr-2 uppercase" style={{ color: 'var(--ee-muted)' }}>{p.crop}</span>
+                        <span className="mr-2" style={{ color: 'var(--ee-text)' }}>{p.price}</span>
+                        <span style={{ color: p.trend.startsWith('+') ? 'var(--ee-primary)' : '#e06060' }}>{p.trend}</span>
                     </span>
                 ))}
             </div>

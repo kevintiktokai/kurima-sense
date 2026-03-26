@@ -29,9 +29,23 @@ export default function PlanPage() {
 
     if (loading) {
         return (
-            <div className="p-10 flex flex-col items-center justify-center min-h-[50vh]">
-                <div className="w-12 h-12 border-4 border-brand-lime border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-400 font-bold">Loading Plan...</p>
+            <div
+                className="p-10 flex flex-col items-center justify-center min-h-[50vh]"
+                style={{ background: 'var(--ee-bg)' }}
+            >
+                <div
+                    className="w-12 h-12 rounded-full animate-spin mb-4"
+                    style={{
+                        border: '4px solid var(--ee-primary)',
+                        borderTopColor: 'transparent',
+                    }}
+                ></div>
+                <p
+                    className="font-bold"
+                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                >
+                    Loading Plan...
+                </p>
             </div>
         );
     }
@@ -44,35 +58,68 @@ export default function PlanPage() {
     };
 
     return (
-        <div className="p-8 h-screen overflow-y-auto">
-            <h1 className="text-4xl font-black text-brand-dark mb-8 tracking-tight">Smart Crop Plan</h1>
+        <div
+            className="p-8 h-screen overflow-y-auto"
+            style={{ background: 'var(--ee-bg)' }}
+        >
+            <h1
+                className="text-4xl font-black mb-8 tracking-tight"
+                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+            >
+                <span className="material-symbols-outlined align-middle mr-2" style={{ fontSize: '2rem', color: 'var(--ee-primary)' }}>
+                    eco
+                </span>
+                Smart Crop Plan
+            </h1>
 
             {/* Field Selector */}
             <div className="flex gap-4 mb-8 overflow-x-auto pb-4 snap-x">
                 {fields.map(field => {
                     const dsp = getDaysSincePlanting(field);
+                    const isSelected = selectedField?.id === field.id;
                     return (
                         <button
                             key={field.id}
                             onClick={() => setSelectedField(field)}
-                            className={`flex-shrink-0 p-6 rounded-[2.5rem] border-2 transition-all min-w-[220px] text-left snap-start
-                                ${selectedField?.id === field.id
-                                    ? 'bg-brand-dark border-brand-dark text-white shadow-xl scale-105'
-                                    : 'bg-white border-slate-100 text-slate-400 hover:border-brand-lime'
-                                }`}
+                            className={`flex-shrink-0 p-6 rounded-[24px] transition-all min-w-[220px] text-left snap-start ${
+                                isSelected ? 'neu-surface scale-105' : 'neu-surface'
+                            }`}
+                            style={{
+                                background: isSelected ? 'var(--ee-text)' : 'var(--ee-surface)',
+                                color: isSelected ? '#FFFFFF' : 'var(--ee-muted)',
+                                boxShadow: isSelected ? 'var(--shadow-ambient)' : 'var(--shadow-neu)',
+                            }}
                         >
-                            <p className="text-xs font-bold uppercase mb-1 opacity-70">{field.crop}</p>
-                            <h3 className="text-xl font-black">{field.name}</h3>
+                            <p
+                                className="text-xs font-bold uppercase mb-1 opacity-70"
+                                style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                                {field.crop}
+                            </p>
+                            <h3
+                                className="text-xl font-black"
+                                style={{ fontFamily: 'var(--font-heading)' }}
+                            >
+                                {field.name}
+                            </h3>
                             <div className="flex items-center gap-3 mt-2">
-                                <p className="text-xs font-bold opacity-70">{field.area?.toFixed(1)} ha</p>
+                                <p className="text-xs font-bold opacity-70" style={{ fontFamily: 'var(--font-body)' }}>
+                                    {field.area?.toFixed(1)} ha
+                                </p>
                                 {field.variety && (
-                                    <p className="text-xs font-bold opacity-50">{field.variety}</p>
+                                    <p className="text-xs font-bold opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
+                                        {field.variety}
+                                    </p>
                                 )}
                             </div>
                             {dsp != null && dsp > 0 && (
-                                <p className={`text-[10px] font-bold mt-2 uppercase tracking-wider ${
-                                    selectedField?.id === field.id ? 'text-brand-lime' : 'text-slate-300'
-                                }`}>
+                                <p
+                                    className="text-[10px] font-bold mt-2 uppercase tracking-wider"
+                                    style={{
+                                        color: isSelected ? 'var(--ee-primary)' : 'var(--ee-muted)',
+                                        fontFamily: 'var(--font-heading)',
+                                    }}
+                                >
                                     Day {dsp}
                                 </p>
                             )}
@@ -80,12 +127,24 @@ export default function PlanPage() {
                     );
                 })}
                 {fields.length === 0 && (
-                    <div className="p-6 bg-slate-50 text-slate-400 rounded-3xl">No fields found. Add a field to get started.</div>
+                    <div
+                        className="p-6 rounded-[24px] neu-surface"
+                        style={{
+                            background: 'var(--ee-surface)',
+                            color: 'var(--ee-muted)',
+                            fontFamily: 'var(--font-body)',
+                        }}
+                    >
+                        No fields found. Add a field to get started.
+                    </div>
                 )}
             </div>
 
             {/* Plan Display */}
-            <div className="bg-slate-50 rounded-[3.5rem] p-2 mb-8">
+            <div
+                className="rounded-[24px] p-2 mb-8 neu-surface"
+                style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }}
+            >
                 <CropPlan
                     selectedField={selectedField}
                     onActionsAdded={handleActionsAdded}

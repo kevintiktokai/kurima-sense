@@ -15,7 +15,14 @@ import { useRouter } from 'next/navigation';
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
     ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-100 animate-pulse rounded-[3.5rem] flex items-center justify-center font-bold text-slate-300">Loading Satellite Map...</div>
+    loading: () => (
+        <div
+            className="w-full h-full animate-pulse rounded-[24px] flex items-center justify-center"
+            style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', fontWeight: 700 }}
+        >
+            Loading Satellite Map...
+        </div>
+    )
 });
 
 const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
@@ -124,34 +131,59 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
     // Health status config
     const healthConfig = {
-        Excellent: { color: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Healthy' },
-        Good: { color: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700', label: 'Fair' },
-        Critical: { color: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-700', label: 'Needs Attention' },
+        Excellent: { color: 'var(--ee-primary)', label: 'Healthy' },
+        Good: { color: 'var(--ee-sun)', label: 'Fair' },
+        Critical: { color: '#E05C5C', label: 'Needs Attention' },
     };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 relative">
             {/* Field Creation Modal */}
             {isCreating && (
-                <div className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-md animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4" style={{ background: 'rgba(45,58,48,0.4)', backdropFilter: 'blur(8px)' }}>
+                    <div
+                        className="neu-surface w-full max-w-md animate-in zoom-in-95 max-h-[90vh] overflow-y-auto p-8 rounded-[24px]"
+                    >
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-black text-brand-dark">New Field</h3>
-                            <div className="flex items-center gap-2 bg-brand-lime/20 px-3 py-1.5 rounded-full">
-                                <svg className="w-4 h-4 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                </svg>
-                                <span className="text-xs font-bold text-brand-dark">{newFieldArea} ha</span>
+                            <h3
+                                className="text-2xl font-black"
+                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                            >
+                                New Field
+                            </h3>
+                            <div
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                                style={{ background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)' }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-text)' }}>crop_free</span>
+                                <span
+                                    className="text-xs font-bold"
+                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                                >
+                                    {newFieldArea} ha
+                                </span>
                             </div>
                         </div>
 
                         <div className="space-y-5">
                             {/* Field Name */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Field Name</label>
+                                <label
+                                    className="block text-xs font-bold uppercase mb-1.5"
+                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                >
+                                    Field Name
+                                </label>
                                 <input
                                     type="text"
-                                    className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none"
+                                    className="w-full rounded-[16px] p-3 font-bold focus:outline-none"
+                                    style={{
+                                        background: 'var(--ee-bg)',
+                                        color: 'var(--ee-text)',
+                                        fontFamily: 'var(--font-body)',
+                                        boxShadow: 'var(--shadow-neu-inset)',
+                                        border: 'none',
+                                    }}
                                     placeholder="e.g. North Ridge, Musasa Plot"
                                     value={newFieldName}
                                     onChange={e => setNewFieldName(e.target.value)}
@@ -161,7 +193,12 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
                             {/* Crop Type — Searchable */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Crop Type</label>
+                                <label
+                                    className="block text-xs font-bold uppercase mb-1.5"
+                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                >
+                                    Crop Type
+                                </label>
                                 <CropSearchSelect
                                     value={newFieldCrop}
                                     onChange={(val) => {
@@ -174,31 +211,51 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                             {/* Date fields */}
                             {isTransplantedCrop ? (
                                 <>
-                                    <div className="bg-amber-50 p-3 rounded-xl">
-                                        <p className="text-xs text-amber-700 font-bold flex items-center gap-1.5">
-                                            <span className="text-base">🌱</span>
+                                    <div className="p-3 rounded-[16px]" style={{ background: 'color-mix(in srgb, var(--ee-sun) 15%, transparent)' }}>
+                                        <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>eco</span>
                                             {newFieldCrop} is transplanted. Track both dates for accurate GDD tracking.
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">
+                                            <label
+                                                className="block text-xs font-bold uppercase mb-1.5"
+                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                            >
                                                 Nursery Seeding
                                             </label>
                                             <input
                                                 type="date"
-                                                className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none text-sm"
+                                                className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                                                style={{
+                                                    background: 'var(--ee-bg)',
+                                                    color: 'var(--ee-text)',
+                                                    fontFamily: 'var(--font-body)',
+                                                    boxShadow: 'var(--shadow-neu-inset)',
+                                                    border: 'none',
+                                                }}
                                                 value={newFieldDate}
                                                 onChange={e => setNewFieldDate(e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">
+                                            <label
+                                                className="block text-xs font-bold uppercase mb-1.5"
+                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                            >
                                                 Transplant Date
                                             </label>
                                             <input
                                                 type="date"
-                                                className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none text-sm"
+                                                className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                                                style={{
+                                                    background: 'var(--ee-bg)',
+                                                    color: 'var(--ee-text)',
+                                                    fontFamily: 'var(--font-body)',
+                                                    boxShadow: 'var(--shadow-neu-inset)',
+                                                    border: 'none',
+                                                }}
                                                 value={newFieldTransplantDate}
                                                 onChange={e => setNewFieldTransplantDate(e.target.value)}
                                             />
@@ -207,10 +264,22 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                 </>
                             ) : (
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Planting Date</label>
+                                    <label
+                                        className="block text-xs font-bold uppercase mb-1.5"
+                                        style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                    >
+                                        Planting Date
+                                    </label>
                                     <input
                                         type="date"
-                                        className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none"
+                                        className="w-full rounded-[16px] p-3 font-bold focus:outline-none"
+                                        style={{
+                                            background: 'var(--ee-bg)',
+                                            color: 'var(--ee-text)',
+                                            fontFamily: 'var(--font-body)',
+                                            boxShadow: 'var(--shadow-neu-inset)',
+                                            border: 'none',
+                                        }}
                                         value={newFieldDate}
                                         onChange={e => setNewFieldDate(e.target.value)}
                                     />
@@ -219,10 +288,22 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
                             {/* Variety */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Variety</label>
+                                <label
+                                    className="block text-xs font-bold uppercase mb-1.5"
+                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                >
+                                    Variety
+                                </label>
                                 {availableVarieties.length > 0 ? (
                                     <select
-                                        className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none text-sm"
+                                        className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                                        style={{
+                                            background: 'var(--ee-bg)',
+                                            color: 'var(--ee-text)',
+                                            fontFamily: 'var(--font-body)',
+                                            boxShadow: 'var(--shadow-neu-inset)',
+                                            border: 'none',
+                                        }}
                                         value={newFieldVariety}
                                         onChange={e => setNewFieldVariety(e.target.value)}
                                     >
@@ -237,7 +318,14 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                 ) : (
                                     <input
                                         type="text"
-                                        className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none text-sm"
+                                        className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                                        style={{
+                                            background: 'var(--ee-bg)',
+                                            color: 'var(--ee-text)',
+                                            fontFamily: 'var(--font-body)',
+                                            boxShadow: 'var(--shadow-neu-inset)',
+                                            border: 'none',
+                                        }}
                                         placeholder="e.g. SC727, Mukushi"
                                         value={newFieldVariety}
                                         onChange={e => setNewFieldVariety(e.target.value)}
@@ -247,9 +335,21 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
                             {/* Fertilizer History */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Fertilizer History <span className="text-slate-300 font-normal lowercase">(optional)</span></label>
+                                <label
+                                    className="block text-xs font-bold uppercase mb-1.5"
+                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                >
+                                    Fertilizer History <span style={{ color: 'var(--ee-muted)', fontWeight: 400, textTransform: 'lowercase' }}>(optional)</span>
+                                </label>
                                 <textarea
-                                    className="w-full bg-slate-100 border-none rounded-xl p-3 font-bold text-brand-dark focus:ring-2 focus:ring-brand-lime focus:outline-none text-sm"
+                                    className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                                    style={{
+                                        background: 'var(--ee-bg)',
+                                        color: 'var(--ee-text)',
+                                        fontFamily: 'var(--font-body)',
+                                        boxShadow: 'var(--shadow-neu-inset)',
+                                        border: 'none',
+                                    }}
                                     placeholder="e.g. Compound D at planting, AN top dressing week 4..."
                                     rows={2}
                                     value={newFieldFertilizer}
@@ -261,14 +361,23 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                             <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => setIsCreating(false)}
-                                    className="flex-1 py-3.5 rounded-xl font-bold text-slate-400 hover:bg-slate-100 transition-colors"
+                                    className="flex-1 py-3.5 rounded-[16px] font-bold transition-colors"
+                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-bg)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={saveField}
                                     disabled={!newFieldName || isSaving}
-                                    className="flex-1 py-3.5 bg-brand-lime text-brand-dark rounded-xl font-black shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                    className="flex-1 py-3.5 rounded-[16px] font-black transition-all disabled:opacity-50"
+                                    style={{
+                                        background: 'var(--ee-primary)',
+                                        color: '#FFFFFF',
+                                        fontFamily: 'var(--font-heading)',
+                                        boxShadow: 'var(--shadow-neu)',
+                                    }}
                                 >
                                     {isSaving ? (
                                         <span className="flex items-center justify-center gap-2">
@@ -284,28 +393,48 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             )}
 
             {/* Header Bar */}
-            <div className="flex justify-between items-center bg-white p-4 rounded-[2.5rem] shadow-sm">
+            <div className="neu-surface flex justify-between items-center p-4 rounded-[24px]">
                 <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-black text-brand-dark pl-4">My Fields</h2>
+                    <h2
+                        className="text-lg font-black pl-4"
+                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                    >
+                        My Fields
+                    </h2>
                     {fields.length > 0 && (
-                        <span className="bg-brand-lime/30 text-brand-dark text-xs font-bold px-3 py-1 rounded-full">
+                        <span
+                            className="text-xs font-bold px-3 py-1 rounded-full"
+                            style={{
+                                background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)',
+                                color: 'var(--ee-text)',
+                                fontFamily: 'var(--font-body)',
+                            }}
+                        >
                             {fields.length} {fields.length === 1 ? 'field' : 'fields'}
                         </span>
                     )}
                 </div>
                 <button
                     id="add-field-btn"
-                    className="bg-brand-dark text-brand-lime px-8 py-3 rounded-2xl font-bold shadow-xl hover:scale-105 transition-transform flex items-center gap-2"
+                    className="px-8 py-3 rounded-[16px] font-bold flex items-center gap-2 hover:scale-105 transition-transform"
+                    style={{
+                        background: 'var(--ee-text)',
+                        color: '#FFFFFF',
+                        fontFamily: 'var(--font-heading)',
+                        boxShadow: 'var(--shadow-neu)',
+                    }}
                 >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                    </svg>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
                     Add Field
                 </button>
             </div>
 
             {/* Map — always visible */}
-            <div id="fields-map-container" className="relative h-[500px] rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white z-0">
+            <div
+                id="fields-map-container"
+                className="relative h-[500px] rounded-[24px] overflow-hidden z-0"
+                style={{ boxShadow: 'var(--shadow-ambient)' }}
+            >
                 <MapComponent
                     fields={fields}
                     onSelectField={(field) => {
@@ -324,17 +453,21 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 {/* Section header */}
                 {fields.length > 0 && (
                     <div className="flex items-center justify-between mb-4 px-2">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <p
+                            className="text-xs font-bold uppercase tracking-wider"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                        >
                             Click a field to locate on map
                         </p>
                         {highlightedFieldId && (
                             <button
                                 onClick={() => setHighlightedFieldId(null)}
-                                className="text-xs font-bold text-slate-400 hover:text-brand-dark transition-colors flex items-center gap-1"
+                                className="text-xs font-bold transition-colors flex items-center gap-1"
+                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--ee-text)')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--ee-muted)')}
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
                                 Clear selection
                             </button>
                         )}
@@ -344,40 +477,49 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-white rounded-[2.5rem] p-8 animate-pulse">
-                                <div className="h-6 bg-slate-100 rounded-xl w-2/3 mb-4"></div>
-                                <div className="h-4 bg-slate-100 rounded-lg w-1/3 mb-8"></div>
+                            <div key={i} className="neu-surface rounded-[24px] p-8 animate-pulse">
+                                <div className="h-6 rounded-[16px] w-2/3 mb-4" style={{ background: 'var(--ee-bg)' }}></div>
+                                <div className="h-4 rounded-[12px] w-1/3 mb-8" style={{ background: 'var(--ee-bg)' }}></div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="h-12 bg-slate-100 rounded-xl"></div>
-                                    <div className="h-12 bg-slate-100 rounded-xl"></div>
+                                    <div className="h-12 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
+                                    <div className="h-12 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : fields.length === 0 ? (
-                    <div className="bg-white rounded-[3.5rem] p-16 text-center shadow-sm">
-                        <div className="w-20 h-20 mx-auto mb-6 bg-brand-lime/20 rounded-full flex items-center justify-center">
-                            <svg className="w-10 h-10 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                            </svg>
+                    <div className="neu-surface rounded-[24px] p-16 text-center">
+                        <div
+                            className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+                            style={{ background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)' }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '40px', color: 'var(--ee-text)' }}>map</span>
                         </div>
-                        <h3 className="text-2xl font-black text-brand-dark mb-2">No fields yet</h3>
-                        <p className="text-slate-400 font-medium mb-6 max-w-sm mx-auto">
+                        <h3
+                            className="text-2xl font-black mb-2"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                        >
+                            No fields yet
+                        </h3>
+                        <p
+                            className="font-medium mb-6 max-w-sm mx-auto"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                        >
                             Draw a polygon on the map above to mark your first field. We&apos;ll track satellite data, weather, and crop health automatically.
                         </p>
-                        <div className="flex items-center justify-center gap-3 text-xs text-slate-400">
+                        <div className="flex items-center justify-center gap-3 text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-brand-lime rounded-full"></span>
+                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
                                 Click the polygon tool
                             </span>
-                            <span className="text-slate-200">|</span>
+                            <span style={{ color: 'var(--ee-bg)' }}>|</span>
                             <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-brand-lime rounded-full"></span>
+                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
                                 Trace your field
                             </span>
-                            <span className="text-slate-200">|</span>
+                            <span style={{ color: 'var(--ee-bg)' }}>|</span>
                             <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-brand-lime rounded-full"></span>
+                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
                                 Add crop details
                             </span>
                         </div>
@@ -393,23 +535,35 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                     id={`field-card-${field.id}`}
                                     key={field.id}
                                     onClick={() => handleFieldCardClick(field)}
-                                    className={`bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all cursor-pointer group border-2 relative ${
-                                        isSelected
-                                            ? 'border-brand-lime shadow-lg ring-2 ring-brand-lime/20 scale-[1.01]'
-                                            : 'border-transparent hover:border-slate-100'
-                                    }`}
+                                    className={`neu-surface p-8 rounded-[24px] transition-all cursor-pointer group relative`}
+                                    style={{
+                                        boxShadow: isSelected ? 'var(--shadow-neu), 0 0 0 3px var(--ee-primary)' : 'var(--shadow-neu)',
+                                        transform: isSelected ? 'scale(1.01)' : undefined,
+                                    }}
                                 >
                                     {/* Delete Confirmation Overlay */}
                                     {showDeleteConfirm === field.id && (
-                                        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-[2.5rem] z-10 flex flex-col items-center justify-center p-6">
+                                        <div
+                                            className="absolute inset-0 rounded-[24px] z-10 flex flex-col items-center justify-center p-6"
+                                            style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}
+                                        >
                                             <div className="text-center">
-                                                <div className="w-14 h-14 mx-auto mb-3 bg-rose-100 rounded-full flex items-center justify-center">
-                                                    <svg className="w-7 h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
+                                                <div
+                                                    className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
+                                                    style={{ background: 'color-mix(in srgb, #E05C5C 15%, transparent)' }}
+                                                >
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#E05C5C' }}>delete</span>
                                                 </div>
-                                                <h4 className="text-lg font-black text-brand-dark mb-1">Delete Field?</h4>
-                                                <p className="text-sm text-slate-500 mb-5">
+                                                <h4
+                                                    className="text-lg font-black mb-1"
+                                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                                                >
+                                                    Delete Field?
+                                                </h4>
+                                                <p
+                                                    className="text-sm mb-5"
+                                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                                >
                                                     This will permanently delete <strong>{field.name}</strong>.
                                                 </p>
                                                 <div className="flex gap-3">
@@ -418,7 +572,10 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                                             e.stopPropagation();
                                                             setShowDeleteConfirm(null);
                                                         }}
-                                                        className="flex-1 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                                                        className="flex-1 py-2.5 rounded-[16px] font-bold transition-colors"
+                                                        style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-bg)')}
+                                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                                     >
                                                         Cancel
                                                     </button>
@@ -428,7 +585,12 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                                             handleDeleteField(field.id, field.name);
                                                         }}
                                                         disabled={deletingFieldId === field.id}
-                                                        className="flex-1 py-2.5 bg-rose-500 text-white rounded-xl font-black hover:bg-rose-600 transition-colors disabled:opacity-50"
+                                                        className="flex-1 py-2.5 rounded-[16px] font-black transition-colors disabled:opacity-50"
+                                                        style={{
+                                                            background: '#E05C5C',
+                                                            color: '#FFFFFF',
+                                                            fontFamily: 'var(--font-heading)',
+                                                        }}
                                                     >
                                                         {deletingFieldId === field.id ? 'Deleting...' : 'Delete'}
                                                     </button>
@@ -442,16 +604,33 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 {isSelected && (
-                                                    <div className="w-2.5 h-2.5 bg-brand-lime rounded-full flex-shrink-0 animate-pulse"></div>
+                                                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 animate-pulse" style={{ background: 'var(--ee-primary)' }}></div>
                                                 )}
-                                                <h3 className="text-xl font-black text-brand-dark tracking-tight truncate">{field.name}</h3>
+                                                <h3
+                                                    className="text-xl font-black tracking-tight truncate"
+                                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                                                >
+                                                    {field.name}
+                                                </h3>
                                             </div>
-                                            <p className="text-slate-400 font-bold text-xs uppercase">{field.crop} &bull; {field.area.toFixed(1)} ha</p>
+                                            <p
+                                                className="font-bold text-xs uppercase"
+                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                            >
+                                                {field.crop} &bull; {field.area.toFixed(1)} ha
+                                            </p>
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                                             {/* Health badge */}
-                                            <span className={`${health.bg} ${health.text} text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${health.color} animate-pulse`}></span>
+                                            <span
+                                                className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
+                                                style={{
+                                                    background: `color-mix(in srgb, ${health.color} 15%, transparent)`,
+                                                    color: health.color,
+                                                    fontFamily: 'var(--font-body)',
+                                                }}
+                                            >
+                                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: health.color }}></span>
                                                 {health.label}
                                             </span>
                                             {/* Delete Button */}
@@ -460,25 +639,45 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                                     e.stopPropagation();
                                                     setShowDeleteConfirm(field.id);
                                                 }}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-rose-50 rounded-full"
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full"
                                                 title="Delete field"
+                                                onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, #E05C5C 10%, transparent)')}
+                                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                             >
-                                                <svg className="w-4 h-4 text-rose-400 hover:text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#E05C5C' }}>delete</span>
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Metrics Row */}
                                     <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="bg-slate-50 rounded-xl p-3">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">NDVI</p>
-                                            <span className="text-xl font-black text-brand-dark">{field.ndvi.toFixed(2)}</span>
+                                        <div className="rounded-[16px] p-3" style={{ background: 'var(--ee-bg)' }}>
+                                            <p
+                                                className="text-[10px] font-bold uppercase mb-1"
+                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                            >
+                                                NDVI
+                                            </p>
+                                            <span
+                                                className="text-xl font-black"
+                                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                                            >
+                                                {field.ndvi.toFixed(2)}
+                                            </span>
                                         </div>
-                                        <div className="bg-slate-50 rounded-xl p-3">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Moisture</p>
-                                            <span className="text-xl font-black text-brand-dark">{field.soilMoisture}%</span>
+                                        <div className="rounded-[16px] p-3" style={{ background: 'var(--ee-bg)' }}>
+                                            <p
+                                                className="text-[10px] font-bold uppercase mb-1"
+                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                            >
+                                                Moisture
+                                            </p>
+                                            <span
+                                                className="text-xl font-black"
+                                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                                            >
+                                                {field.soilMoisture}%
+                                            </span>
                                         </div>
                                     </div>
 
@@ -492,7 +691,14 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                                 router.push(`/fields/${field.id}`);
                                             });
                                         }}
-                                        className="w-full py-3.5 bg-brand-beige text-brand-dark rounded-2xl font-black text-xs uppercase tracking-widest group-hover:bg-brand-lime transition-colors active:scale-95"
+                                        className="w-full py-3.5 rounded-[16px] font-black text-xs uppercase tracking-widest transition-colors active:scale-95"
+                                        style={{
+                                            background: 'var(--ee-bg)',
+                                            color: 'var(--ee-text)',
+                                            fontFamily: 'var(--font-heading)',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-primary)', e.currentTarget.style.color = '#FFFFFF')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--ee-bg)', e.currentTarget.style.color = 'var(--ee-text)')}
                                     >
                                         Analyze Insights
                                     </button>

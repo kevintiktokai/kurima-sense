@@ -24,9 +24,17 @@ export default function Navbar() {
     return (
         <motion.nav
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'bg-[#EBEBE3]/80 backdrop-blur-md border-b border-[#2D3A26]/5 py-4'
-                : 'bg-transparent py-6'
+                ? 'py-4'
+                : 'py-6'
                 }`}
+            style={isScrolled ? {
+                backgroundColor: 'rgba(244, 241, 237, 0.85)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: 'var(--shadow-ambient)',
+            } : {
+                backgroundColor: 'transparent',
+            }}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
@@ -34,10 +42,20 @@ export default function Navbar() {
             <div className="container mx-auto px-6 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 bg-[#2D3A26] rounded-xl flex items-center justify-center text-[#D7F26C] font-black text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div
+                        className="w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-xl shadow-lg group-hover:scale-110 transition-transform duration-300"
+                        style={{
+                            backgroundColor: 'var(--ee-primary)',
+                            color: '#FFFFFF',
+                            fontFamily: 'var(--font-heading)',
+                        }}
+                    >
                         K
                     </div>
-                    <span className={`text-2xl font-black tracking-tighter ${isScrolled ? 'text-[#2D3A26]' : 'text-[#2D3A26]'}`}>
+                    <span
+                        className="text-2xl font-black tracking-tighter"
+                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                    >
                         KurimaSense
                     </span>
                 </Link>
@@ -48,7 +66,13 @@ export default function Navbar() {
                         <Link
                             key={link.name}
                             href={link.href}
-                            className="text-[#2D3A26]/80 hover:text-[#2D3A26] font-medium text-sm uppercase tracking-widest hover:underline decoration-[#D7F26C] decoration-2 underline-offset-4 transition-all"
+                            className="font-medium text-sm uppercase tracking-widest transition-all hover:opacity-100"
+                            style={{
+                                color: 'var(--ee-muted)',
+                                fontFamily: 'var(--font-body)',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ee-text)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ee-muted)')}
                         >
                             {link.name}
                         </Link>
@@ -57,11 +81,25 @@ export default function Navbar() {
 
                 {/* CTA Button */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/auth?mode=login" className="text-[#2D3A26] font-bold text-sm hover:text-[#4A5D3B] transition-colors">
+                    <Link
+                        href="/auth?mode=login"
+                        className="font-bold text-sm transition-colors"
+                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ee-primary)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ee-text)')}
+                    >
                         Login
                     </Link>
                     <Link href="/auth">
-                        <button className="bg-[#2D3A26] text-[#D7F26C] px-6 py-2.5 rounded-full font-bold text-sm hover:bg-[#1a2216] hover:scale-105 transition-all shadow-xl shadow-[#2D3A26]/10">
+                        <button
+                            className="px-6 py-2.5 rounded-full font-bold text-sm hover:scale-105 transition-all"
+                            style={{
+                                backgroundColor: 'var(--ee-primary)',
+                                color: '#FFFFFF',
+                                boxShadow: '0 4px 14px rgba(15, 184, 133, 0.25)',
+                                fontFamily: 'var(--font-body)',
+                            }}
+                        >
                             Get Started
                         </button>
                     </Link>
@@ -69,7 +107,8 @@ export default function Navbar() {
 
                 {/* Mobile Menu Toggle */}
                 <button
-                    className="md:hidden text-[#2D3A26]"
+                    className="md:hidden"
+                    style={{ color: 'var(--ee-text)' }}
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                     {isMobileMenuOpen ? <X /> : <Menu />}
@@ -81,29 +120,42 @@ export default function Navbar() {
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="md:hidden bg-[#EBEBE3] border-t border-[#2D3A26]/10 overflow-hidden shadow-2xl"
+                    className="md:hidden overflow-hidden"
+                    style={{
+                        backgroundColor: 'var(--ee-bg)',
+                        boxShadow: 'var(--shadow-ambient)',
+                    }}
                 >
                     <div className="flex flex-col p-6 gap-4">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#2D3A26] font-bold text-lg"
+                                className="font-bold text-lg"
+                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        <div className="flex flex-col gap-3 mt-4 border-t border-[#2D3A26]/10 pt-4">
+                        <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: '2px solid var(--ee-bg-pressed)' }}>
                             <Link
                                 href="/auth?mode=login"
-                                className="text-[#2D3A26] font-bold text-lg text-center py-2"
+                                className="font-bold text-lg text-center py-2"
+                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Login
                             </Link>
                             <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                                <button className="w-full bg-[#2D3A26] text-[#D7F26C] px-6 py-3 rounded-xl font-bold hover:bg-[#1a2216] transition-colors">
+                                <button
+                                    className="w-full px-6 py-3 rounded-full font-bold transition-colors"
+                                    style={{
+                                        backgroundColor: 'var(--ee-primary)',
+                                        color: '#FFFFFF',
+                                        fontFamily: 'var(--font-body)',
+                                    }}
+                                >
                                     Get Started
                                 </button>
                             </Link>

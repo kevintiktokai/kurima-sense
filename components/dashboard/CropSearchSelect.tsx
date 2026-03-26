@@ -98,7 +98,11 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
         <div ref={containerRef} className="relative">
             {/* Selected display / Search input */}
             <div
-                className="w-full bg-slate-100 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-slate-200/70 transition-colors"
+                className="w-full rounded-[16px] p-3 flex items-center gap-2 cursor-pointer transition-colors"
+                style={{
+                    backgroundColor: 'var(--ee-bg)',
+                    boxShadow: 'var(--shadow-neu-inset)',
+                }}
                 onClick={() => {
                     setIsOpen(true);
                     setTimeout(() => inputRef.current?.focus(), 50);
@@ -106,13 +110,12 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
             >
                 {isOpen ? (
                     <div className="flex items-center gap-2 w-full">
-                        <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: '18px', color: 'var(--ee-muted)' }}>search</span>
                         <input
                             ref={inputRef}
                             type="text"
-                            className="flex-1 bg-transparent border-none outline-none font-bold text-brand-dark placeholder:text-slate-400 placeholder:font-medium text-sm"
+                            className="flex-1 bg-transparent outline-none text-sm font-bold"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                             placeholder="Search crops... e.g. maize, nyimo, tobacco"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -121,7 +124,6 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
                                     setIsOpen(false);
                                     setSearch("");
                                 }
-                                // Select first match on Enter
                                 if (e.key === "Enter" && filtered.length > 0 && filtered[0].crops.length > 0) {
                                     handleSelect(filtered[0].crops[0].value);
                                 }
@@ -130,30 +132,37 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
                     </div>
                 ) : (
                     <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-brand-dark text-sm">
+                        <span className="text-sm font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
                             {selectedCrop ? selectedCrop.label : "Select crop..."}
                             {selectedCrop?.aka && (
-                                <span className="text-slate-400 font-medium ml-1.5">({selectedCrop.aka})</span>
+                                <span className="font-medium ml-1.5" style={{ color: 'var(--ee-muted)' }}>({selectedCrop.aka})</span>
                             )}
                         </span>
-                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--ee-muted)' }}>expand_more</span>
                     </div>
                 )}
             </div>
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-2xl border border-slate-100 max-h-64 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div
+                    className="absolute top-full left-0 right-0 mt-1 rounded-[16px] max-h-64 overflow-y-auto z-50"
+                    style={{
+                        backgroundColor: 'var(--ee-surface)',
+                        boxShadow: 'var(--shadow-ambient)',
+                    }}
+                >
                     {filtered.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-slate-400">
+                        <div className="p-4 text-center text-sm" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             No crops matching &ldquo;{search}&rdquo;
                         </div>
                     ) : (
                         filtered.map(group => (
                             <div key={group.group}>
-                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 sticky top-0">
+                                <div
+                                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider sticky top-0"
+                                    style={{ color: 'var(--ee-muted)', backgroundColor: 'var(--ee-bg)', fontFamily: 'var(--font-body)' }}
+                                >
                                     {group.group}
                                 </div>
                                 {group.crops.map(crop => (
@@ -161,20 +170,20 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
                                         key={crop.value}
                                         type="button"
                                         onClick={() => handleSelect(crop.value)}
-                                        className={`w-full px-4 py-2.5 text-left flex items-center justify-between hover:bg-brand-lime/20 transition-colors ${
-                                            value === crop.value ? 'bg-brand-lime/10 font-black' : 'font-medium'
-                                        }`}
+                                        className="w-full px-4 py-2.5 text-left flex items-center justify-between transition-colors"
+                                        style={{
+                                            backgroundColor: value === crop.value ? 'rgba(15, 184, 133, 0.08)' : 'transparent',
+                                            fontWeight: value === crop.value ? 700 : 500,
+                                        }}
                                     >
-                                        <span className="text-sm text-brand-dark">
+                                        <span className="text-sm" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
                                             {crop.label}
                                             {crop.aka && (
-                                                <span className="text-slate-400 font-normal ml-1.5 text-xs">({crop.aka})</span>
+                                                <span className="font-normal ml-1.5 text-xs" style={{ color: 'var(--ee-muted)' }}>({crop.aka})</span>
                                             )}
                                         </span>
                                         {value === crop.value && (
-                                            <svg className="w-4 h-4 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                            </svg>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--ee-primary)' }}>check</span>
                                         )}
                                     </button>
                                 ))}

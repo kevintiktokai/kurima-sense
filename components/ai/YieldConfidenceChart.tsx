@@ -29,7 +29,6 @@ interface YieldConfidenceChartProps {
     confidenceScore?: number;
 }
 
-// Generate sample projection data with confidence bands
 export const generateProjectionData = (
     confidenceBands: ConfidenceBands,
     currentWeek: number = 4
@@ -57,17 +56,16 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
     disclaimer,
     confidenceScore
 }) => {
-    // Calculate gap percentage
     const gapPercent = projectedYield && yieldPotential
         ? Math.round((1 - projectedYield / yieldPotential) * 100)
         : 0;
 
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-slate-100">
-            {/* Yield Estimate Disclaimer Banner */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-2 mb-4 flex items-center gap-2">
-                <span className="text-sm">⚠️</span>
-                <p className="text-[10px] text-amber-700">
+        <div className="neu-surface p-6 lg:p-8">
+            {/* Yield Estimate Disclaimer */}
+            <div className="rounded-[12px] p-2 mb-4 flex items-center gap-2" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-sun)' }}>info</span>
+                <p className="text-[10px]" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
                     <span className="font-bold">ESTIMATE ONLY:</span> Results vary with weather, pests & management. Not a guarantee.
                 </p>
             </div>
@@ -75,13 +73,16 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-lime rounded-full flex items-center justify-center text-xl">
-                        📊
+                    <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>analytics</span>
                     </div>
                     <div>
-                        <h3 className="font-black text-brand-dark text-lg">{title}</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {methodology || 'Agronomic projection'} {confidenceScore ? `• ${Math.round(confidenceScore * 100)}% confidence` : ''}
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            {methodology || 'Agronomic projection'} {confidenceScore ? `· ${Math.round(confidenceScore * 100)}% confidence` : ''}
                         </p>
                     </div>
                 </div>
@@ -90,14 +91,14 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                 <div className="flex gap-4">
                     {projectedYield && (
                         <div className="text-right">
-                            <p className="text-2xl font-black text-brand-dark">{projectedYield.toFixed(1)}</p>
-                            <p className="text-[10px] font-bold text-brand-lime uppercase">Projected {unit}</p>
+                            <p className="text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{projectedYield.toFixed(1)}</p>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>Projected {unit}</p>
                         </div>
                     )}
                     {yieldPotential && (
                         <div className="text-right">
-                            <p className="text-2xl font-black text-slate-300">{yieldPotential.toFixed(1)}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Potential {unit}</p>
+                            <p className="text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-bg-border)' }}>{yieldPotential.toFixed(1)}</p>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Potential {unit}</p>
                         </div>
                     )}
                 </div>
@@ -105,14 +106,13 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
 
             {/* Yield Gap Indicator */}
             {gapPercent > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 flex items-center gap-3">
-                    <span className="text-xl">⚠️</span>
-                    <p className="text-sm text-amber-800">
+                <div className="rounded-[12px] p-3 mb-6 flex items-center gap-3" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-sun)', fontSize: '20px' }}>warning</span>
+                    <p className="text-sm" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
                         <span className="font-bold">{gapPercent}% yield gap</span> — room for improvement with optimized inputs
                     </p>
                 </div>
             )}
-
 
             {/* Chart */}
             <div className="h-[250px] lg:h-[300px]">
@@ -120,23 +120,23 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="confidenceGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#D7F26C" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#D7F26C" stopOpacity={0.05} />
+                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#0fb885" stopOpacity={0.02} />
                             </linearGradient>
                             <linearGradient id="midGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#2D3A26" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="#2D3A26" stopOpacity={0.1} />
+                                <stop offset="5%" stopColor="#2D3A30" stopOpacity={0.6} />
+                                <stop offset="95%" stopColor="#2D3A30" stopOpacity={0.05} />
                             </linearGradient>
                         </defs>
 
                         <XAxis
                             dataKey="name"
-                            tick={{ fontSize: 10, fill: '#94a3b8' }}
-                            axisLine={{ stroke: '#e2e8f0' }}
+                            tick={{ fontSize: 10, fill: '#8B9D8F', fontFamily: 'var(--font-body)' }}
+                            axisLine={{ stroke: '#e0ddd8' }}
                             tickLine={false}
                         />
                         <YAxis
-                            tick={{ fontSize: 10, fill: '#94a3b8' }}
+                            tick={{ fontSize: 10, fill: '#8B9D8F', fontFamily: 'var(--font-body)' }}
                             axisLine={false}
                             tickLine={false}
                             tickFormatter={(val) => `${val}`}
@@ -144,25 +144,26 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
 
                         <Tooltip
                             contentStyle={{
-                                backgroundColor: '#2D3A26',
-                                borderRadius: '1rem',
+                                backgroundColor: '#2D3A30',
+                                borderRadius: '16px',
                                 border: 'none',
                                 color: '#fff',
-                                padding: '12px 16px'
+                                padding: '12px 16px',
+                                fontFamily: 'var(--font-body)',
                             }}
                             formatter={(value, name) => {
                                 const numValue = typeof value === 'number' ? value : 0;
                                 const label = name === 'high' ? 'Best Case' : name === 'low' ? 'Worst Case' : name === 'actual' ? 'Actual' : 'Expected';
                                 return [`${numValue.toFixed(2)} ${unit}`, label];
                             }}
-                            labelStyle={{ fontWeight: 'bold', marginBottom: 4 }}
+                            labelStyle={{ fontWeight: 'bold', marginBottom: 4, fontFamily: 'var(--font-heading)' }}
                         />
 
-                        {/* Confidence Band (high-low range) */}
+                        {/* Confidence Band */}
                         <Area
                             type="monotone"
                             dataKey="high"
-                            stroke="#D7F26C"
+                            stroke="#0fb885"
                             strokeWidth={2}
                             strokeDasharray="4 4"
                             fill="url(#confidenceGradient)"
@@ -172,7 +173,7 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                         <Area
                             type="monotone"
                             dataKey="low"
-                            stroke="#D7F26C"
+                            stroke="#0fb885"
                             strokeWidth={2}
                             strokeDasharray="4 4"
                             fill="white"
@@ -184,21 +185,21 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                         <Area
                             type="monotone"
                             dataKey="mid"
-                            stroke="#2D3A26"
+                            stroke="#2D3A30"
                             strokeWidth={3}
                             fill="url(#midGradient)"
                             fillOpacity={0.6}
                             name="mid"
                         />
 
-                        {/* Actual Data Points (if available) */}
+                        {/* Actual Data Points */}
                         <Area
                             type="monotone"
                             dataKey="actual"
-                            stroke="#10b981"
+                            stroke="#0fb885"
                             strokeWidth={2}
                             fill="none"
-                            dot={{ fill: '#10b981', strokeWidth: 2 }}
+                            dot={{ fill: '#0fb885', strokeWidth: 2 }}
                             name="actual"
                         />
                     </AreaChart>
@@ -206,32 +207,37 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap gap-4 mt-4 justify-center text-xs">
+            <div className="flex flex-wrap gap-4 mt-4 justify-center text-xs" style={{ fontFamily: 'var(--font-body)' }}>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-brand-dark rounded-full" />
-                    <span className="text-slate-500">Expected Yield</span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--ee-text)' }} />
+                    <span style={{ color: 'var(--ee-muted)' }}>Expected Yield</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-3 bg-brand-lime/30 rounded border border-dashed border-brand-lime" />
-                    <span className="text-slate-500">Confidence Range</span>
+                    <div className="w-6 h-3 rounded" style={{ backgroundColor: 'rgba(15, 184, 133, 0.2)', border: '1px dashed var(--ee-primary)' }} />
+                    <span style={{ color: 'var(--ee-muted)' }}>Confidence Range</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full" />
-                    <span className="text-slate-500">Actual Performance</span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--ee-primary)' }} />
+                    <span style={{ color: 'var(--ee-muted)' }}>Actual Performance</span>
                 </div>
             </div>
 
             {/* Confidence Factors */}
             {confidenceFactors.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                <div className="mt-6 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                         Factors Affecting Confidence
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {confidenceFactors.map((factor, idx) => (
                             <span
                                 key={idx}
-                                className="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full"
+                                className="text-xs px-3 py-1.5 rounded-full"
+                                style={{
+                                    backgroundColor: 'var(--ee-bg)',
+                                    color: 'var(--ee-muted)',
+                                    fontFamily: 'var(--font-body)',
+                                }}
                             >
                                 {factor}
                             </span>

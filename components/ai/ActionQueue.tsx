@@ -22,40 +22,20 @@ interface ActionQueueProps {
     onActionComplete?: (actionId: string) => void;
 }
 
-const priorityStyles = {
-    urgent: {
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        badge: 'bg-red-100 text-red-700',
-        dot: 'bg-red-500'
-    },
-    high: {
-        bg: 'bg-amber-50',
-        border: 'border-amber-200',
-        badge: 'bg-amber-100 text-amber-700',
-        dot: 'bg-amber-500'
-    },
-    normal: {
-        bg: 'bg-brand-lime/10',
-        border: 'border-brand-lime/30',
-        badge: 'bg-brand-lime/30 text-brand-dark',
-        dot: 'bg-brand-lime'
-    },
-    low: {
-        bg: 'bg-slate-50',
-        border: 'border-slate-200',
-        badge: 'bg-slate-100 text-slate-600',
-        dot: 'bg-slate-400'
-    }
+const priorityConfig = {
+    urgent: { bg: 'rgba(220, 80, 80, 0.06)', badgeBg: 'rgba(220, 80, 80, 0.12)', badgeColor: '#c44' },
+    high: { bg: 'rgba(232, 163, 101, 0.08)', badgeBg: 'rgba(232, 163, 101, 0.15)', badgeColor: 'var(--ee-sun)' },
+    normal: { bg: 'rgba(15, 184, 133, 0.06)', badgeBg: 'rgba(15, 184, 133, 0.12)', badgeColor: 'var(--ee-primary)' },
+    low: { bg: 'var(--ee-bg)', badgeBg: 'var(--ee-bg-dim)', badgeColor: 'var(--ee-muted)' }
 };
 
 const typeIcons: Record<ActionItem['type'], string> = {
-    spray: '💊',
-    irrigate: '💧',
-    scout: '🔍',
-    harvest: '🌾',
-    fertilize: '🧪',
-    general: '📋'
+    spray: 'sanitizer',
+    irrigate: 'water_drop',
+    scout: 'search',
+    harvest: 'agriculture',
+    fertilize: 'science',
+    general: 'checklist'
 };
 
 export const ActionQueue: React.FC<ActionQueueProps> = ({
@@ -68,23 +48,26 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
     const urgentCount = pendingActions.filter(a => a.priority === 'urgent').length;
 
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-slate-100">
+        <div className="neu-surface p-6 lg:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-lime rounded-full flex items-center justify-center text-xl">
-                        📋
+                    <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>checklist</span>
                     </div>
                     <div>
-                        <h3 className="font-black text-brand-dark text-lg">{title}</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {pendingActions.length} pending • {completedActions.length} done
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            {pendingActions.length} pending
                         </p>
                     </div>
                 </div>
 
                 {urgentCount > 0 && (
-                    <span className="bg-red-100 text-red-700 text-xs font-bold px-3 py-1.5 rounded-full animate-pulse">
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'rgba(220,80,80,0.1)', color: '#c44', fontFamily: 'var(--font-body)' }}>
                         {urgentCount} Urgent
                     </span>
                 )}
@@ -93,13 +76,14 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
             {/* Actions List */}
             <div className="space-y-3">
                 {pendingActions.map((action) => {
-                    const style = priorityStyles[action.priority];
+                    const config = priorityConfig[action.priority];
                     const icon = typeIcons[action.type];
 
                     return (
                         <div
                             key={action.id}
-                            className={`${style.bg} ${style.border} border p-4 rounded-2xl transition-all hover:shadow-sm group`}
+                            className="p-4 rounded-[16px] transition-all duration-200 group"
+                            style={{ backgroundColor: config.bg }}
                         >
                             <div className="flex items-start gap-3">
                                 {/* Checkbox */}
@@ -108,56 +92,60 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
                                         action.onComplete?.();
                                         onActionComplete?.(action.id);
                                     }}
-                                    className="flex-shrink-0 w-6 h-6 border-2 border-slate-300 rounded-lg hover:border-brand-lime hover:bg-brand-lime/20 transition-colors flex items-center justify-center mt-0.5"
+                                    className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center mt-0.5 transition-colors"
+                                    style={{ border: '2px solid var(--ee-bg-border)' }}
                                 >
-                                    <svg className="w-4 h-4 text-transparent group-hover:text-brand-dark transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                    </svg>
+                                    <span className="material-symbols-outlined text-transparent group-hover:text-[var(--ee-primary)] transition-colors" style={{ fontSize: '16px' }}>check</span>
                                 </button>
 
                                 {/* Icon */}
-                                <div className="flex-shrink-0 w-10 h-10 bg-white rounded-xl flex items-center justify-center text-lg shadow-sm">
-                                    {icon}
+                                <div
+                                    className="flex-shrink-0 w-10 h-10 rounded-[12px] flex items-center justify-center"
+                                    style={{ backgroundColor: 'var(--ee-surface)', boxShadow: '2px 2px 6px #D5D2CE, -2px -2px 6px #FFFFFF' }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>{icon}</span>
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="font-bold text-brand-dark text-sm truncate">{action.title}</h4>
-                                        <span className={`${style.badge} text-[9px] font-bold px-2 py-0.5 rounded-full uppercase`}>
+                                        <h4 className="text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{action.title}</h4>
+                                        <span
+                                            className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                            style={{ backgroundColor: config.badgeBg, color: config.badgeColor, fontFamily: 'var(--font-body)' }}
+                                        >
                                             {action.priority}
                                         </span>
                                     </div>
 
-                                    <p className="text-xs text-slate-500 mb-2">{action.description}</p>
+                                    <p className="text-xs mb-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{action.description}</p>
 
-                                    <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                                    <div className="flex items-center gap-4 text-[10px]" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                                         {action.fieldName && (
                                             <span className="flex items-center gap-1">
-                                                🌾 {action.fieldName}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>grass</span> {action.fieldName}
                                             </span>
                                         )}
                                         {action.dueDate && (
                                             <span className="flex items-center gap-1">
-                                                📅 {action.dueDate}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>calendar_today</span> {action.dueDate}
                                             </span>
                                         )}
                                         {action.estimatedTime && (
                                             <span className="flex items-center gap-1">
-                                                ⏱️ {action.estimatedTime}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>schedule</span> {action.estimatedTime}
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Snooze */}
                                 {action.onSnooze && (
                                     <button
                                         onClick={action.onSnooze}
-                                        className="flex-shrink-0 text-slate-400 hover:text-brand-dark transition-colors p-2"
+                                        className="flex-shrink-0 p-2 transition-colors"
                                         title="Snooze"
                                     >
-                                        ⏰
+                                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-muted)', fontSize: '18px' }}>snooze</span>
                                     </button>
                                 )}
                             </div>
@@ -168,18 +156,19 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
 
             {/* Completed Section */}
             {completedActions.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                        ✅ Completed Today
+                <div className="mt-6 pt-4" style={{ borderTop: 'none' }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                        <span className="material-symbols-outlined align-middle" style={{ fontSize: '14px', color: 'var(--ee-primary)' }}>check_circle</span> Completed Today
                     </p>
                     <div className="space-y-2">
                         {completedActions.slice(0, 3).map((action) => (
                             <div
                                 key={action.id}
-                                className="flex items-center gap-3 text-slate-400 line-through"
+                                className="flex items-center gap-3 line-through"
+                                style={{ color: 'var(--ee-muted)' }}
                             >
-                                <span className="text-sm">{typeIcons[action.type]}</span>
-                                <span className="text-sm">{action.title}</span>
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{typeIcons[action.type]}</span>
+                                <span className="text-sm" style={{ fontFamily: 'var(--font-body)' }}>{action.title}</span>
                             </div>
                         ))}
                     </div>
@@ -188,18 +177,23 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
 
             {pendingActions.length === 0 && completedActions.length === 0 && (
                 <div className="text-center py-8">
-                    <div className="text-4xl mb-3">🎉</div>
-                    <p className="text-sm font-bold text-emerald-600">All caught up!</p>
-                    <p className="text-xs text-slate-400 mt-1">No pending actions for today</p>
+                    <span className="material-symbols-outlined mb-3" style={{ fontSize: '40px', color: 'var(--ee-primary)' }}>celebration</span>
+                    <p className="text-sm font-bold" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>All caught up!</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No pending actions for today</p>
                 </div>
             )}
 
             {/* View All Link */}
             <a
                 href="/dashboard/plan"
-                className="mt-4 block text-center py-3 bg-slate-50 hover:bg-brand-lime/20 rounded-2xl text-sm font-bold text-slate-500 hover:text-brand-dark transition-colors"
+                className="mt-4 block text-center py-3 rounded-[16px] text-sm font-bold transition-colors"
+                style={{
+                    backgroundColor: 'var(--ee-bg)',
+                    color: 'var(--ee-muted)',
+                    fontFamily: 'var(--font-body)',
+                }}
             >
-                View All in Plan →
+                View All in Plan
             </a>
         </div>
     );

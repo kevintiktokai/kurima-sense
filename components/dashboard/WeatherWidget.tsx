@@ -140,74 +140,89 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ lat, lon, compact 
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-sky-400 to-blue-500 p-6 rounded-[2rem] text-white animate-pulse min-h-[180px]">
-                <div className="h-4 w-20 bg-white/30 rounded mb-4" />
-                <div className="h-12 w-24 bg-white/30 rounded" />
+            <div className="neu-surface p-6 animate-pulse min-h-[180px]">
+                <div className="h-4 w-20 rounded" style={{ backgroundColor: 'var(--ee-bg-pressed)' }} />
+                <div className="h-12 w-24 rounded mt-4" style={{ backgroundColor: 'var(--ee-bg-pressed)' }} />
             </div>
         );
     }
 
     if (error || !weather) {
         return (
-            <div className="bg-slate-100 p-6 rounded-[2rem] text-slate-400 flex items-center justify-center min-h-[180px]">
-                <span>🌡️ Weather unavailable</span>
+            <div className="neu-surface p-6 flex items-center justify-center min-h-[180px]" style={{ color: 'var(--ee-muted)' }}>
+                <span className="material-symbols-outlined mr-2" style={{ fontSize: '20px' }}>thermostat</span>
+                <span style={{ fontFamily: 'var(--font-body)' }}>Weather unavailable</span>
             </div>
         );
     }
 
     if (compact) {
         return (
-            <div className="bg-gradient-to-br from-sky-400 to-blue-500 p-4 rounded-2xl text-white flex items-center gap-3">
-                <span className="text-3xl">{weather.icon}</span>
+            <div className="neu-surface p-4 flex items-center gap-3">
+                <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--ee-sun)', opacity: 0.15 }}
+                >
+                    <span className="text-2xl">{weather.icon}</span>
+                </div>
                 <div>
-                    <span className="text-2xl font-black">{weather.temperature}°C</span>
-                    <p className="text-xs text-white/80">{weather.condition}</p>
+                    <span className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>{weather.temperature}°C</span>
+                    <p className="text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{weather.condition}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div id="weather-widget-main" className="bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-500 p-6 lg:p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
+        <div id="weather-widget-main" className="neu-surface p-6 lg:p-8 relative overflow-hidden">
+            {/* Gradient sun circle decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full -mr-10 -mt-10" style={{
+                background: 'radial-gradient(circle, rgba(232, 163, 101, 0.2) 0%, transparent 70%)',
+            }} />
 
             {/* Current Weather */}
             <div id="current-weather-section" className="relative z-10">
                 <div className="flex items-start justify-between mb-4">
                     <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1">Current Weather</h4>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-5xl font-black">{weather.temperature}°</span>
-                            <span className="text-lg font-bold text-white/80">C</span>
+                        <h4 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Current Weather</h4>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-5xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.temperature}°</span>
+                            <span className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 500, color: 'var(--ee-muted)' }}>C</span>
                         </div>
-                        <p className="text-sm font-bold text-white/80 mt-1">{weather.condition}</p>
+                        <p className="text-sm font-semibold mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{weather.condition}</p>
                     </div>
-                    <span className="text-5xl">{weather.icon}</span>
+                    <div
+                        className="w-16 h-16 rounded-full flex items-center justify-center"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(232, 163, 101, 0.25), rgba(232, 163, 101, 0.05))',
+                        }}
+                    >
+                        <span className="text-4xl">{weather.icon}</span>
+                    </div>
                 </div>
 
                 {/* Stats Row */}
                 <div className="flex gap-6 mb-6">
                     <div>
-                        <span className="text-xs font-bold text-white/50 uppercase">Humidity</span>
-                        <p className="text-lg font-black">{weather.humidity}%</p>
+                        <span className="text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Humidity</span>
+                        <p className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-water)' }}>{weather.humidity}%</p>
                     </div>
                     <div>
-                        <span className="text-xs font-bold text-white/50 uppercase">Wind</span>
-                        <p className="text-lg font-black">{weather.windSpeed} km/h</p>
+                        <span className="text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Wind</span>
+                        <p className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.windSpeed} km/h</p>
                     </div>
                 </div>
 
                 {/* 5-Day Forecast */}
                 {weather.forecast && weather.forecast.length > 0 && (
-                    <div id="forecast-row" className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <div id="forecast-row" className="rounded-[16px] p-4" style={{ backgroundColor: 'var(--ee-bg)' }}>
                         <div className="flex justify-between">
                             {weather.forecast.map((day, i) => (
                                 <div key={i} className="text-center">
-                                    <p className="text-[10px] font-bold text-white/60 uppercase mb-1">{day.day}</p>
+                                    <p className="text-[10px] font-bold uppercase mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{day.day}</p>
                                     <span className="text-xl">{day.icon}</span>
-                                    <p className="text-xs font-bold mt-1">{day.high}°</p>
-                                    <p className="text-[10px] text-white/60">{day.low}°</p>
+                                    <p className="text-xs font-bold mt-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>{day.high}°</p>
+                                    <p className="text-[10px]" style={{ color: 'var(--ee-muted)' }}>{day.low}°</p>
                                 </div>
                             ))}
                         </div>

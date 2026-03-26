@@ -56,7 +56,6 @@ const CROP_STAGES: Record<string, GrowthStage[]> = {
     ],
 };
 
-// Fallback for any unlisted crop
 const DEFAULT_GENERIC_STAGES: GrowthStage[] = [
     { id: 'EST', name: 'Establishment', shortName: 'EST', description: 'Germination & emergence', daysFromPlanting: 14, status: 'upcoming' },
     { id: 'VEG', name: 'Vegetative', shortName: 'VEG', description: 'Leaf & stem growth', daysFromPlanting: 42, status: 'upcoming' },
@@ -65,36 +64,13 @@ const DEFAULT_GENERIC_STAGES: GrowthStage[] = [
 ];
 
 const getStagesForCrop = (cropType: string): GrowthStage[] => {
-    // Normalise crop name to match keys
     const normalised = cropType?.trim() || 'Maize';
     for (const [key, stages] of Object.entries(CROP_STAGES)) {
         if (normalised.toLowerCase() === key.toLowerCase()) return stages;
     }
-    // Check plural forms
     if (normalised.toLowerCase() === 'soybeans') return CROP_STAGES.Soybean;
     if (normalised.toLowerCase() === 'groundnut') return CROP_STAGES.Groundnuts;
     return DEFAULT_GENERIC_STAGES;
-};
-
-const stageColors = {
-    completed: {
-        bg: 'bg-brand-lime',
-        border: 'border-brand-lime',
-        text: 'text-brand-dark',
-        line: 'bg-brand-lime'
-    },
-    current: {
-        bg: 'bg-amber-400',
-        border: 'border-amber-400',
-        text: 'text-amber-900',
-        line: 'bg-slate-200'
-    },
-    upcoming: {
-        bg: 'bg-slate-200',
-        border: 'border-slate-300',
-        text: 'text-slate-400',
-        line: 'bg-slate-200'
-    }
 };
 
 export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
@@ -104,18 +80,16 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
     plantingDate,
     cropType = 'Maize'
 }) => {
-    // Use crop-specific stages if none provided
     if (!stages || stages.length === 0) {
         stages = getStagesForCrop(cropType);
     }
-    // Calculate days since planting
+
     let daysSincePlanting = 0;
     if (plantingDate) {
         const pDate = new Date(plantingDate);
         daysSincePlanting = Math.floor((Date.now() - pDate.getTime()) / (1000 * 60 * 60 * 24));
     }
 
-    // Update stage statuses based on current stage or days
     const processedStages = stages.map(stage => {
         let status: GrowthStage['status'] = 'upcoming';
 
@@ -138,25 +112,28 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
     const progressPercent = ((completedCount + 0.5) / processedStages.length) * 100;
 
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-slate-100">
+        <div className="neu-surface p-6 lg:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-lime rounded-full flex items-center justify-center text-xl">
-                        🌱
+                    <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>eco</span>
                     </div>
                     <div>
-                        <h3 className="font-black text-brand-dark text-lg">Growth Stage</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {cropType} • Day {daysSincePlanting}
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>Growth Stage</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            {cropType} · Day {daysSincePlanting}
                         </p>
                     </div>
                 </div>
 
                 {daysToHarvest && (
-                    <div className="bg-brand-lime/20 px-4 py-2 rounded-full">
-                        <p className="text-xs font-bold text-brand-dark">
-                            🌾 {daysToHarvest} days to harvest
+                    <div className="px-4 py-2 rounded-full" style={{ backgroundColor: 'rgba(15, 184, 133, 0.1)' }}>
+                        <p className="text-xs font-bold" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>
+                            <span className="material-symbols-outlined align-middle" style={{ fontSize: '14px' }}>agriculture</span> {daysToHarvest}d to harvest
                         </p>
                     </div>
                 )}
@@ -164,14 +141,17 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
 
             {/* Current Stage Highlight */}
             {currentStageData && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+                <div className="rounded-[16px] p-4 mb-6" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-black text-lg">
+                        <div
+                            className="w-12 h-12 rounded-[12px] flex items-center justify-center"
+                            style={{ backgroundColor: 'var(--ee-sun)', color: '#fff', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.875rem' }}
+                        >
                             {currentStageData.shortName}
                         </div>
                         <div>
-                            <p className="font-bold text-amber-900">{currentStageData.name}</p>
-                            <p className="text-sm text-amber-700">{currentStageData.description}</p>
+                            <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{currentStageData.name}</p>
+                            <p className="text-sm" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{currentStageData.description}</p>
                         </div>
                     </div>
                 </div>
@@ -179,10 +159,13 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
 
             {/* Progress Bar */}
             <div className="relative mb-6">
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--ee-bg)' }}>
                     <div
-                        className="h-full bg-gradient-to-r from-brand-lime to-amber-400 transition-all duration-1000"
-                        style={{ width: `${progressPercent}%` }}
+                        className="h-full rounded-full transition-all duration-1000"
+                        style={{
+                            width: `${progressPercent}%`,
+                            background: 'linear-gradient(90deg, var(--ee-primary), var(--ee-sun))',
+                        }}
                     />
                 </div>
             </div>
@@ -190,30 +173,45 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
             {/* Stage Timeline */}
             <div className="flex justify-between items-start overflow-x-auto pb-2">
                 {processedStages.map((stage, idx) => {
-                    const colors = stageColors[stage.status];
+                    const isCompleted = stage.status === 'completed';
+                    const isCurrent = stage.status === 'current';
                     const isLast = idx === processedStages.length - 1;
 
                     return (
                         <div key={stage.id} className="flex flex-col items-center min-w-[60px] relative">
                             {/* Connector Line */}
                             {!isLast && (
-                                <div className={`absolute top-4 left-1/2 w-full h-0.5 ${colors.line} z-0`} />
+                                <div
+                                    className="absolute top-4 left-1/2 w-full h-0.5 z-0"
+                                    style={{ backgroundColor: isCompleted ? 'var(--ee-primary)' : 'var(--ee-bg-pressed)' }}
+                                />
                             )}
 
                             {/* Stage Dot */}
-                            <div className={`relative z-10 w-8 h-8 ${colors.bg} ${colors.border} border-2 rounded-full flex items-center justify-center ${stage.status === 'current' ? 'ring-4 ring-amber-200 animate-pulse' : ''}`}>
-                                {stage.status === 'completed' && (
-                                    <svg className="w-4 h-4 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                    </svg>
+                            <div
+                                className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
+                                style={{
+                                    backgroundColor: isCompleted ? 'var(--ee-primary)' : isCurrent ? 'var(--ee-sun)' : 'var(--ee-bg-pressed)',
+                                    boxShadow: isCurrent ? '0 0 0 4px rgba(232, 163, 101, 0.2)' : 'none',
+                                    border: stage.status === 'upcoming' ? '2px solid var(--ee-bg-border)' : 'none',
+                                }}
+                            >
+                                {isCompleted && (
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>check</span>
                                 )}
                             </div>
 
                             {/* Label */}
-                            <p className={`text-[10px] font-bold mt-2 ${colors.text} text-center`}>
+                            <p className="text-[10px] font-bold mt-2 text-center" style={{
+                                color: isCompleted ? 'var(--ee-primary)' : isCurrent ? 'var(--ee-sun)' : 'var(--ee-muted)',
+                                fontFamily: 'var(--font-body)',
+                            }}>
                                 {stage.shortName}
                             </p>
-                            <p className={`text-[8px] ${stage.status === 'upcoming' ? 'text-slate-300' : 'text-slate-400'} text-center hidden lg:block`}>
+                            <p className="text-[8px] text-center hidden lg:block" style={{
+                                color: stage.status === 'upcoming' ? 'var(--ee-bg-border)' : 'var(--ee-muted)',
+                                fontFamily: 'var(--font-body)',
+                            }}>
                                 Day {stage.daysFromPlanting}
                             </p>
                         </div>

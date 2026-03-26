@@ -106,10 +106,10 @@ export default function WeatherPage() {
 
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center">
+            <div className="h-full flex items-center justify-center" style={{ background: 'var(--ee-bg)' }}>
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-brand-lime border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-500 font-medium">Loading Climate Intelligence...</p>
+                    <div className="w-16 h-16 rounded-full animate-spin mx-auto mb-4" style={{ border: '4px solid var(--ee-primary)', borderTopColor: 'transparent' }}></div>
+                    <p className="font-medium" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Loading Climate Intelligence...</p>
                 </div>
             </div>
         );
@@ -131,11 +131,12 @@ export default function WeatherPage() {
             {fields.length > 0 && (
                 <div className="col-span-12">
                     <div className="flex items-center gap-4">
-                        <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Weather for:</label>
+                        <label className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Weather for:</label>
                         <select
                             value={selectedFieldId || ''}
                             onChange={(e) => setSelectedFieldId(e.target.value || undefined)}
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-brand-dark font-semibold focus:outline-none focus:ring-2 focus:ring-brand-lime"
+                            className="neu-surface rounded-full px-4 py-2 font-semibold focus:outline-none focus:ring-2"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)', background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)', border: 'none', ['--tw-ring-color' as string]: 'var(--ee-primary)' }}
                         >
                             <option value="">My Location (Default)</option>
                             {fields.map(f => (
@@ -149,15 +150,15 @@ export default function WeatherPage() {
             {/* Weather Alerts Banner */}
             {alertsLoading ? null : alerts && alerts.has_critical && (
                 <div className="col-span-12">
-                    <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 flex items-start gap-4">
-                        <div className="text-3xl">⚠️</div>
+                    <div className="rounded-[24px] p-4 flex items-start gap-4" style={{ background: '#FEF2F2', boxShadow: 'var(--shadow-neu)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#DC2626' }}>warning</span>
                         <div className="flex-1">
-                            <h4 className="font-black text-red-700">Weather Alerts Active</h4>
+                            <h4 className="font-black" style={{ color: '#B91C1C', fontFamily: 'var(--font-heading)' }}>Weather Alerts Active</h4>
                             <div className="space-y-2 mt-2">
                                 {alerts.alerts.slice(0, 3).map((alert, i) => (
-                                    <div key={i} className="bg-white rounded-xl p-3 border border-red-100">
-                                        <p className="font-bold text-red-800">{alert.title}</p>
-                                        <p className="text-sm text-red-600">{alert.message}</p>
+                                    <div key={i} className="rounded-[16px] p-3" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-neu-inset)' }}>
+                                        <p className="font-bold" style={{ color: '#991B1B', fontFamily: 'var(--font-body)' }}>{alert.title}</p>
+                                        <p className="text-sm" style={{ color: '#DC2626' }}>{alert.message}</p>
                                     </div>
                                 ))}
                             </div>
@@ -168,76 +169,79 @@ export default function WeatherPage() {
 
             {/* Current Weather Hero */}
             <div className="col-span-12 lg:col-span-8">
-                <div className="bg-gradient-to-br from-brand-dark to-[#1a2616] p-8 lg:p-12 rounded-[2.5rem] text-white relative overflow-hidden min-h-[280px]">
+                <div className="p-8 lg:p-12 rounded-[24px] text-white relative overflow-hidden min-h-[280px]" style={{ background: 'linear-gradient(135deg, var(--ee-text), #1E2B20)', boxShadow: 'var(--shadow-neu)' }}>
                     <div className="relative z-10">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-white/60 font-bold text-sm uppercase tracking-widest mb-2">Current Conditions</p>
+                                <p className="font-bold text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Current Conditions</p>
                                 <div className="flex items-end gap-4">
-                                    <span className="text-7xl lg:text-8xl font-black">{Math.round(current?.temperature || 0)}°</span>
+                                    <span className="text-7xl lg:text-8xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current?.temperature || 0)}°</span>
                                     <span className="text-6xl mb-2">{getWeatherIcon(current?.weather_code || 0)}</span>
                                 </div>
-                                <p className="text-2xl font-bold text-brand-lime mt-2">{current?.weather_description}</p>
-                                <p className="text-white/70 mt-1">Feels like {Math.round(current?.feels_like || 0)}°C</p>
+                                <p className="text-2xl font-bold mt-2" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>{current?.weather_description}</p>
+                                <p className="mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}>Feels like {Math.round(current?.feels_like || 0)}°C</p>
                             </div>
                             <div className="text-right space-y-3">
-                                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                                    <p className="text-xs text-white/60 uppercase">Humidity</p>
-                                    <p className="text-xl font-black">{current?.humidity}%</p>
+                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Humidity</p>
+                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current?.humidity}%</p>
                                 </div>
-                                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                                    <p className="text-xs text-white/60 uppercase">Wind</p>
-                                    <p className="text-xl font-black">{Math.round(current?.wind_speed || 0)} km/h</p>
-                                    <p className="text-xs text-white/60">{current?.wind_direction_text}</p>
+                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Wind</p>
+                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current?.wind_speed || 0)} km/h</p>
+                                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{current?.wind_direction_text}</p>
                                 </div>
-                                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                                    <p className="text-xs text-white/60 uppercase">UV Index</p>
-                                    <p className="text-xl font-black">{current?.uv_index}</p>
-                                    <p className="text-xs text-brand-lime">{current?.uv_level}</p>
+                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>UV Index</p>
+                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current?.uv_index}</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-primary)' }}>{current?.uv_level}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     {/* Decorative glow */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-lime opacity-10 rounded-full blur-[80px] pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ background: 'var(--ee-primary)', opacity: 0.12 }}></div>
                 </div>
             </div>
 
             {/* Historical Comparison */}
             <div className="col-span-12 lg:col-span-4">
-                <div className="bg-white rounded-[2rem] p-6 shadow-lg border border-slate-100 h-full">
-                    <h4 className="font-black text-brand-dark text-lg mb-4">📊 Historical Comparison</h4>
+                <div className="neu-surface rounded-[24px] p-6 h-full" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-lg mb-4 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>bar_chart</span>
+                        Historical Comparison
+                    </h4>
                     {historicalLoading ? (
                         <div className="space-y-4 animate-pulse">
-                            <div className="h-3 w-32 bg-slate-100 rounded mb-4" />
-                            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                                <div className="h-3 w-24 bg-slate-200 rounded" />
-                                <div className="h-8 w-20 bg-slate-200 rounded" />
-                                <div className="h-3 w-36 bg-slate-100 rounded" />
+                            <div className="h-3 w-32 rounded mb-4" style={{ background: 'var(--ee-bg)' }} />
+                            <div className="rounded-[16px] p-4 space-y-2" style={{ background: 'var(--ee-bg)' }}>
+                                <div className="h-3 w-24 rounded" style={{ background: '#E0DCD6' }} />
+                                <div className="h-8 w-20 rounded" style={{ background: '#E0DCD6' }} />
+                                <div className="h-3 w-36 rounded" style={{ background: 'var(--ee-bg)' }} />
                             </div>
-                            <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                                <div className="h-3 w-24 bg-slate-200 rounded" />
-                                <div className="h-8 w-20 bg-slate-200 rounded" />
-                                <div className="h-3 w-36 bg-slate-100 rounded" />
+                            <div className="rounded-[16px] p-4 space-y-2" style={{ background: 'var(--ee-bg)' }}>
+                                <div className="h-3 w-24 rounded" style={{ background: '#E0DCD6' }} />
+                                <div className="h-8 w-20 rounded" style={{ background: '#E0DCD6' }} />
+                                <div className="h-3 w-36 rounded" style={{ background: 'var(--ee-bg)' }} />
                             </div>
                         </div>
                     ) : (
                         <>
-                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-4">{historical?.comparison_period}</p>
+                            <p className="text-xs uppercase tracking-wider mb-4" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{historical?.comparison_period}</p>
                             <div className="space-y-4">
-                                <div className="bg-slate-50 rounded-xl p-4">
-                                    <p className="text-sm text-slate-500 font-medium">Temperature</p>
-                                    <p className={`text-2xl font-black ${(historical?.deviation?.temperature || 0) > 0 ? 'text-orange-500' : 'text-blue-500'}`}>
+                                <div className="rounded-[16px] p-4" style={{ background: 'var(--ee-bg)' }}>
+                                    <p className="text-sm font-medium" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Temperature</p>
+                                    <p className="text-2xl font-black" style={{ color: (historical?.deviation?.temperature || 0) > 0 ? 'var(--ee-sun)' : 'var(--ee-water)', fontFamily: 'var(--font-heading)' }}>
                                         {historical?.deviation?.temperature !== undefined && historical?.deviation?.temperature !== null ? (historical.deviation.temperature > 0 ? '+' : '') + historical.deviation.temperature + '°C' : '—'}
                                     </p>
-                                    <p className="text-sm text-slate-600">{historical?.deviation?.temperature_text}</p>
+                                    <p className="text-sm" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>{historical?.deviation?.temperature_text}</p>
                                 </div>
-                                <div className="bg-slate-50 rounded-xl p-4">
-                                    <p className="text-sm text-slate-500 font-medium">Precipitation</p>
-                                    <p className={`text-2xl font-black ${(historical?.deviation?.precipitation || 0) > 0 ? 'text-blue-500' : 'text-orange-500'}`}>
+                                <div className="rounded-[16px] p-4" style={{ background: 'var(--ee-bg)' }}>
+                                    <p className="text-sm font-medium" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Precipitation</p>
+                                    <p className="text-2xl font-black" style={{ color: (historical?.deviation?.precipitation || 0) > 0 ? 'var(--ee-water)' : 'var(--ee-sun)', fontFamily: 'var(--font-heading)' }}>
                                         {historical?.deviation?.precipitation !== undefined && historical?.deviation?.precipitation !== null ? (historical.deviation.precipitation > 0 ? '+' : '') + historical.deviation.precipitation + '%' : '—'}
                                     </p>
-                                    <p className="text-sm text-slate-600">{historical?.deviation?.precipitation_text}</p>
+                                    <p className="text-sm" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>{historical?.deviation?.precipitation_text}</p>
                                 </div>
                             </div>
                         </>
@@ -247,28 +251,32 @@ export default function WeatherPage() {
 
             {/* 7-Day Forecast */}
             <div className="col-span-12">
-                <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-lg border border-slate-100">
-                    <h4 className="font-black text-brand-dark text-xl mb-6">7-Day Forecast</h4>
+                <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-xl mb-6" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>7-Day Forecast</h4>
                     <div className="grid grid-cols-7 gap-2 lg:gap-4">
                         {daily.slice(0, 7).map((day, i) => (
                             <button
                                 key={day.date}
                                 onClick={() => setSelectedDay(i)}
-                                className={`p-3 lg:p-4 rounded-2xl transition-all text-center ${selectedDay === i
-                                    ? 'bg-brand-dark text-white scale-105 shadow-xl'
-                                    : 'bg-slate-50 hover:bg-slate-100 text-brand-dark'
-                                    }`}
+                                className="p-3 lg:p-4 rounded-[16px] transition-all text-center"
+                                style={selectedDay === i
+                                    ? { background: 'var(--ee-text)', color: '#FFFFFF', transform: 'scale(1.05)', boxShadow: 'var(--shadow-ambient)' }
+                                    : { background: 'var(--ee-bg)', color: 'var(--ee-text)' }
+                                }
                             >
-                                <p className={`text-xs font-bold uppercase ${selectedDay === i ? 'text-brand-lime' : 'text-slate-400'}`}>
+                                <p className="text-xs font-bold uppercase" style={{ color: selectedDay === i ? 'var(--ee-primary)' : 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                                     {getDayName(day.date, true)}
                                 </p>
                                 <p className="text-3xl my-2">{getWeatherIcon(day.weather_code)}</p>
-                                <p className="font-black text-lg">{Math.round(day.temp_max)}°</p>
-                                <p className={`text-sm ${selectedDay === i ? 'text-white/60' : 'text-slate-400'}`}>
+                                <p className="font-black text-lg" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(day.temp_max)}°</p>
+                                <p className="text-sm" style={{ color: selectedDay === i ? 'rgba(255,255,255,0.5)' : 'var(--ee-muted)' }}>
                                     {Math.round(day.temp_min)}°
                                 </p>
                                 {(day.precipitation_probability || 0) > 30 && (
-                                    <p className="text-xs text-blue-500 font-bold mt-1">💧 {day.precipitation_probability}%</p>
+                                    <p className="text-xs font-bold mt-1 flex items-center justify-center gap-0.5" style={{ color: 'var(--ee-water)' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>water_drop</span>
+                                        {day.precipitation_probability}%
+                                    </p>
                                 )}
                             </button>
                         ))}
@@ -276,26 +284,26 @@ export default function WeatherPage() {
 
                     {/* Selected day details */}
                     {daily[selectedDay] && (
-                        <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 lg:grid-cols-5 gap-4">
-                            <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                <p className="text-xs text-slate-400 uppercase">Sunrise</p>
-                                <p className="font-bold text-brand-dark">{daily[selectedDay].sunrise?.split('T')[1]?.slice(0, 5) || '—'}</p>
+                        <div className="mt-6 pt-6 grid grid-cols-2 lg:grid-cols-5 gap-4" style={{ borderTop: 'none', background: 'transparent' }}>
+                            <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Sunrise</p>
+                                <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].sunrise?.split('T')[1]?.slice(0, 5) || '—'}</p>
                             </div>
-                            <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                <p className="text-xs text-slate-400 uppercase">Sunset</p>
-                                <p className="font-bold text-brand-dark">{daily[selectedDay].sunset?.split('T')[1]?.slice(0, 5) || '—'}</p>
+                            <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Sunset</p>
+                                <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].sunset?.split('T')[1]?.slice(0, 5) || '—'}</p>
                             </div>
-                            <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                <p className="text-xs text-slate-400 uppercase">Rain</p>
-                                <p className="font-bold text-brand-dark">{daily[selectedDay].precipitation || 0}mm</p>
+                            <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Rain</p>
+                                <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].precipitation || 0}mm</p>
                             </div>
-                            <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                <p className="text-xs text-slate-400 uppercase">UV Index</p>
-                                <p className="font-bold text-brand-dark">{daily[selectedDay].uv_index_max}</p>
+                            <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>UV Index</p>
+                                <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].uv_index_max}</p>
                             </div>
-                            <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                <p className="text-xs text-slate-400 uppercase">ET₀</p>
-                                <p className="font-bold text-brand-dark">{daily[selectedDay].evapotranspiration?.toFixed(1) || 0}mm</p>
+                            <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>ET&#x2080;</p>
+                                <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].evapotranspiration?.toFixed(1) || 0}mm</p>
                             </div>
                         </div>
                     )}
@@ -304,28 +312,28 @@ export default function WeatherPage() {
 
             {/* 24-Hour Temperature & Precipitation Chart */}
             <div className="col-span-12 lg:col-span-8">
-                <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-lg border border-slate-100">
-                    <h4 className="font-black text-brand-dark text-xl mb-2">24-Hour Outlook</h4>
-                    <p className="text-sm text-slate-400 mb-6">Temperature and precipitation probability</p>
+                <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-xl mb-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>24-Hour Outlook</h4>
+                    <p className="text-sm mb-6" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Temperature and precipitation probability</p>
                     <div className="h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={hourlyChartData}>
                                 <defs>
                                     <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#D7F26C" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#D7F26C" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#0fb885" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <XAxis
                                     dataKey="time"
-                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                    tick={{ fontSize: 10, fill: '#8B9D8F' }}
                                     tickLine={false}
                                     axisLine={false}
                                 />
                                 <YAxis
                                     yAxisId="temp"
                                     orientation="left"
-                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                    tick={{ fontSize: 10, fill: '#8B9D8F' }}
                                     tickLine={false}
                                     axisLine={false}
                                     domain={['dataMin - 2', 'dataMax + 2']}
@@ -333,25 +341,26 @@ export default function WeatherPage() {
                                 <YAxis
                                     yAxisId="precip"
                                     orientation="right"
-                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                    tick={{ fontSize: 10, fill: '#8B9D8F' }}
                                     tickLine={false}
                                     axisLine={false}
                                     domain={[0, 100]}
                                 />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: '#2D3A26',
-                                        borderRadius: '1rem',
+                                        backgroundColor: '#2D3A30',
+                                        borderRadius: '16px',
                                         border: 'none',
-                                        color: '#fff'
+                                        color: '#fff',
+                                        fontFamily: 'var(--font-body)'
                                     }}
-                                    itemStyle={{ color: '#D7F26C' }}
+                                    itemStyle={{ color: '#0fb885' }}
                                 />
                                 <Area
                                     yAxisId="temp"
                                     type="monotone"
                                     dataKey="temperature"
-                                    stroke="#2D3A26"
+                                    stroke="#2D3A30"
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#tempGradient)"
@@ -360,7 +369,7 @@ export default function WeatherPage() {
                                 <Bar
                                     yAxisId="precip"
                                     dataKey="precipitation"
-                                    fill="#3b82f6"
+                                    fill="#5C9EAD"
                                     fillOpacity={0.5}
                                     radius={[4, 4, 0, 0]}
                                     name="Rain Chance (%)"
@@ -373,18 +382,21 @@ export default function WeatherPage() {
 
             {/* Spray Window Optimizer */}
             <div className="col-span-12 lg:col-span-4">
-                <div className="bg-white rounded-[2rem] p-6 shadow-lg border border-slate-100 h-full">
-                    <h4 className="font-black text-brand-dark text-lg mb-1">🌿 Spray Window</h4>
-                    <p className="text-xs text-slate-400 mb-4">Optimal times for pesticide/herbicide application</p>
+                <div className="neu-surface rounded-[24px] p-6 h-full" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-lg mb-1 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>spa</span>
+                        Spray Window
+                    </h4>
+                    <p className="text-xs mb-4" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Optimal times for pesticide/herbicide application</p>
 
                     {sprayLoading ? (
                         <div className="space-y-3 animate-pulse">
                             {[0, 1, 2].map(i => (
-                                <div key={i} className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-slate-200 rounded-full" />
+                                <div key={i} className="rounded-[16px] p-3 flex items-center gap-3" style={{ background: 'var(--ee-bg)' }}>
+                                    <div className="w-10 h-10 rounded-full" style={{ background: '#E0DCD6' }} />
                                     <div className="space-y-1 flex-1">
-                                        <div className="h-3 w-16 bg-slate-200 rounded" />
-                                        <div className="h-3 w-24 bg-slate-100 rounded" />
+                                        <div className="h-3 w-16 rounded" style={{ background: '#E0DCD6' }} />
+                                        <div className="h-3 w-24 rounded" style={{ background: 'var(--ee-bg)' }} />
                                     </div>
                                 </div>
                             ))}
@@ -399,54 +411,60 @@ export default function WeatherPage() {
                                 const endTime = endDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
 
                                 return (
-                                    <div key={i} className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                                            ✓
+                                    <div key={i} className="rounded-[16px] p-3 flex items-center gap-3" style={{ background: 'rgba(15, 184, 133, 0.08)' }}>
+                                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'var(--ee-primary)' }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check</span>
                                         </div>
                                         <div>
-                                            <p className="font-bold text-emerald-800">{day}</p>
-                                            <p className="text-sm text-emerald-600">{startTime} - {endTime}</p>
+                                            <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>{day}</p>
+                                            <p className="text-sm" style={{ color: 'var(--ee-primary)' }}>{startTime} - {endTime}</p>
                                         </div>
                                     </div>
                                 );
                             })}
 
                             {(!sprayWindow?.ideal_windows || sprayWindow.ideal_windows.length === 0) && (
-                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-                                    <p className="text-amber-800 font-bold">⚠️ No ideal windows</p>
-                                    <p className="text-sm text-amber-600">Check hourly conditions for acceptable times</p>
+                                <div className="rounded-[16px] p-4 text-center" style={{ background: 'rgba(232, 163, 101, 0.1)' }}>
+                                    <p className="font-bold flex items-center justify-center gap-1" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>warning</span>
+                                        No ideal windows
+                                    </p>
+                                    <p className="text-sm" style={{ color: 'var(--ee-sun)' }}>Check hourly conditions for acceptable times</p>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    <div className="mt-4 p-3 bg-slate-50 rounded-xl text-xs text-slate-500">
-                        <p className="font-bold text-slate-700 mb-1">Ideal Conditions:</p>
-                        <p>Wind: 3-10 km/h • Temp: 15-28°C • No rain</p>
+                    <div className="mt-4 p-3 rounded-[16px] text-xs" style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                        <p className="font-bold mb-1" style={{ color: 'var(--ee-text)' }}>Ideal Conditions:</p>
+                        <p>Wind: 3-10 km/h &bull; Temp: 15-28°C &bull; No rain</p>
                     </div>
                 </div>
             </div>
 
             {/* Agricultural Metrics */}
             <div className="col-span-12 lg:col-span-6">
-                <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-lg border border-slate-100">
-                    <h4 className="font-black text-brand-dark text-xl mb-6">🌱 Growing Degree Days</h4>
+                <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-xl mb-6 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>eco</span>
+                        Growing Degree Days
+                    </h4>
 
                     {agriculturalLoading ? (
                         <div className="animate-pulse space-y-6">
                             <div className="space-y-2">
                                 <div className="flex justify-between">
-                                    <div className="h-3 w-36 bg-slate-200 rounded" />
-                                    <div className="h-3 w-10 bg-slate-200 rounded" />
+                                    <div className="h-3 w-36 rounded" style={{ background: '#E0DCD6' }} />
+                                    <div className="h-3 w-10 rounded" style={{ background: '#E0DCD6' }} />
                                 </div>
-                                <div className="h-4 bg-slate-100 rounded-full" />
+                                <div className="h-4 rounded-full" style={{ background: 'var(--ee-bg)' }} />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 {[0, 1, 2].map(i => (
-                                    <div key={i} className="bg-slate-50 rounded-xl p-4 text-center space-y-2">
-                                        <div className="h-2 w-16 bg-slate-200 rounded mx-auto" />
-                                        <div className="h-8 w-12 bg-slate-200 rounded mx-auto" />
-                                        <div className="h-2 w-8 bg-slate-100 rounded mx-auto" />
+                                    <div key={i} className="rounded-[16px] p-4 text-center space-y-2" style={{ background: 'var(--ee-bg)' }}>
+                                        <div className="h-2 w-16 rounded mx-auto" style={{ background: '#E0DCD6' }} />
+                                        <div className="h-8 w-12 rounded mx-auto" style={{ background: '#E0DCD6' }} />
+                                        <div className="h-2 w-8 rounded mx-auto" style={{ background: 'var(--ee-bg)' }} />
                                     </div>
                                 ))}
                             </div>
@@ -456,37 +474,37 @@ export default function WeatherPage() {
                             <div className="flex items-center gap-6 mb-6">
                                 <div className="flex-1">
                                     <div className="flex justify-between mb-2">
-                                        <span className="text-sm font-bold text-slate-500">Progress to Maturity</span>
-                                        <span className="text-sm font-black text-brand-dark">
+                                        <span className="text-sm font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Progress to Maturity</span>
+                                        <span className="text-sm font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                                             {agricultural?.growing_degree_days?.progress_percent?.toFixed(0) || 0}%
                                         </span>
                                     </div>
-                                    <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-4 rounded-full overflow-hidden" style={{ background: 'var(--ee-bg)' }}>
                                         <div
-                                            className="h-full bg-gradient-to-r from-brand-lime to-emerald-500 rounded-full transition-all duration-1000"
-                                            style={{ width: `${agricultural?.growing_degree_days?.progress_percent || 0}%` }}
+                                            className="h-full rounded-full transition-all duration-1000"
+                                            style={{ width: `${agricultural?.growing_degree_days?.progress_percent || 0}%`, background: 'linear-gradient(90deg, var(--ee-primary), #0a9a6e)' }}
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
-                                <div className="bg-brand-lime/20 rounded-xl p-4 text-center">
-                                    <p className="text-xs text-slate-500 uppercase font-bold">Accumulated</p>
-                                    <p className="text-2xl font-black text-brand-dark">{agricultural?.growing_degree_days?.total_gdd?.toLocaleString() || 0}</p>
-                                    <p className="text-xs text-slate-400">GDD</p>
+                                <div className="rounded-[16px] p-4 text-center" style={{ background: 'rgba(15, 184, 133, 0.1)' }}>
+                                    <p className="text-xs uppercase font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Accumulated</p>
+                                    <p className="text-2xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{agricultural?.growing_degree_days?.total_gdd?.toLocaleString() || 0}</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-muted)' }}>GDD</p>
                                 </div>
-                                <div className="bg-slate-100 rounded-xl p-4 text-center">
-                                    <p className="text-xs text-slate-500 uppercase font-bold">Remaining</p>
-                                    <p className="text-2xl font-black text-brand-dark">{agricultural?.growing_degree_days?.remaining_gdd?.toLocaleString() || 0}</p>
-                                    <p className="text-xs text-slate-400">GDD</p>
+                                <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
+                                    <p className="text-xs uppercase font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Remaining</p>
+                                    <p className="text-2xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{agricultural?.growing_degree_days?.remaining_gdd?.toLocaleString() || 0}</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-muted)' }}>GDD</p>
                                 </div>
-                                <div className="bg-emerald-50 rounded-xl p-4 text-center">
-                                    <p className="text-xs text-slate-500 uppercase font-bold">Est. Maturity</p>
-                                    <p className="text-lg font-black text-emerald-600">
+                                <div className="rounded-[16px] p-4 text-center" style={{ background: 'rgba(15, 184, 133, 0.06)' }}>
+                                    <p className="text-xs uppercase font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Est. Maturity</p>
+                                    <p className="text-lg font-black" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>
                                         {agricultural?.growing_degree_days?.days_to_maturity ? `${agricultural.growing_degree_days.days_to_maturity}d` : '—'}
                                     </p>
-                                    <p className="text-xs text-slate-400">{agricultural?.growing_degree_days?.status || ''}</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-muted)' }}>{agricultural?.growing_degree_days?.status || ''}</p>
                                 </div>
                             </div>
 
@@ -496,19 +514,19 @@ export default function WeatherPage() {
                                         <AreaChart data={gddData}>
                                             <defs>
                                                 <linearGradient id="gddGradient" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#0fb885" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#2D3A26', borderRadius: '0.5rem', border: 'none' }}
-                                                labelStyle={{ color: '#D7F26C' }}
+                                                contentStyle={{ backgroundColor: '#2D3A30', borderRadius: '16px', border: 'none', fontFamily: 'var(--font-body)' }}
+                                                labelStyle={{ color: '#0fb885' }}
                                                 itemStyle={{ color: '#fff' }}
                                             />
                                             <Area
                                                 type="monotone"
                                                 dataKey="cumulative"
-                                                stroke="#22c55e"
+                                                stroke="#0fb885"
                                                 strokeWidth={2}
                                                 fillOpacity={1}
                                                 fill="url(#gddGradient)"
@@ -524,85 +542,90 @@ export default function WeatherPage() {
 
             {/* Water Balance & Soil */}
             <div className="col-span-12 lg:col-span-6">
-                <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-lg border border-slate-100">
-                    <h4 className="font-black text-brand-dark text-xl mb-6">💧 Water Balance</h4>
+                <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
+                    <h4 className="font-black text-xl mb-6 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-water)' }}>water_drop</span>
+                        Water Balance
+                    </h4>
 
                     {agriculturalLoading ? (
                         <div className="animate-pulse space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                                    <div className="h-2 w-20 bg-slate-200 rounded" />
-                                    <div className="h-10 w-16 bg-slate-200 rounded" />
+                                <div className="rounded-[16px] p-4 space-y-2" style={{ background: 'var(--ee-bg)' }}>
+                                    <div className="h-2 w-20 rounded" style={{ background: '#E0DCD6' }} />
+                                    <div className="h-10 w-16 rounded" style={{ background: '#E0DCD6' }} />
                                 </div>
-                                <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                                    <div className="h-2 w-20 bg-slate-200 rounded" />
-                                    <div className="h-10 w-16 bg-slate-200 rounded" />
+                                <div className="rounded-[16px] p-4 space-y-2" style={{ background: 'var(--ee-bg)' }}>
+                                    <div className="h-2 w-20 rounded" style={{ background: '#E0DCD6' }} />
+                                    <div className="h-10 w-16 rounded" style={{ background: '#E0DCD6' }} />
                                 </div>
                             </div>
-                            <div className="h-16 bg-slate-100 rounded-xl" />
+                            <div className="h-16 rounded-[16px]" style={{ background: 'var(--ee-bg)' }} />
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <div className="h-2 w-16 bg-slate-200 rounded" />
-                                    <div className="h-3 bg-slate-100 rounded-full" />
+                                    <div className="h-2 w-16 rounded" style={{ background: '#E0DCD6' }} />
+                                    <div className="h-3 rounded-full" style={{ background: 'var(--ee-bg)' }} />
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="h-2 w-16 bg-slate-200 rounded" />
-                                    <div className="h-8 w-20 bg-slate-200 rounded" />
+                                    <div className="h-2 w-16 rounded" style={{ background: '#E0DCD6' }} />
+                                    <div className="h-8 w-20 rounded" style={{ background: '#E0DCD6' }} />
                                 </div>
                             </div>
                         </div>
                     ) : (
                         <>
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="bg-blue-50 rounded-xl p-4">
-                                    <p className="text-xs text-blue-600 uppercase font-bold mb-1">Weekly Rain</p>
-                                    <p className="text-3xl font-black text-blue-700">
+                                <div className="rounded-[16px] p-4" style={{ background: 'rgba(92, 158, 173, 0.1)' }}>
+                                    <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--ee-water)', fontFamily: 'var(--font-body)' }}>Weekly Rain</p>
+                                    <p className="text-3xl font-black" style={{ color: 'var(--ee-water)', fontFamily: 'var(--font-heading)' }}>
                                         {agricultural?.water_balance?.weekly_precipitation?.toFixed(1) || 0}
                                         <span className="text-lg">mm</span>
                                     </p>
                                 </div>
-                                <div className="bg-orange-50 rounded-xl p-4">
-                                    <p className="text-xs text-orange-600 uppercase font-bold mb-1">Weekly ET</p>
-                                    <p className="text-3xl font-black text-orange-700">
+                                <div className="rounded-[16px] p-4" style={{ background: 'rgba(232, 163, 101, 0.1)' }}>
+                                    <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>Weekly ET</p>
+                                    <p className="text-3xl font-black" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-heading)' }}>
                                         {agricultural?.water_balance?.weekly_et?.toFixed(1) || 0}
                                         <span className="text-lg">mm</span>
                                     </p>
                                 </div>
                             </div>
 
-                            <div className={`rounded-xl p-4 mb-6 ${agricultural?.water_balance?.status === 'surplus' ? 'bg-blue-600 border-blue-700' :
-                                agricultural?.water_balance?.status === 'deficit' ? 'bg-red-600 border-red-700' :
-                                    'bg-emerald-600 border-emerald-700'
-                                } border-2`}>
-                                <p className="font-black text-lg text-white">
+                            <div className="rounded-[16px] p-4 mb-6" style={{
+                                background: agricultural?.water_balance?.status === 'surplus' ? 'var(--ee-water)' :
+                                    agricultural?.water_balance?.status === 'deficit' ? '#D9534F' :
+                                        'var(--ee-primary)',
+                                boxShadow: 'var(--shadow-ambient)'
+                            }}>
+                                <p className="font-black text-lg text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-heading)' }}>
                                     Balance: {agricultural?.water_balance?.balance?.toFixed(1) || 0}mm
-                                    <span className="ml-2">
-                                        {agricultural?.water_balance?.status === 'surplus' ? '💧' :
-                                            agricultural?.water_balance?.status === 'deficit' ? '🏜️' : '✅'}
+                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                                        {agricultural?.water_balance?.status === 'surplus' ? 'water_drop' :
+                                            agricultural?.water_balance?.status === 'deficit' ? 'water_loss' : 'check_circle'}
                                     </span>
                                 </p>
-                                <p className="text-sm mt-1 text-white/90">{agricultural?.water_balance?.irrigation_recommendation}</p>
+                                <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-body)' }}>{agricultural?.water_balance?.irrigation_recommendation}</p>
                             </div>
 
-                            <h5 className="font-bold text-slate-700 mb-3">Soil Conditions</h5>
+                            <h5 className="font-bold mb-3" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Soil Conditions</h5>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <p className="text-xs text-slate-500 uppercase font-bold">Moisture</p>
+                                    <p className="text-xs uppercase font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Moisture</p>
                                     <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'var(--ee-bg)' }}>
                                             <div
-                                                className="h-full bg-sky-500 rounded-full"
-                                                style={{ width: `${agricultural?.moisture?.shallow_pct || 0}%` }}
+                                                className="h-full rounded-full"
+                                                style={{ width: `${agricultural?.moisture?.shallow_pct || 0}%`, background: 'var(--ee-water)' }}
                                             />
                                         </div>
-                                        <span className="text-sm font-bold">{agricultural?.moisture?.shallow_pct?.toFixed(0) || 0}%</span>
+                                        <span className="text-sm font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{agricultural?.moisture?.shallow_pct?.toFixed(0) || 0}%</span>
                                     </div>
-                                    <p className="text-xs text-slate-400">{agricultural?.moisture?.status}</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-muted)' }}>{agricultural?.moisture?.status}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <p className="text-xs text-slate-500 uppercase font-bold">Soil Temp</p>
-                                    <p className="text-2xl font-black text-brand-dark">{agricultural?.soil?.surface?.toFixed(1) || '—'}°C</p>
-                                    <p className="text-xs text-slate-400">Surface temperature</p>
+                                    <p className="text-xs uppercase font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Soil Temp</p>
+                                    <p className="text-2xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{agricultural?.soil?.surface?.toFixed(1) || '—'}°C</p>
+                                    <p className="text-xs" style={{ color: 'var(--ee-muted)' }}>Surface temperature</p>
                                 </div>
                             </div>
                         </>
@@ -613,24 +636,29 @@ export default function WeatherPage() {
             {/* All Alerts */}
             {!alertsLoading && alerts && alerts.alerts.length > 0 && (
                 <div className="col-span-12">
-                    <div className="bg-white rounded-[2rem] p-6 lg:p-8 shadow-lg border border-slate-100">
-                        <h4 className="font-black text-brand-dark text-xl mb-6">⚠️ All Weather Alerts</h4>
+                    <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
+                        <h4 className="font-black text-xl mb-6 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-sun)' }}>warning</span>
+                            All Weather Alerts
+                        </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {alerts.alerts.map((alert, i) => (
                                 <div
                                     key={i}
-                                    className={`rounded-2xl p-5 ${alert.severity === 'high' ? 'bg-red-100 border-2 border-red-300' :
-                                        'bg-amber-100 border-2 border-amber-300'
-                                        }`}
+                                    className="rounded-[16px] p-5"
+                                    style={{
+                                        background: alert.severity === 'high' ? 'rgba(217, 83, 79, 0.08)' : 'rgba(232, 163, 101, 0.1)',
+                                        boxShadow: 'var(--shadow-neu-inset)'
+                                    }}
                                 >
-                                    <p className={`font-black text-lg mb-1 ${alert.severity === 'high' ? 'text-red-800' : 'text-amber-900'}`}>{alert.title}</p>
-                                    <p className={`text-sm mb-3 ${alert.severity === 'high' ? 'text-red-700' : 'text-amber-800'}`}>{alert.message}</p>
-                                    <p className={`text-xs uppercase font-bold mb-2 ${alert.severity === 'high' ? 'text-red-600' : 'text-amber-700'}`}>Recommendations:</p>
+                                    <p className="font-black text-lg mb-1" style={{ color: alert.severity === 'high' ? '#B91C1C' : 'var(--ee-sun)', fontFamily: 'var(--font-heading)' }}>{alert.title}</p>
+                                    <p className="text-sm mb-3" style={{ color: alert.severity === 'high' ? '#DC2626' : '#C47A3A', fontFamily: 'var(--font-body)' }}>{alert.message}</p>
+                                    <p className="text-xs uppercase font-bold mb-2" style={{ color: alert.severity === 'high' ? '#DC2626' : 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>Recommendations:</p>
                                     <ul className="text-sm space-y-1">
                                         {alert.recommendations.slice(0, 2).map((rec, j) => (
                                             <li key={j} className="flex items-start gap-2">
-                                                <span className={`${alert.severity === 'high' ? 'text-red-500' : 'text-amber-600'}`}>•</span>
-                                                <span className={`${alert.severity === 'high' ? 'text-red-700' : 'text-amber-800'}`}>{rec}</span>
+                                                <span style={{ color: alert.severity === 'high' ? '#DC2626' : 'var(--ee-sun)' }}>&bull;</span>
+                                                <span style={{ color: alert.severity === 'high' ? '#991B1B' : '#9A6830', fontFamily: 'var(--font-body)' }}>{rec}</span>
                                             </li>
                                         ))}
                                     </ul>

@@ -17,29 +17,25 @@ interface RiskRadarProps {
     onRiskClick?: (risk: RiskItem) => void;
 }
 
-const typeConfig: Record<RiskItem['type'], { icon: string; color: string; label: string }> = {
-    pest: { icon: '🪲', color: 'text-amber-600', label: 'Pest' },
-    disease: { icon: '🦠', color: 'text-red-600', label: 'Disease' },
-    weather: { icon: '⛈️', color: 'text-blue-600', label: 'Weather' },
-    market: { icon: '📉', color: 'text-purple-600', label: 'Market' },
-    soil: { icon: '🌍', color: 'text-orange-600', label: 'Soil' }
+const typeConfig: Record<RiskItem['type'], { icon: string; label: string }> = {
+    pest: { icon: 'bug_report', label: 'Pest' },
+    disease: { icon: 'coronavirus', label: 'Disease' },
+    weather: { icon: 'thunderstorm', label: 'Weather' },
+    market: { icon: 'trending_down', label: 'Market' },
+    soil: { icon: 'landscape', label: 'Soil' }
 };
 
-const getRiskLevel = (risk: number): { label: string; color: string; bgColor: string } => {
-    if (risk >= 75) return { label: 'Critical', color: 'text-red-600', bgColor: 'bg-red-100' };
-    if (risk >= 50) return { label: 'High', color: 'text-amber-600', bgColor: 'bg-amber-100' };
-    if (risk >= 25) return { label: 'Medium', color: 'text-yellow-600', bgColor: 'bg-yellow-100' };
-    return { label: 'Low', color: 'text-emerald-600', bgColor: 'bg-emerald-100' };
+const getRiskLevel = (risk: number) => {
+    if (risk >= 75) return { label: 'Critical', color: '#c44' };
+    if (risk >= 50) return { label: 'High', color: 'var(--ee-sun)' };
+    if (risk >= 25) return { label: 'Medium', color: '#c4a030' };
+    return { label: 'Low', color: 'var(--ee-primary)' };
 };
 
 const TrendIndicator: React.FC<{ trend: RiskItem['trend'] }> = ({ trend }) => {
-    if (trend === 'rising') {
-        return <span className="text-red-500 text-xs">↑</span>;
-    }
-    if (trend === 'falling') {
-        return <span className="text-emerald-500 text-xs">↓</span>;
-    }
-    return <span className="text-slate-400 text-xs">→</span>;
+    const icon = trend === 'rising' ? 'trending_up' : trend === 'falling' ? 'trending_down' : 'trending_flat';
+    const color = trend === 'rising' ? '#c44' : trend === 'falling' ? 'var(--ee-primary)' : 'var(--ee-muted)';
+    return <span className="material-symbols-outlined" style={{ fontSize: '16px', color }}>{icon}</span>;
 };
 
 export const RiskRadar: React.FC<RiskRadarProps> = ({
@@ -47,39 +43,38 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
     title = "Risk Radar",
     onRiskClick
 }) => {
-    // Sort by risk level descending
     const sortedRisks = [...risks].sort((a, b) => b.risk - a.risk);
 
-    // Calculate overall risk score
     const overallRisk = risks.length > 0
         ? Math.round(risks.reduce((sum, r) => sum + r.risk, 0) / risks.length)
         : 0;
     const overallLevel = getRiskLevel(overallRisk);
 
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-slate-100">
+        <div className="neu-surface p-6 lg:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand-dark rounded-full flex items-center justify-center text-xl">
-                        🎯
+                    <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'var(--ee-bg-dim)' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '22px' }}>target</span>
                     </div>
                     <div>
-                        <h3 className="font-black text-brand-dark text-lg">{title}</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {risks.length} active risks
                         </p>
                     </div>
                 </div>
 
                 {/* Overall Risk Indicator */}
-                <div className={`${overallLevel.bgColor} px-4 py-2 rounded-2xl flex items-center gap-2`}>
-                    <div className={`w-8 h-8 rounded-full ${overallLevel.bgColor} flex items-center justify-center`}>
-                        <span className={`text-lg font-black ${overallLevel.color}`}>{overallRisk}</span>
-                    </div>
+                <div className="px-4 py-2 rounded-[16px] flex items-center gap-2" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                    <span className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: overallLevel.color }}>{overallRisk}</span>
                     <div className="text-right">
-                        <p className={`text-xs font-bold ${overallLevel.color}`}>{overallLevel.label}</p>
-                        <p className="text-[9px] text-slate-400 uppercase tracking-wider">Overall</p>
+                        <p className="text-xs font-bold" style={{ color: overallLevel.color, fontFamily: 'var(--font-body)' }}>{overallLevel.label}</p>
+                        <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Overall</p>
                     </div>
                 </div>
             </div>
@@ -94,37 +89,35 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
                         <div
                             key={risk.id}
                             onClick={() => onRiskClick?.(risk)}
-                            className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl hover:bg-brand-lime/10 transition-colors cursor-pointer group"
+                            className="flex items-center gap-4 p-4 rounded-[16px] transition-all duration-200 cursor-pointer"
+                            style={{ backgroundColor: 'var(--ee-bg)' }}
                         >
-                            {/* Type Icon */}
-                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">
-                                {config.icon}
+                            <div
+                                className="w-10 h-10 rounded-[12px] flex items-center justify-center"
+                                style={{ backgroundColor: 'var(--ee-surface)', boxShadow: '2px 2px 6px #D5D2CE, -2px -2px 6px #FFFFFF' }}
+                            >
+                                <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>{config.icon}</span>
                             </div>
 
-                            {/* Info */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <p className="text-sm font-bold text-brand-dark truncate">{risk.name}</p>
+                                    <p className="text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{risk.name}</p>
                                     <TrendIndicator trend={risk.trend} />
                                 </div>
-                                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-                                    {config.label} {risk.fieldName ? `• ${risk.fieldName}` : ''}
+                                <p className="text-[10px] font-medium uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                    {config.label} {risk.fieldName ? `· ${risk.fieldName}` : ''}
                                 </p>
                             </div>
 
                             {/* Risk Bar */}
                             <div className="w-24 flex items-center gap-2">
-                                <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--ee-bg-pressed)' }}>
                                     <div
-                                        className={`h-full rounded-full transition-all ${risk.risk >= 75 ? 'bg-red-500' :
-                                            risk.risk >= 50 ? 'bg-amber-500' :
-                                                risk.risk >= 25 ? 'bg-yellow-500' :
-                                                    'bg-emerald-500'
-                                            }`}
-                                        style={{ width: `${risk.risk}%` }}
+                                        className="h-full rounded-full transition-all"
+                                        style={{ width: `${risk.risk}%`, backgroundColor: level.color }}
                                     />
                                 </div>
-                                <span className={`text-xs font-bold ${level.color} w-8 text-right`}>
+                                <span className="text-xs font-bold w-8 text-right" style={{ color: level.color, fontFamily: 'var(--font-heading)' }}>
                                     {risk.risk}%
                                 </span>
                             </div>
@@ -135,18 +128,18 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
 
             {risks.length === 0 && (
                 <div className="text-center py-8">
-                    <div className="text-4xl mb-3">✅</div>
-                    <p className="text-sm font-bold text-emerald-600">All Clear!</p>
-                    <p className="text-xs text-slate-400 mt-1">No significant risks detected</p>
+                    <span className="material-symbols-outlined mb-3" style={{ fontSize: '40px', color: 'var(--ee-primary)' }}>verified</span>
+                    <p className="text-sm font-bold" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>All Clear!</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No significant risks detected</p>
                 </div>
             )}
 
             {/* Legend */}
-            <div className="mt-6 pt-4 border-t border-slate-100">
+            <div className="mt-6 pt-4">
                 <div className="flex flex-wrap gap-4 justify-center">
                     {Object.entries(typeConfig).map(([key, value]) => (
-                        <div key={key} className="flex items-center gap-1.5 text-xs text-slate-500">
-                            <span>{value.icon}</span>
+                        <div key={key} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{value.icon}</span>
                             <span className="font-medium">{value.label}</span>
                         </div>
                     ))}

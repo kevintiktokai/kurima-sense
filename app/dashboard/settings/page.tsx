@@ -65,43 +65,82 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-[3.5rem] p-10 lg:p-14 max-w-2xl mx-auto shadow-2xl animate-pulse">
-                <div className="h-8 bg-slate-200 rounded w-1/3 mb-8"></div>
+            <div
+                className="neu-surface p-10 lg:p-14 max-w-2xl mx-auto animate-pulse"
+                style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}
+            >
+                <div className="h-8 rounded w-1/3 mb-8" style={{ background: 'var(--ee-bg)' }}></div>
                 <div className="space-y-6">
-                    <div className="h-24 bg-slate-100 rounded-[2rem]"></div>
-                    <div className="h-16 bg-slate-100 rounded-2xl"></div>
-                    <div className="h-16 bg-slate-100 rounded-2xl"></div>
+                    <div className="h-24 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
+                    <div className="h-16 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
+                    <div className="h-16 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
                 </div>
             </div>
         )
     }
 
     return (
-        <div id="settings-container" className="bg-white rounded-[3.5rem] p-10 lg:p-14 max-w-2xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-500">
-            <h3 className="text-2xl font-black mb-8 text-brand-dark">Profile & Preferences</h3>
+        <div
+            id="settings-container"
+            className="neu-surface p-10 lg:p-14 max-w-2xl mx-auto animate-in fade-in zoom-in duration-500"
+            style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}
+        >
+            <h3
+                className="text-2xl font-black mb-8"
+                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+            >
+                Profile & Preferences
+            </h3>
 
             {/* Success/Error Message */}
             {message && (
-                <div className={`mb-6 p-4 rounded-2xl ${message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
+                <div
+                    className="mb-6 p-4 rounded-[16px]"
+                    style={{
+                        background: message.type === 'success' ? 'rgba(15, 184, 133, 0.08)' : 'rgba(220, 38, 38, 0.08)',
+                        color: message.type === 'success' ? 'var(--ee-primary)' : '#dc2626'
+                    }}
+                >
+                    <span className="material-symbols-outlined text-sm mr-2 align-middle">
+                        {message.type === 'success' ? 'check_circle' : 'error'}
+                    </span>
                     {message.text}
                 </div>
             )}
 
             <div className="space-y-8">
                 {/* Profile Header */}
-                <div id="profile-header" className="flex items-center gap-6 p-6 bg-brand-surface rounded-[2rem]">
-                    <div className="w-20 h-20 rounded-full bg-slate-300 border-4 border-white shadow-md flex items-center justify-center text-3xl">
-                        {profile?.full_name?.charAt(0)?.toUpperCase() || '👨‍🌾'}
+                <div
+                    id="profile-header"
+                    className="flex items-center gap-6 p-6 rounded-[16px]"
+                    style={{ background: 'var(--ee-bg)' }}
+                >
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold"
+                        style={{
+                            background: 'var(--ee-primary)',
+                            color: 'var(--ee-surface)',
+                            boxShadow: 'var(--shadow-ambient)',
+                            fontFamily: 'var(--font-heading)'
+                        }}
+                    >
+                        {profile?.full_name?.charAt(0)?.toUpperCase() || (
+                            <span className="material-symbols-outlined text-3xl">person</span>
+                        )}
                     </div>
                     <div>
-                        <p className="text-xl font-bold text-brand-dark">
+                        <p
+                            className="text-xl font-bold"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                        >
                             {profile?.full_name || 'No name set'}
                         </p>
-                        <p className="text-sm text-slate-500">Member since {memberSince}</p>
-                        <p className="text-xs text-slate-400 mt-1">{user?.email}</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            Member since {memberSince}
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            {user?.email}
+                        </p>
                     </div>
                 </div>
 
@@ -109,7 +148,10 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 gap-6">
                     {/* Full Name */}
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block ml-2">
+                        <label
+                            className="text-[10px] font-bold uppercase mb-2 block ml-2"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em' }}
+                        >
                             Full Name
                         </label>
                         <input
@@ -117,13 +159,22 @@ export default function SettingsPage() {
                             value={formData.full_name}
                             onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                             placeholder="Enter your full name"
-                            className="w-full p-5 rounded-2xl bg-brand-surface border-none focus:ring-2 focus:ring-brand-lime text-brand-dark"
+                            className="w-full p-5 rounded-[16px] outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--ee-primary)]"
+                            style={{
+                                background: 'var(--ee-bg)',
+                                color: 'var(--ee-text)',
+                                fontFamily: 'var(--font-body)',
+                                border: 'none'
+                            }}
                         />
                     </div>
 
                     {/* Phone / WhatsApp */}
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block ml-2">
+                        <label
+                            className="text-[10px] font-bold uppercase mb-2 block ml-2"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em' }}
+                        >
                             WhatsApp Contact
                         </label>
                         <input
@@ -131,24 +182,39 @@ export default function SettingsPage() {
                             value={formData.phone_number}
                             onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
                             placeholder="+263 7..."
-                            className="w-full p-5 rounded-2xl bg-brand-surface border-none focus:ring-2 focus:ring-brand-lime text-brand-dark"
+                            className="w-full p-5 rounded-[16px] outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--ee-primary)]"
+                            style={{
+                                background: 'var(--ee-bg)',
+                                color: 'var(--ee-text)',
+                                fontFamily: 'var(--font-body)',
+                                border: 'none'
+                            }}
                         />
                     </div>
 
                     {/* Language */}
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block ml-2">
+                        <label
+                            className="text-[10px] font-bold uppercase mb-2 block ml-2"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em' }}
+                        >
                             Preferred Language
                         </label>
                         <select
                             value={formData.preferred_language}
                             onChange={(e) => setFormData(prev => ({ ...prev, preferred_language: e.target.value }))}
-                            className="w-full p-5 rounded-2xl bg-brand-surface border-none focus:ring-2 focus:ring-brand-lime text-brand-dark"
+                            className="w-full p-5 rounded-[16px] outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--ee-primary)]"
+                            style={{
+                                background: 'var(--ee-bg)',
+                                color: 'var(--ee-text)',
+                                fontFamily: 'var(--font-body)',
+                                border: 'none'
+                            }}
                         >
                             <optgroup label="Global">
                                 <option value="English">English</option>
-                                <option value="French">French (Français)</option>
-                                <option value="Portuguese">Portuguese (Português)</option>
+                                <option value="French">French (Fran&#231;ais)</option>
+                                <option value="Portuguese">Portuguese (Portugu&#234;s)</option>
                                 <option value="Arabic">Arabic (العربية)</option>
                             </optgroup>
                             <optgroup label="Southern Africa">
@@ -188,28 +254,57 @@ export default function SettingsPage() {
 
                     {/* Role Display */}
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block ml-2">
+                        <label
+                            className="text-[10px] font-bold uppercase mb-2 block ml-2"
+                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', letterSpacing: '0.08em' }}
+                        >
                             Role
                         </label>
-                        <div className="w-full p-5 rounded-2xl bg-slate-100 text-slate-600 capitalize font-medium">
+                        <div
+                            className="w-full p-5 rounded-[16px] capitalize font-medium"
+                            style={{
+                                background: 'var(--ee-bg)',
+                                color: 'var(--ee-muted)',
+                                fontFamily: 'var(--font-body)'
+                            }}
+                        >
                             {profile?.role || 'Standard User'}
                         </div>
                     </div>
 
                     {/* WhatsApp Notifications Toggle */}
-                    <div id="notifications-toggle" className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                    <div
+                        id="notifications-toggle"
+                        className="pt-4 flex justify-between items-center"
+                        style={{ borderTop: '2px solid var(--ee-bg)' }}
+                    >
                         <div>
-                            <p className="font-bold text-brand-dark">WhatsApp Advisory</p>
-                            <p className="text-xs text-slate-500">Receive weekly field summaries via WhatsApp</p>
+                            <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
+                                <span className="material-symbols-outlined text-base mr-1 align-middle" style={{ color: 'var(--ee-primary)' }}>
+                                    chat
+                                </span>
+                                WhatsApp Advisory
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                Receive weekly field summaries via WhatsApp
+                            </p>
                         </div>
                         <button
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, whatsapp_notifications: !prev.whatsapp_notifications }))}
-                            className={`w-14 h-7 rounded-full p-1 cursor-pointer flex items-center transition-colors ${formData.whatsapp_notifications ? 'bg-brand-lime' : 'bg-slate-300'
-                                }`}
+                            className="w-14 h-7 rounded-full p-1 cursor-pointer flex items-center transition-colors"
+                            style={{
+                                background: formData.whatsapp_notifications ? 'var(--ee-primary)' : 'var(--ee-bg)',
+                                boxShadow: formData.whatsapp_notifications ? 'none' : 'var(--shadow-neu-inset)'
+                            }}
                         >
-                            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${formData.whatsapp_notifications ? 'translate-x-7' : 'translate-x-0'
-                                }`}></div>
+                            <div
+                                className={`w-5 h-5 rounded-full transition-transform ${formData.whatsapp_notifications ? 'translate-x-7' : 'translate-x-0'}`}
+                                style={{
+                                    background: 'var(--ee-surface)',
+                                    boxShadow: 'var(--shadow-ambient)'
+                                }}
+                            ></div>
                         </button>
                     </div>
                 </div>
@@ -219,15 +314,28 @@ export default function SettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="w-full bg-brand-dark text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-[#3d4d35] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-5 rounded-[16px] font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                            background: 'var(--ee-primary)',
+                            color: 'var(--ee-surface)',
+                            boxShadow: 'var(--shadow-neu)',
+                            fontFamily: 'var(--font-body)'
+                        }}
                     >
+                        <span className="material-symbols-outlined text-base mr-2 align-middle">save</span>
                         {saving ? 'Saving...' : 'Save Settings'}
                     </button>
 
                     <button
                         onClick={handleLogout}
-                        className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-colors"
+                        className="w-full py-4 rounded-[16px] font-bold transition-all hover:opacity-80"
+                        style={{
+                            background: 'rgba(220, 38, 38, 0.06)',
+                            color: '#dc2626',
+                            fontFamily: 'var(--font-body)'
+                        }}
                     >
+                        <span className="material-symbols-outlined text-base mr-2 align-middle">logout</span>
                         Sign Out
                     </button>
                 </div>

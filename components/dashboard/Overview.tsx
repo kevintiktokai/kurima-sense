@@ -98,7 +98,7 @@ const Overview: React.FC = () => {
 
     const chartData = stats?.chartData || [];
     const activeFieldsCount = fields.length;
-    const totalHectares = fields.reduce((sum, f) => sum + (f.area || 0), 0);
+    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
     const primaryField = fields[selectedFieldIndex] || fields[0];
 
     // Handle field selection change
@@ -134,42 +134,50 @@ const Overview: React.FC = () => {
 
     // Calculate Breakdown Averages
     const avgNdvi = fields.length
-        ? (fields.reduce((sum, f) => sum + (f.ndvi || 0), 0) / fields.length).toFixed(2)
+        ? (fields.reduce((sum: number, f: any) => sum + (f.ndvi || 0), 0) / fields.length).toFixed(2)
         : "0.00";
     const avgMoisture = fields.length
-        ? Math.round(fields.reduce((sum, f) => sum + (f.soilMoisture || 0), 0) / fields.length)
+        ? Math.round(fields.reduce((sum: number, f: any) => sum + (f.soilMoisture || 0), 0) / fields.length)
         : 0;
 
     return (
-        <div className="grid grid-cols-12 gap-4 lg:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12 relative">
+        <div className="grid grid-cols-12 gap-5 lg:gap-8 pb-12 relative">
 
             {/* Welcome Widget (Left 8) */}
-            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 glass-card p-8 lg:p-16 rounded-[2.5rem] lg:rounded-[4rem] shadow-xl flex flex-col justify-center border border-white/40 relative overflow-hidden h-full min-h-[350px]">
+            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 neu-surface p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[350px]">
                 <div className="relative z-10 flex-1 flex flex-col justify-center">
-                    <h3 className="text-3xl lg:text-5xl font-black text-brand-dark mb-4 tracking-tighter leading-tight">
+                    <h3
+                        className="text-3xl lg:text-5xl mb-4 tracking-tight leading-tight"
+                        style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}
+                    >
                         {new Date().getHours() < 12 ? 'Good Morning' : 'Good Afternoon'}, {profile?.full_name?.split(' ')[0] || 'Farmer'}.
                     </h3>
-                    <div className="bg-brand-lime/10 p-3 lg:p-4 rounded-xl lg:rounded-2xl mb-6 inline-block">
-                        <p className="text-brand-dark font-bold text-sm lg:text-lg">💡 Tip: {insight}</p>
+                    <div className="p-3 lg:p-4 rounded-[16px] mb-6 inline-block" style={{ backgroundColor: 'rgba(15, 184, 133, 0.08)' }}>
+                        <p className="text-sm lg:text-base" style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'var(--ee-text)' }}>
+                            <span className="material-symbols-outlined align-middle mr-1" style={{ fontSize: '18px', color: 'var(--ee-primary)' }}>lightbulb</span>
+                            {insight}
+                        </p>
                     </div>
-                    <p className="text-slate-500 font-medium text-base lg:text-xl max-w-lg leading-relaxed">
+                    <p className="text-base lg:text-xl max-w-lg leading-relaxed" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ee-muted)' }}>
                         {activeFieldsCount > 0
                             ? `${activeFieldsCount} active field${activeFieldsCount > 1 ? 's' : ''} monitored across ${totalHectares.toFixed(1)} ha.`
                             : 'Add your first field to get started with precision farming.'}
                     </p>
-                    <div className="flex flex-wrap gap-4 lg:gap-6 mt-8 lg:mt-10">
-                        <div className="bg-brand-beige/50 backdrop-blur-sm px-6 lg:px-8 py-3 lg:py-4 rounded-2xl lg:rounded-[2rem] flex-1 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Fields</p>
-                            <p className="text-2xl lg:text-3xl font-black text-brand-dark">{activeFieldsCount}</p>
+                    <div className="flex flex-wrap gap-5 lg:gap-6 mt-8 lg:mt-10">
+                        <div className="px-6 lg:px-8 py-3 lg:py-4 rounded-[16px] flex-1 min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Active Fields</p>
+                            <p className="text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{activeFieldsCount}</p>
                         </div>
-                        <div className="bg-brand-beige/50 backdrop-blur-sm px-6 lg:px-8 py-3 lg:py-4 rounded-2xl lg:rounded-[2rem] flex-1 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Area</p>
-                            <p className="text-2xl lg:text-3xl font-black text-brand-dark">{totalHectares.toFixed(1)} ha</p>
+                        <div className="px-6 lg:px-8 py-3 lg:py-4 rounded-[16px] flex-1 min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Total Area</p>
+                            <p className="text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{totalHectares.toFixed(1)} ha</p>
                         </div>
                     </div>
                 </div>
                 {/* Decorative circle */}
-                <div className="absolute top-0 right-0 w-48 lg:w-64 h-48 lg:h-64 bg-brand-lime/5 rounded-full -mr-24 lg:-mr-32 -mt-24 lg:-mt-32"></div>
+                <div className="absolute top-0 right-0 w-48 lg:w-64 h-48 lg:h-64 rounded-full -mr-24 lg:-mr-32 -mt-24 lg:-mt-32" style={{
+                    background: 'radial-gradient(circle, rgba(15, 184, 133, 0.08) 0%, transparent 70%)',
+                }}></div>
             </div>
 
             {/* Action Queue (Right Column - Top Priority) */}
@@ -182,50 +190,55 @@ const Overview: React.FC = () => {
                     />
                 ) : (
                     /* Fallback to Field Breakdown if no actions */
-                    <div className="bg-brand-dark p-8 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col justify-between h-full min-h-[350px]">
+                    <div className="p-8 lg:p-10 rounded-[24px] text-white relative overflow-hidden flex flex-col justify-between h-full min-h-[350px]" style={{
+                        backgroundColor: 'var(--ee-text)',
+                        boxShadow: 'var(--shadow-ambient)',
+                    }}>
                         <div className="relative z-10 w-full">
-                            <h4 className="text-lg lg:text-xl font-black mb-1">Field Breakdown</h4>
-                            <p className="text-[10px] lg:text-xs text-white/60 font-medium mb-6 lg:mb-8 uppercase tracking-widest">Satellite aggregation</p>
+                            <h4 className="text-lg lg:text-xl mb-1" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600 }}>Field Breakdown</h4>
+                            <p className="text-[10px] lg:text-xs font-medium mb-6 lg:mb-8 uppercase tracking-widest" style={{ fontFamily: 'var(--font-body)', color: 'rgba(255,255,255,0.5)' }}>Satellite aggregation</p>
                             <div className="space-y-6 lg:space-y-8">
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter">Avg NDVI</span>
-                                        <span className="text-xl lg:text-2xl font-black text-brand-lime">{avgNdvi}</span>
+                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Avg NDVI</span>
+                                        <span className="text-xl lg:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-primary)' }}>{avgNdvi}</span>
                                     </div>
-                                    <div className="w-full h-1.5 lg:h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-brand-lime transition-all duration-1000" style={{ width: `${parseFloat(avgNdvi) * 100}%` }}></div>
+                                    <div className="w-full h-1.5 lg:h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${parseFloat(avgNdvi) * 100}%`, backgroundColor: 'var(--ee-primary)' }}></div>
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter">Soil Moisture</span>
-                                        <span className="text-xl lg:text-2xl font-black text-sky-400">{avgMoisture}%</span>
+                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Soil Moisture</span>
+                                        <span className="text-xl lg:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-water)' }}>{avgMoisture}%</span>
                                     </div>
-                                    <div className="w-full h-1.5 lg:h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-sky-400 transition-all duration-1000" style={{ width: `${avgMoisture}%` }}></div>
+                                    <div className="w-full h-1.5 lg:h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${avgMoisture}%`, backgroundColor: 'var(--ee-water)' }}></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="absolute top-0 right-0 w-48 lg:w-56 h-48 lg:h-56 bg-brand-lime opacity-10 rounded-full blur-[50px] lg:blur-[60px] pointer-events-none -mr-8 lg:-mr-10 -mt-8 lg:-mt-10"></div>
+                        <div className="absolute top-0 right-0 w-48 lg:w-56 h-48 lg:h-56 rounded-full blur-[50px] lg:blur-[60px] pointer-events-none -mr-8 lg:-mr-10 -mt-8 lg:-mt-10" style={{ backgroundColor: 'var(--ee-primary)', opacity: 0.1 }}></div>
                     </div>
                 )}
             </div>
 
             {/* Middle Row: Field Selector, Yield Prediction & Weather */}
-            <div className="col-span-12 grid grid-cols-12 gap-4 lg:gap-8">
+            <div className="col-span-12 grid grid-cols-12 gap-5 lg:gap-8">
                 {/* Field Selector Tabs */}
                 {fields.length > 1 && (
                     <div className="col-span-12 flex gap-2 overflow-x-auto pb-2 -mb-2">
-                        {fields.map((field, idx) => (
+                        {fields.map((field: any, idx: number) => (
                             <button
                                 key={field.id}
                                 onClick={() => handleFieldChange(idx)}
-                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap
-                                    ${selectedFieldIndex === idx
-                                        ? 'bg-brand-dark text-white shadow-lg'
-                                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                                    }`}
+                                className="px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap"
+                                style={{
+                                    backgroundColor: selectedFieldIndex === idx ? 'var(--ee-text)' : 'var(--ee-bg)',
+                                    color: selectedFieldIndex === idx ? '#fff' : 'var(--ee-muted)',
+                                    boxShadow: selectedFieldIndex === idx ? 'var(--shadow-ambient)' : 'var(--shadow-neu)',
+                                    fontFamily: 'var(--font-body)',
+                                }}
                             >
                                 {field.name}
                             </button>
@@ -247,10 +260,10 @@ const Overview: React.FC = () => {
                             title={`${primaryField?.name || 'Field'} Projection`}
                         />
                     ) : yieldAnalysis === null && !loading ? (
-                        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
-                            <span className="text-4xl mb-3">📊</span>
-                            <p className="font-bold text-brand-dark">Yield projection unavailable</p>
-                            <p className="text-sm text-slate-400 mt-1 text-center max-w-sm">Set a planting date and crop variety on your field to generate an agronomic yield projection.</p>
+                        <div className="neu-surface p-8 flex flex-col items-center justify-center min-h-[300px]">
+                            <span className="material-symbols-outlined mb-3" style={{ fontSize: '40px', color: 'var(--ee-muted)' }}>analytics</span>
+                            <p className="font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>Yield projection unavailable</p>
+                            <p className="text-sm mt-1 text-center max-w-sm" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Set a planting date and crop variety on your field to generate an agronomic yield projection.</p>
                         </div>
                     ) : (
                         <ChartSkeleton />
@@ -258,7 +271,7 @@ const Overview: React.FC = () => {
                 </div>
 
                 {/* Weather + Growth Stage Stack (Right 4) */}
-                <div id="weather-widget" className="col-span-12 lg:col-span-4 flex flex-col gap-4 lg:gap-6">
+                <div id="weather-widget" className="col-span-12 lg:col-span-4 flex flex-col gap-5 lg:gap-6">
                     {/* Weather Widget */}
                     <WeatherWidget
                         lat={primaryField?.coordinates?.[0]?.[1] || -17.8292}
@@ -280,7 +293,7 @@ const Overview: React.FC = () => {
             </div>
 
 
-            <div className="col-span-12 flex flex-col md:flex-row gap-8">
+            <div className="col-span-12 flex flex-col md:flex-row gap-5 lg:gap-8">
                 {/* Risk Radar if risks exist */}
                 <div className="flex-1 w-full md:w-1/2">
                     {risks.length > 0 && (
@@ -306,8 +319,8 @@ const Overview: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className="bg-brand-lime/10 p-8 rounded-[2.5rem] h-full flex items-center justify-center">
-                            <p className="text-brand-dark opacity-50 font-bold">No active insights.</p>
+                        <div className="neu-surface p-8 h-full flex items-center justify-center">
+                            <p className="font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No active insights.</p>
                         </div>
                     )}
                 </div>

@@ -2,27 +2,26 @@
 
 import { cn } from "@/lib/utils"
 
-interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: "default" | "neon"
+interface NeuCardProps extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: "default" | "surface" | "inset"
 }
 
-export function GlassCard({ className, variant = "default", children, ...props }: GlassCardProps) {
+export function NeuCard({ className, variant = "default", children, ...props }: NeuCardProps) {
     return (
         <div
             className={cn(
-                "glass-3d rounded-3xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1",
-                variant === "neon" && "shadow-[0_0_40px_-10px_rgba(16,185,129,0.2)]",
+                "rounded-[24px] transition-all duration-200 ease-in-out",
+                variant === "default" && "neu-card",
+                variant === "surface" && "neu-surface",
+                variant === "inset" && "bg-[var(--ee-bg)] shadow-[var(--shadow-neu-inset)] rounded-[24px]",
                 className
             )}
             {...props}
         >
-            {/* Optional: Subtle Gradient Overlay for 'Pretty' lighting */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
-
-            {/* Content Layer */}
-            <div className="relative z-10 w-full h-full">
-                {children}
-            </div>
+            {children}
         </div>
     )
 }
+
+// Legacy alias
+export const GlassCard = NeuCard;

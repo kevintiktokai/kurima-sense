@@ -42,18 +42,21 @@ const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[3000] flex items-center justify-center backdrop-blur-sm p-4 animate-in fade-in">
-            <div className="bg-white p-8 rounded-[3rem] shadow-2xl w-full max-w-md scale-100">
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(45, 58, 48, 0.4)', backdropFilter: 'blur(8px)' }}>
+            <div className="w-full max-w-md rounded-[24px] p-8" style={{ backgroundColor: 'var(--ee-surface)', boxShadow: 'var(--shadow-ambient)' }}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-black text-brand-dark">Log Farm Inputs</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-brand-dark font-bold text-xl">×</button>
+                    <h3 className="text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>Log Farm Inputs</h3>
+                    <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: 'var(--ee-bg)', color: 'var(--ee-muted)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                    </button>
                 </div>
 
                 <div className="space-y-5">
                     <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase ml-3">Select Field</label>
+                        <label className="text-xs font-bold uppercase ml-3" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Select Field</label>
                         <select
-                            className="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold text-brand-dark focus:border-brand-lime outline-none"
+                            className="w-full p-4 rounded-[16px] font-bold text-sm outline-none"
+                            style={{ backgroundColor: 'var(--ee-bg)', boxShadow: 'var(--shadow-neu-inset)', color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                             value={selectedField}
                             onChange={e => setSelectedField(e.target.value)}
                         >
@@ -66,9 +69,10 @@ const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-slate-400 uppercase ml-3">Type</label>
+                            <label className="text-xs font-bold uppercase ml-3" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Type</label>
                             <select
-                                className="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold text-brand-dark focus:border-brand-lime outline-none"
+                                className="w-full p-4 rounded-[16px] font-bold text-sm outline-none"
+                                style={{ backgroundColor: 'var(--ee-bg)', boxShadow: 'var(--shadow-neu-inset)', color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 value={inputType}
                                 onChange={e => {
                                     setInputType(e.target.value);
@@ -83,10 +87,11 @@ const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-slate-400 uppercase ml-3">Quantity</label>
+                            <label className="text-xs font-bold uppercase ml-3" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Quantity</label>
                             <input
                                 type="number"
-                                className="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl font-bold text-brand-dark focus:border-brand-lime outline-none"
+                                className="w-full p-4 rounded-[16px] font-bold text-sm outline-none"
+                                style={{ backgroundColor: 'var(--ee-bg)', boxShadow: 'var(--shadow-neu-inset)', color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 placeholder="0.00"
                                 value={quantity}
                                 onChange={e => setQuantity(e.target.value)}
@@ -94,16 +99,22 @@ const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
                         </div>
                     </div>
 
-                    <div className="p-4 bg-brand-light/30 rounded-2xl border border-brand-lime/20">
-                        <p className="text-xs text-brand-dark/70 font-medium text-center">
-                            Logging <span className="font-bold">{inputType}</span> helps the AI Agronomist calculate your potential yield more accurately.
+                    <div className="p-4 rounded-[16px]" style={{ backgroundColor: 'rgba(15, 184, 133, 0.06)' }}>
+                        <p className="text-xs font-medium text-center" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            Logging <span className="font-bold" style={{ color: 'var(--ee-text)' }}>{inputType}</span> helps the AI Agronomist calculate your potential yield more accurately.
                         </p>
                     </div>
 
                     <button
                         onClick={handleSubmit}
                         disabled={loading || !selectedField || !quantity}
-                        className="w-full py-4 bg-brand-dark text-brand-lime rounded-2xl font-bold shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100"
+                        className="w-full py-4 rounded-[16px] font-bold transition-all disabled:opacity-50"
+                        style={{
+                            backgroundColor: 'var(--ee-primary)',
+                            color: '#fff',
+                            boxShadow: 'var(--shadow-neu)',
+                            fontFamily: 'var(--font-body)',
+                        }}
                     >
                         {loading ? 'Logging...' : 'Confirm Entry'}
                     </button>

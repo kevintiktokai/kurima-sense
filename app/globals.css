@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Keyframes for Animations */
+/* ── Earthy Elegance Design Tokens ── */
 @theme {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -33,11 +33,28 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* BRAND COLORS */
-  --color-brand-dark: #2D3A26;
-  --color-brand-lime: #D7F26C;
-  --color-brand-beige: #F2F2EB;
-  --color-brand-surface: #EBEBE3;
+  /* EARTHY ELEGANCE BRAND COLORS */
+  --color-brand-primary: #0fb885;
+  --color-brand-bg: #F4F1ED;
+  --color-brand-bg-dim: #f3f0ec;
+  --color-brand-bg-pressed: #e5e2dd;
+  --color-brand-bg-border: #e0ddd8;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-text: #2D3A30;
+  --color-brand-muted: #8B9D8F;
+  --color-brand-sun: #E8A365;
+  --color-brand-water: #5C9EAD;
+  --color-brand-water-light: #E6F2F5;
+
+  /* Legacy aliases for compatibility */
+  --color-brand-dark: #2D3A30;
+  --color-brand-lime: #0fb885;
+  --color-brand-beige: #F4F1ED;
+
+  /* Neumorphic Shadows */
+  --shadow-neu: 6px 6px 16px #D5D2CE, -6px -6px 16px #FFFFFF;
+  --shadow-neu-inset: inset 4px 4px 8px #D5D2CE, inset -4px -4px 8px #FFFFFF;
+  --shadow-ambient: 0 20px 40px rgba(47, 47, 44, 0.06);
 
   /* Custom Animations */
   --animate-accordion-down: accordion-down 0.2s ease-out;
@@ -47,51 +64,91 @@
   --animate-marquee: marquee 30s linear infinite;
 
   @keyframes accordion-down {
-    from {
-      height: 0
-    }
-
-    to {
-      height: var(--radix-accordion-content-height)
-    }
+    from { height: 0 }
+    to { height: var(--radix-accordion-content-height) }
   }
 
   @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height)
-    }
-
-    to {
-      height: 0
-    }
+    from { height: var(--radix-accordion-content-height) }
+    to { height: 0 }
   }
 
   @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-
-    100% {
-      transform: translateX(-50%);
-    }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
 
   @keyframes animate-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 
-/* 
-  Utility Classes 
-*/
+/* ── CSS Custom Properties ── */
+:root {
+  /* Colors */
+  --ee-primary: #0fb885;
+  --ee-bg: #F4F1ED;
+  --ee-bg-dim: #f3f0ec;
+  --ee-bg-pressed: #e5e2dd;
+  --ee-bg-border: #e0ddd8;
+  --ee-surface: #FFFFFF;
+  --ee-text: #2D3A30;
+  --ee-muted: #8B9D8F;
+  --ee-sun: #E8A365;
+  --ee-water: #5C9EAD;
+  --ee-water-light: #E6F2F5;
+
+  /* Typography */
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Nunito', sans-serif;
+
+  /* Radii */
+  --radius-ee-sm: 8px;
+  --radius-ee-md: 16px;
+  --radius-ee-lg: 24px;
+  --radius-ee-full: 9999px;
+
+  /* Shadows — neumorphic */
+  --shadow-neu: 6px 6px 16px #D5D2CE, -6px -6px 16px #FFFFFF;
+  --shadow-neu-inset: inset 4px 4px 8px #D5D2CE, inset -4px -4px 8px #FFFFFF;
+  --shadow-ambient: 0 20px 40px rgba(47, 47, 44, 0.06);
+
+  /* Fluid Typography */
+  --fluid-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 3rem);
+  --fluid-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 4rem);
+  --fluid-5xl: clamp(3rem, 2.25rem + 3.75vw, 5rem);
+
+  /* shadcn base variables mapped to Earthy Elegance */
+  --background: 37 18% 94%;
+  --foreground: 144 14% 20%;
+  --card: 0 0% 100%;
+  --card-foreground: 144 14% 20%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 144 14% 20%;
+  --primary: 157 83% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 37 18% 94%;
+  --secondary-foreground: 144 14% 20%;
+  --muted: 144 10% 58%;
+  --muted-foreground: 144 10% 58%;
+  --accent: 28 73% 65%;
+  --accent-foreground: 144 14% 20%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 35 10% 86%;
+  --input: 35 10% 86%;
+  --ring: 157 83% 39%;
+  --radius: 1.5rem;
+}
+
+.dark {
+  --background: 144 14% 10%;
+  --foreground: 37 18% 94%;
+}
+
+/* ── Utility Classes ── */
+
 @utility container {
   margin-inline: auto;
   padding-inline: 2rem;
@@ -101,7 +158,7 @@
   }
 
   @media (width >=--theme(--breakpoint-md)) {
-    max-width: 61rem;
+    max-width: 28rem;
   }
 
   @media (width >=--theme(--breakpoint-lg)) {
@@ -110,76 +167,69 @@
 }
 
 @utility sidebar-bg {
-  background: white;
+  background-color: var(--ee-bg);
 }
 
 @utility custom-shadow {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-ambient);
 }
 
+/* Neumorphic card — use on any container that should "float" */
+@utility neu-card {
+  background-color: var(--ee-bg);
+  box-shadow: var(--shadow-neu);
+  border-radius: var(--radius-ee-lg);
+  transition: all 0.2s ease-in-out;
+}
+
+@utility neu-card-active {
+  box-shadow: var(--shadow-neu-inset);
+}
+
+/* White surface card — for data cards sitting on oat background */
+@utility neu-surface {
+  background-color: var(--ee-surface);
+  box-shadow: var(--shadow-neu);
+  border-radius: var(--radius-ee-lg);
+  transition: all 0.2s ease-in-out;
+}
+
+@utility neu-surface-active {
+  box-shadow: var(--shadow-neu-inset);
+}
+
+/* Ghost border — only when accessibility requires a visible edge */
+@utility ghost-border {
+  outline: 1px solid rgba(139, 157, 143, 0.15);
+}
+
+/* Ambient float — for modals, FABs, overlays */
+@utility ambient-float {
+  box-shadow: var(--shadow-ambient);
+}
+
+/* Glass overlay — for weather widgets, floating menus */
+@utility glass-overlay {
+  background-color: rgba(244, 241, 237, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Legacy glass utilities mapped to earthy elegance */
 @utility glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: var(--ee-surface);
+  box-shadow: var(--shadow-neu);
+  border-radius: var(--radius-ee-lg);
 }
 
 @utility glass-dark {
-  background: rgba(45, 58, 38, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--ee-text);
+  box-shadow: var(--shadow-neu);
+  border-radius: var(--radius-ee-lg);
 }
 
 @utility thumb-zone {
   padding-bottom: env(safe-area-inset-bottom, 20px);
-}
-
-/* Fluid Typography */
-@layer base {
-  :root {
-    --fluid-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 3rem);
-    --fluid-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 4rem);
-    --fluid-5xl: clamp(3rem, 2.25rem + 3.75vw, 5rem);
-  }
-}
-
-/*
-  The base variables for KurimaSense Theme.
-*/
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-
-  /* DEFAULT SHADC-N TOKENS MAPPED TO BRAND IF NEEDED, OR KEPT NEUTRAL */
-  --primary: 104 21% 19%;
-  /* #2D3A26 converted to HSL roughly */
-  --primary-foreground: 76 76% 69%;
-  /* #D7F26C */
-
-  --secondary: 76 76% 69%;
-  --secondary-foreground: 104 21% 19%;
-
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 76 76% 69%;
-  --accent-foreground: 104 21% 19%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 104 21% 19%;
-  --radius: 0.5rem;
-}
-
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  /* Dark mode overrides if implemented later */
 }
 
 @layer base {
@@ -188,6 +238,13 @@
   }
 
   body {
-    @apply bg-brand-surface text-foreground font-sans;
+    @apply font-sans antialiased;
+    background-color: var(--ee-bg);
+    color: var(--ee-text);
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 }
