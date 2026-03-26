@@ -10,6 +10,7 @@ export default function PlanPage() {
     const [fields, setFields] = useState<FieldData[]>([]);
     const [selectedField, setSelectedField] = useState<FieldData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activityRefresh, setActivityRefresh] = useState(0);
 
     useEffect(() => {
         api.getFields().then(data => {
@@ -21,9 +22,26 @@ export default function PlanPage() {
         });
     }, []);
 
+    // Called when CropPlan's "Add to Tasks" button is pressed
+    const handleActionsAdded = () => {
+        setActivityRefresh(prev => prev + 1);
+    };
+
     if (loading) {
-        return <div className="p-10 text-center text-slate-400">Loading Plan...</div>;
+        return (
+            <div className="p-10 flex flex-col items-center justify-center min-h-[50vh]">
+                <div className="w-12 h-12 border-4 border-brand-lime border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-slate-400 font-bold">Loading Plan...</p>
+            </div>
+        );
     }
+
+    // Calculate days since planting for field selector
+    const getDaysSincePlanting = (field: FieldData) => {
+        const pd = field.plantingDate || field.planting_date;
+        if (!pd) return null;
+        return Math.floor((Date.now() - new Date(pd).getTime()) / (1000 * 60 * 60 * 24));
+    };
 
     return (
         <div className="p-8 h-screen overflow-y-auto">
@@ -31,21 +49,36 @@ export default function PlanPage() {
 
             {/* Field Selector */}
             <div className="flex gap-4 mb-8 overflow-x-auto pb-4 snap-x">
-                {fields.map(field => (
-                    <button
-                        key={field.id}
-                        onClick={() => setSelectedField(field)}
-                        className={`flex-shrink-0 p-6 rounded-[2.5rem] border-2 transition-all min-w-[200px] text-left snap-start
-                            ${selectedField?.id === field.id
-                                ? 'bg-brand-dark border-brand-dark text-white shadow-xl scale-105'
-                                : 'bg-white border-slate-100 text-slate-400 hover:border-brand-lime'
-                            }`}
-                    >
-                        <p className="text-xs font-bold uppercase mb-1 opacity-70">{field.crop}</p>
-                        <h3 className="text-xl font-black">{field.name}</h3>
-                        <p className="text-xs font-bold mt-2 opacity-70">{field.area.toFixed(1)} ha</p>
-                    </button>
-                ))}
+                {fields.map(field => {
+                    const dsp = getDaysSincePlanting(field);
+                    return (
+                        <button
+                            key={field.id}
+                            onClick={() => setSelectedField(field)}
+                            className={`flex-shrink-0 p-6 rounded-[2.5rem] border-2 transition-all min-w-[220px] text-left snap-start
+                                ${selectedField?.id === field.id
+                                    ? 'bg-brand-dark border-brand-dark text-white shadow-xl scale-105'
+                                    : 'bg-white border-slate-100 text-slate-400 hover:border-brand-lime'
+                                }`}
+                        >
+                            <p className="text-xs font-bold uppercase mb-1 opacity-70">{field.crop}</p>
+                            <h3 className="text-xl font-black">{field.name}</h3>
+                            <div className="flex items-center gap-3 mt-2">
+                                <p className="text-xs font-bold opacity-70">{field.area?.toFixed(1)} ha</p>
+                                {field.variety && (
+                                    <p className="text-xs font-bold opacity-50">{field.variety}</p>
+                                )}
+                            </div>
+                            {dsp != null && dsp > 0 && (
+                                <p className={`text-[10px] font-bold mt-2 uppercase tracking-wider ${
+                                    selectedField?.id === field.id ? 'text-brand-lime' : 'text-slate-300'
+                                }`}>
+                                    Day {dsp}
+                                </p>
+                            )}
+                        </button>
+                    );
+                })}
                 {fields.length === 0 && (
                     <div className="p-6 bg-slate-50 text-slate-400 rounded-3xl">No fields found. Add a field to get started.</div>
                 )}
@@ -53,18 +86,26 @@ export default function PlanPage() {
 
             {/* Plan Display */}
             <div className="bg-slate-50 rounded-[3.5rem] p-2 mb-8">
-                <CropPlan selectedField={selectedField} />
+                <CropPlan
+                    selectedField={selectedField}
+                    onActionsAdded={handleActionsAdded}
+                />
             </div>
 
             {/* Activity Log Section */}
             <div className="mb-8">
                 <ActivityLog
                     fieldId={selectedField?.id}
-                    onActivityComplete={(id) => console.log('Activity completed:', id)}
-                    onActivityCreate={(activity) => console.log('Activity created:', activity)}
+                    refreshTrigger={activityRefresh}
+                    onActivityComplete={(id) => {
+                        // Could trigger a re-fetch of the dashboard priorities if needed
+                        console.log('Activity completed:', id);
+                    }}
+                    onActivityCreate={(activity) => {
+                        console.log('Activity created:', activity);
+                    }}
                 />
             </div>
         </div>
     );
 }
-

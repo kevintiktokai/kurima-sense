@@ -715,5 +715,50 @@ export const api = {
             console.error("Create task error", e);
             throw e;
         }
+    },
+
+    /**
+     * Fetch task history with completion stats over the past N days
+     */
+    async getTaskHistory(days: number = 30, fieldId?: string): Promise<{
+        tasks: any[];
+        summary: {
+            total: number;
+            completed: number;
+            pending: number;
+            completion_rate: number;
+            days_covered: number;
+        };
+    }> {
+        try {
+            const headers = await getAuthHeaders();
+            let url = `${API_BASE_URL}/ai/tasks/history?days=${days}`;
+            if (fieldId) url += `&field_id=${fieldId}`;
+            const res = await fetch(url, { headers });
+            if (!res.ok) throw new Error("Failed to fetch task history");
+            return await res.json();
+        } catch (e) {
+            console.error("Task history error", e);
+            return { tasks: [], summary: { total: 0, completed: 0, pending: 0, completion_rate: 0, days_covered: days } };
+        }
+    },
+
+    /**
+     * Convert AI plan actions into farm tasks
+     */
+    async createTasksFromPlan(actions: string[], fieldId?: string): Promise<{ created: number; tasks: any[] }> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/ai/tasks/from-plan`, {
+                method: 'POST',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actions, field_id: fieldId })
+            });
+            if (!res.ok) throw new Error("Failed to create tasks from plan");
+            return await res.json();
+        } catch (e) {
+            console.error("Create tasks from plan error", e);
+            throw e;
+        }
     }
 };
