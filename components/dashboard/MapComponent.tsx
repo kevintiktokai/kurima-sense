@@ -36,6 +36,7 @@ interface MapComponentProps {
     fields: any[];
     onSelectField?: (field: any) => void;
     onFieldCreated?: (points: { lat: number, lon: number }[], area?: number) => void;
+    highlightedFieldId?: string | null;
 }
 
 const LocationMarker = () => {
@@ -127,7 +128,20 @@ const CustomControls = () => {
     );
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ fields, onSelectField, onFieldCreated }) => {
+// Component to fly to a highlighted field
+const FlyToField = ({ fields, highlightedFieldId }: { fields: any[], highlightedFieldId?: string | null }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (!highlightedFieldId) return;
+        const field = fields.find((f: any) => f.id === highlightedFieldId);
+        if (field?.location) {
+            map.flyTo([field.location.lat, field.location.lon], 17, { duration: 1.2 });
+        }
+    }, [highlightedFieldId, fields, map]);
+    return null;
+};
+
+const MapComponent: React.FC<MapComponentProps> = ({ fields, onSelectField, onFieldCreated, highlightedFieldId }) => {
     // Default center (Harare)
     const defaultCenter: [number, number] = [-17.82, 31.05];
     const center = fields.length > 0 && fields[0].location
@@ -260,15 +274,31 @@ const MapComponent: React.FC<MapComponentProps> = ({ fields, onSelectField, onFi
                 </FeatureGroup>
 
                 <MapRecenter center={center} />
+                <FlyToField fields={fields} highlightedFieldId={highlightedFieldId} />
                 <CustomControls />
                 <LocationMarker />
 
-                {fields.map((field) => (
-                    field.location && (
+                {fields.map((field) => {
+                    if (!field.location) return null;
+                    const isHighlighted = field.id === highlightedFieldId;
+                    const markerIcon = isHighlighted
+                        ? L.divIcon({
+                            className: 'highlighted-field-marker',
+                            html: `<div style="width:32px;height:32px;background:#D7F26C;border:3px solid #2D3A26;border-radius:50%;box-shadow:0 0 0 6px rgba(215,242,108,0.4),0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+                                <div style="width:10px;height:10px;background:#2D3A26;border-radius:50%;"></div>
+                            </div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                            popupAnchor: [0, -20]
+                        })
+                        : customIcon;
+
+                    return (
                         <Marker
                             key={field.id}
                             position={[field.location.lat, field.location.lon]}
-                            icon={customIcon}
+                            icon={markerIcon}
+                            zIndexOffset={isHighlighted ? 1000 : 0}
                             eventHandlers={{
                                 click: () => onSelectField && onSelectField(field),
                             }}
@@ -276,12 +306,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ fields, onSelectField, onFi
                             <Popup className="custom-popup">
                                 <div className="text-center">
                                     <p className="font-black text-brand-dark text-sm">{field.name}</p>
+                                    <p className="text-[10px] uppercase font-bold text-slate-500">{field.crop} &bull; {field.area?.toFixed(1)} ha</p>
                                     <p className="text-[10px] uppercase font-bold text-slate-500">{field.healthStatus}</p>
                                 </div>
                             </Popup>
                         </Marker>
-                    )
-                ))}
+                    );
+                })}
             </MapContainer>
             {/* Overlay Gradient for clearer UI on top */}
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-[300] rounded-[3.5rem]" />
