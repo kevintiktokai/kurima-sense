@@ -63,9 +63,10 @@ const Overview: React.FC = () => {
         // Phase 2: load AI extras without blocking UI
         try {
             // Use actual field coordinates if available, otherwise default to Harare
-            const fieldCoords = currentFieldsData?.[0]?.coordinates?.[0];
-            const lat = fieldCoords?.[1] || fieldCoords?.lat || -17.82;
-            const lon = fieldCoords?.[0] || fieldCoords?.lng || fieldCoords?.lon || 31.05;
+            const firstField = currentFieldsData?.[0];
+            const fc: any = firstField?.coordinates?.[0];
+            const lat = (fc && (fc.lat ?? fc[1])) || -17.82;
+            const lon = (fc && (fc.lng ?? fc.lon ?? fc[0])) || 31.05;
             api.getProactiveInsight({ location: { lat, lon } })
                 .then(setInsight)
                 .catch(() => {});
