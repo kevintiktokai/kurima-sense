@@ -182,43 +182,17 @@ const Overview: React.FC = () => {
 
             {/* Action Queue (Right Column - Top Priority) */}
             <div id="action-queue" className="col-span-12 lg:col-span-4 flex flex-col h-full">
-                {actions.length > 0 ? (
+                {actions.filter(a => !a.completed).length > 0 ? (
                     <ActionQueue
                         actions={actions.filter(a => !a.completed)}
                         title="Today's Priorities"
                         onActionComplete={handleActionComplete}
                     />
                 ) : (
-                    /* Fallback to Field Breakdown if no actions */
-                    <div className="p-8 lg:p-10 rounded-[24px] text-white relative overflow-hidden flex flex-col justify-between h-full min-h-[350px]" style={{
-                        backgroundColor: 'var(--ee-text)',
-                        boxShadow: 'var(--shadow-ambient)',
-                    }}>
-                        <div className="relative z-10 w-full">
-                            <h4 className="text-lg lg:text-xl mb-1" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600 }}>Field Breakdown</h4>
-                            <p className="text-[10px] lg:text-xs font-medium mb-6 lg:mb-8 uppercase tracking-widest" style={{ fontFamily: 'var(--font-body)', color: 'rgba(255,255,255,0.5)' }}>Satellite aggregation</p>
-                            <div className="space-y-6 lg:space-y-8">
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Avg NDVI</span>
-                                        <span className="text-xl lg:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-primary)' }}>{avgNdvi}</span>
-                                    </div>
-                                    <div className="w-full h-1.5 lg:h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${parseFloat(avgNdvi) * 100}%`, backgroundColor: 'var(--ee-primary)' }}></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs lg:text-sm font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Soil Moisture</span>
-                                        <span className="text-xl lg:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-water)' }}>{avgMoisture}%</span>
-                                    </div>
-                                    <div className="w-full h-1.5 lg:h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${avgMoisture}%`, backgroundColor: 'var(--ee-water)' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute top-0 right-0 w-48 lg:w-56 h-48 lg:h-56 rounded-full blur-[50px] lg:blur-[60px] pointer-events-none -mr-8 lg:-mr-10 -mt-8 lg:-mt-10" style={{ backgroundColor: 'var(--ee-primary)', opacity: 0.1 }}></div>
+                    <div className="neu-surface p-8 lg:p-10 flex flex-col items-center justify-center h-full min-h-[350px]">
+                        <span className="material-symbols-outlined mb-3" style={{ fontSize: '40px', color: 'var(--ee-primary)' }}>check_circle</span>
+                        <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>All caught up</p>
+                        <p className="text-sm mt-1 text-center" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No tasks for today. Check back tomorrow.</p>
                     </div>
                 )}
             </div>
@@ -293,20 +267,71 @@ const Overview: React.FC = () => {
             </div>
 
 
-            <div className="col-span-12 flex flex-col md:flex-row gap-5 lg:gap-8">
-                {/* Risk Radar if risks exist */}
-                <div className="flex-1 w-full md:w-1/2">
-                    {risks.length > 0 && (
+            {/* Bottom Row: Crop Health + Risk Radar + AI Insight */}
+            <div className="col-span-12 grid grid-cols-12 gap-5 lg:gap-8">
+
+                {/* Crop Health Card — always visible */}
+                <div className="col-span-12 md:col-span-4">
+                    <div className="p-6 lg:p-8 rounded-[24px] text-white relative overflow-hidden h-full min-h-[260px]" style={{
+                        backgroundColor: 'var(--ee-text)',
+                        boxShadow: 'var(--shadow-ambient)',
+                    }}>
+                        <div className="relative z-10 w-full">
+                            <h4 className="text-base lg:text-lg mb-1 flex items-center gap-2" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>satellite_alt</span>
+                                Crop Health
+                            </h4>
+                            <p className="text-[10px] font-medium mb-5 uppercase tracking-widest" style={{ fontFamily: 'var(--font-body)', color: 'rgba(255,255,255,0.5)' }}>Satellite aggregation</p>
+                            <div className="space-y-5">
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Avg NDVI</span>
+                                        <span className="text-xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-primary)' }}>{avgNdvi}</span>
+                                    </div>
+                                    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${parseFloat(avgNdvi) * 100}%`, backgroundColor: 'var(--ee-primary)' }}></div>
+                                    </div>
+                                    <p className="text-[10px] mt-1 opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
+                                        {parseFloat(avgNdvi) >= 0.6 ? 'Healthy vegetation' : parseFloat(avgNdvi) >= 0.4 ? 'Moderate vigour' : parseFloat(avgNdvi) > 0 ? 'Low vigour — check field' : 'No data'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Soil Moisture</span>
+                                        <span className="text-xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-water)' }}>{avgMoisture}%</span>
+                                    </div>
+                                    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${avgMoisture}%`, backgroundColor: 'var(--ee-water)' }}></div>
+                                    </div>
+                                    <p className="text-[10px] mt-1 opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
+                                        {avgMoisture >= 55 ? 'Adequate moisture' : avgMoisture >= 35 ? 'Monitor closely' : avgMoisture > 0 ? 'Irrigation recommended' : 'No data'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[50px] pointer-events-none -mr-8 -mt-8" style={{ backgroundColor: 'var(--ee-primary)', opacity: 0.1 }}></div>
+                    </div>
+                </div>
+
+                {/* Risk Radar */}
+                <div className="col-span-12 md:col-span-4">
+                    {risks.length > 0 ? (
                         <RiskRadar
                             risks={risks}
                             title="Risk Radar"
                             onRiskClick={(risk) => console.log('Risk clicked:', risk)}
                         />
+                    ) : (
+                        <div className="neu-surface p-6 lg:p-8 h-full min-h-[260px] flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined mb-2" style={{ fontSize: '36px', color: 'var(--ee-primary)' }}>verified_user</span>
+                            <p className="font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>No active risks</p>
+                            <p className="text-sm mt-1 text-center" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>All clear for your fields.</p>
+                        </div>
                     )}
                 </div>
 
                 {/* AI Advisor / Insight Card */}
-                <div className="flex-1 w-full md:w-1/2">
+                <div className="col-span-12 md:col-span-4">
                     {insights.length > 0 ? (
                         <AIInsightCard
                             insight={{
@@ -319,8 +344,10 @@ const Overview: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className="neu-surface p-8 h-full flex items-center justify-center">
-                            <p className="font-bold" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No active insights.</p>
+                        <div className="neu-surface p-6 lg:p-8 h-full min-h-[260px] flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined mb-2" style={{ fontSize: '36px', color: 'var(--ee-muted)' }}>psychology</span>
+                            <p className="font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>No active insights</p>
+                            <p className="text-sm mt-1 text-center" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>AI advisor will surface recommendations here.</p>
                         </div>
                     )}
                 </div>
