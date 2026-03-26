@@ -81,7 +81,7 @@ const CropSearchSelect: React.FC<CropSearchSelectProps> = ({ value, onChange }) 
                 c.value.toLowerCase().includes(q) ||
                 c.label.toLowerCase().includes(q) ||
                 c.aka.toLowerCase().includes(q) ||
-                c.group.toLowerCase().includes(q)
+                group.group.toLowerCase().includes(q)
             )
         })).filter(g => g.crops.length > 0);
     }, [search]);
