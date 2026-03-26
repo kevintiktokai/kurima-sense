@@ -26,8 +26,8 @@ interface TaskHistorySummary {
 }
 
 interface ActivityLogProps {
-    fieldId?: string;
-    refreshTrigger?: number; // Increment to force re-fetch (e.g. when plan actions are added)
+    fieldId?: string;         // Field ID used when creating new tasks (pre-selects field)
+    refreshTrigger?: number;  // Increment to force re-fetch (e.g. when plan actions are added)
     onActivityComplete?: (id: string) => void;
     onActivityCreate?: (activity: Omit<Activity, 'id'>) => void;
 }
@@ -82,10 +82,13 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
         priority: 'normal' as Activity['priority'],
     });
 
-    // Fetch activities for selected date
+    const [insightsTriggered, setInsightsTriggered] = useState(false);
+
+    // Fetch ALL tasks for the selected date (not filtered by field — farmer needs full daily view)
     const fetchActivities = useCallback(async () => {
         try {
-            const data = await api.getTasks(selectedDate, fieldId);
+            // Don't filter by field — show all today's priorities across all fields
+            const data = await api.getTasks(selectedDate);
             const mappedActivities: Activity[] = data.map((t: any) => ({
                 id: t.id,
                 title: t.title,
@@ -100,10 +103,37 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                 aiSuggested: t.is_ai_generated
             }));
             setActivities(mappedActivities);
+
+            // If no tasks found and we haven't triggered insights yet,
+            // call /ai/insights to generate and persist today's priorities
+            if (mappedActivities.length === 0 && !insightsTriggered) {
+                setInsightsTriggered(true);
+                try {
+                    await api.getAIInsights();
+                    // Re-fetch tasks after insights generated them
+                    const refreshed = await api.getTasks(selectedDate);
+                    const refreshedMapped: Activity[] = refreshed.map((t: any) => ({
+                        id: t.id,
+                        title: t.title,
+                        description: t.description,
+                        type: t.activity_type as Activity['type'],
+                        priority: t.priority as Activity['priority'],
+                        date: t.task_date,
+                        completed: t.completed,
+                        completedAt: t.completed_at,
+                        fieldId: t.field_id,
+                        fieldName: t.field_name,
+                        aiSuggested: t.is_ai_generated
+                    }));
+                    setActivities(refreshedMapped);
+                } catch {
+                    // Insights generation failed — that's ok, just show empty
+                }
+            }
         } catch (err) {
             console.error("Failed to fetch activities", err);
         }
-    }, [selectedDate, fieldId]);
+    }, [selectedDate, insightsTriggered]);
 
     useEffect(() => {
         fetchActivities();
@@ -113,7 +143,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
     useEffect(() => {
         if (activeTab === 'history') {
             setHistoryLoading(true);
-            api.getTaskHistory(30, fieldId).then(data => {
+            api.getTaskHistory(30).then(data => {
                 const mapped: Activity[] = data.tasks.map((t: any) => ({
                     id: t.id,
                     title: t.title,
