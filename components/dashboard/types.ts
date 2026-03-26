@@ -11,7 +11,14 @@ export enum CropType {
     GROUNDNUTS = 'Groundnuts',
     SORGHUM = 'Sorghum',
     SUNFLOWER = 'Sunflower',
-    SUGAR_BEANS = 'Sugar Beans'
+    SUGAR_BEANS = 'Sugar Beans',
+    SWEET_POTATO = 'Sweet Potato',
+    FINGER_MILLET = 'Finger Millet',
+    PEARL_MILLET = 'Pearl Millet',
+    COWPEAS = 'Cowpeas',
+    BAMBARA_NUTS = 'Bambara Nuts',
+    BUTTERNUT = 'Butternut',
+    PAPRIKA = 'Paprika'
 }
 
 export interface FieldData {
