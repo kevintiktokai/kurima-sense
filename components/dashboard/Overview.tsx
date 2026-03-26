@@ -273,8 +273,8 @@ const Overview: React.FC = () => {
                                 : undefined
                         }
                         daysToHarvest={yieldAnalysis?.days_to_harvest}
-                        plantingDate={primaryField?.planting_date}
-                        cropType={primaryField?.crop_type || primaryField?.crop || 'Maize'}
+                        plantingDate={primaryField?.plantingDate || primaryField?.planting_date}
+                        cropType={primaryField?.crop || primaryField?.crop_type || 'Maize'}
                     />
                 </div>
             </div>
