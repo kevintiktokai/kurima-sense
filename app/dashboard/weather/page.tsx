@@ -170,35 +170,49 @@ export default function WeatherPage() {
             {/* Current Weather Hero */}
             <div className="col-span-12 lg:col-span-8">
                 <div className="p-8 lg:p-12 rounded-[24px] text-white relative overflow-hidden min-h-[280px]" style={{ background: 'linear-gradient(135deg, var(--ee-text), #1E2B20)', boxShadow: 'var(--shadow-neu)' }}>
-                    <div className="relative z-10">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="font-bold text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Current Conditions</p>
-                                <div className="flex items-end gap-4">
-                                    <span className="text-7xl lg:text-8xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current?.temperature || 0)}°</span>
-                                    <span className="text-6xl mb-2">{getWeatherIcon(current?.weather_code || 0)}</span>
-                                </div>
-                                <p className="text-2xl font-bold mt-2" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>{current?.weather_description}</p>
-                                <p className="mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}>Feels like {Math.round(current?.feels_like || 0)}°C</p>
-                            </div>
-                            <div className="text-right space-y-3">
-                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Humidity</p>
-                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current?.humidity}%</p>
-                                </div>
-                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Wind</p>
-                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current?.wind_speed || 0)} km/h</p>
-                                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{current?.wind_direction_text}</p>
-                                </div>
-                                <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>UV Index</p>
-                                    <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current?.uv_index}</p>
-                                    <p className="text-xs" style={{ color: 'var(--ee-primary)' }}>{current?.uv_level}</p>
-                                </div>
-                            </div>
+                    {!current || current.temperature == null ? (
+                        <div className="relative z-10 flex flex-col items-center justify-center min-h-[200px] text-center">
+                            <p className="text-4xl mb-3">🌐</p>
+                            <p className="text-xl font-bold" style={{ color: 'rgba(255,255,255,0.8)' }}>Weather data unavailable</p>
+                            <p className="text-sm mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Unable to fetch current conditions. Check your field location or try again.</p>
+                            <button onClick={() => loadClimateData()} className="mt-4 px-5 py-2 font-bold rounded-[12px] text-sm transition-colors" style={{ background: 'var(--ee-primary)', color: 'var(--ee-text)' }}>
+                                Retry
+                            </button>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="relative z-10">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="font-bold text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Current Conditions</p>
+                                    <div className="flex items-end gap-4">
+                                        <span className="text-7xl lg:text-8xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current.temperature)}°</span>
+                                        <span className="text-6xl mb-2">{getWeatherIcon(current.weather_code || 0)}</span>
+                                    </div>
+                                    <p className="text-2xl font-bold mt-2" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>{current.weather_description}</p>
+                                    <p className="mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}>Feels like {Math.round(current.feels_like ?? current.temperature)}°C</p>
+                                </div>
+                                <div className="text-right space-y-3">
+                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Humidity</p>
+                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.humidity ?? '—'}%</p>
+                                    </div>
+                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Wind</p>
+                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.wind_speed != null ? Math.round(current.wind_speed) : '—'} km/h</p>
+                                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{current.wind_direction_text || ''}</p>
+                                    </div>
+                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>UV Index</p>
+                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.uv_index ?? '—'}</p>
+                                        <p className="text-xs" style={{ color: 'var(--ee-primary)' }}>{current.uv_level || ''}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {current.time && (
+                                <p className="text-xs mt-4" style={{ color: 'rgba(255,255,255,0.3)' }}>Updated: {new Date(current.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+                            )}
+                        </div>
+                    )}
                     {/* Decorative glow */}
                     <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ background: 'var(--ee-primary)', opacity: 0.12 }}></div>
                 </div>
