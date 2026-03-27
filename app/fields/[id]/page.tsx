@@ -117,12 +117,43 @@ export default function FieldInsightsPage() {
         ? Math.min(98, Math.round((yieldData.projected_yield / yieldData.yield_potential) * 100))
         : null;
 
-    // Crop-specific threshold definitions
+    // Crop-specific threshold definitions — covers all crops in CropSearchSelect
     const cropThresholds: Record<string, { ndvi: { excellent: number; good: number; moderate: number }; moisture: { adequate: number; low: number; critical: number } }> = {
+        // Cereals & Grains
         'Maize': { ndvi: { excellent: 0.7, good: 0.5, moderate: 0.35 }, moisture: { adequate: 50, low: 30, critical: 20 } },
-        'Soybean': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Wheat': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 45, low: 25, critical: 15 } },
+        'Sorghum': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 35, low: 20, critical: 10 } },
+        'Finger Millet': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 30, low: 18, critical: 10 } },
+        'Pearl Millet': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 30, low: 18, critical: 10 } },
+        // Cash Crops
         'Tobacco': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 30, critical: 20 } },
+        'Cotton': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Sunflower': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 35, low: 20, critical: 12 } },
+        'Paprika': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 45, low: 30, critical: 18 } },
+        'Sesame': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
+        'Tea': { ndvi: { excellent: 0.7, good: 0.55, moderate: 0.4 }, moisture: { adequate: 55, low: 40, critical: 30 } },
+        // Legumes & Oilseeds
+        'Soybeans': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Soybean': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
         'Groundnuts': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 35, low: 20, critical: 12 } },
+        'Sugar Beans': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Cowpeas': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
+        'Bambara Nuts': { ndvi: { excellent: 0.5, good: 0.35, moderate: 0.2 }, moisture: { adequate: 25, low: 15, critical: 8 } },
+        'Peas': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 28, critical: 15 } },
+        'Green Beans': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 30, critical: 18 } },
+        // Vegetables & Root Crops
+        'Potato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
+        'Sweet Potato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Cassava': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
+        'Tomato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
+        'Onion': { ndvi: { excellent: 0.45, good: 0.3, moderate: 0.2 }, moisture: { adequate: 50, low: 30, critical: 18 } },
+        'Cabbage': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
+        'Butternut': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Green Pepper': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 50, low: 32, critical: 20 } },
+        'Garlic': { ndvi: { excellent: 0.45, good: 0.3, moderate: 0.2 }, moisture: { adequate: 45, low: 28, critical: 15 } },
+        'Strawberries': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 55, low: 35, critical: 22 } },
+        'Blueberries': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 50, low: 32, critical: 20 } },
+        'Snow Peas': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 28, critical: 15 } },
     };
     const ct = cropThresholds[field.crop] || { ndvi: { excellent: 0.6, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } };
     const getNdviLabel = (v: number) => v >= ct.ndvi.excellent ? 'Excellent' : v >= ct.ndvi.good ? 'Good' : v >= ct.ndvi.moderate ? 'Moderate' : 'Critical';
