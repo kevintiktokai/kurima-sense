@@ -117,6 +117,19 @@ export default function FieldInsightsPage() {
         ? Math.min(98, Math.round((yieldData.projected_yield / yieldData.yield_potential) * 100))
         : null;
 
+    // Crop-specific threshold definitions
+    const cropThresholds: Record<string, { ndvi: { excellent: number; good: number; moderate: number }; moisture: { adequate: number; low: number; critical: number } }> = {
+        'Maize': { ndvi: { excellent: 0.7, good: 0.5, moderate: 0.35 }, moisture: { adequate: 50, low: 30, critical: 20 } },
+        'Soybean': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
+        'Tobacco': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 30, critical: 20 } },
+        'Groundnuts': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 35, low: 20, critical: 12 } },
+    };
+    const ct = cropThresholds[field.crop] || { ndvi: { excellent: 0.6, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } };
+    const getNdviLabel = (v: number) => v >= ct.ndvi.excellent ? 'Excellent' : v >= ct.ndvi.good ? 'Good' : v >= ct.ndvi.moderate ? 'Moderate' : 'Critical';
+    const getNdviColor = (v: number) => v >= ct.ndvi.good ? 'var(--ee-primary)' : v >= ct.ndvi.moderate ? 'var(--ee-sun)' : '#dc2626';
+    const getMoistureLabel = (v: number) => v >= ct.moisture.adequate ? 'Adequate' : v >= ct.moisture.low ? 'Moderate' : v >= ct.moisture.critical ? 'Low' : 'Critical';
+    const getMoistureColor = (v: number) => v >= ct.moisture.low ? 'var(--ee-primary)' : v >= ct.moisture.critical ? 'var(--ee-sun)' : '#dc2626';
+
     // Display insight — prefer AI-fetched, fallback to field.latestInsight, then deterministic
     const displayInsight = aiInsight || field.latestInsight || null;
 
@@ -197,9 +210,9 @@ export default function FieldInsightsPage() {
                                 {field.ndvi?.toFixed(2) ?? '—'}
                             </div>
                             <div className="text-[10px] font-bold mt-1" style={{
-                                color: field.ndvi > 0.5 ? 'var(--ee-primary)' : field.ndvi > 0.3 ? 'var(--ee-sun)' : '#dc2626'
+                                color: getNdviColor(field.ndvi ?? 0)
                             }}>
-                                {field.ndvi > 0.6 ? 'Excellent' : field.ndvi > 0.5 ? 'Good' : field.ndvi > 0.3 ? 'Moderate' : 'Critical'}
+                                {getNdviLabel(field.ndvi ?? 0)}
                             </div>
                         </div>
 
@@ -213,9 +226,9 @@ export default function FieldInsightsPage() {
                                 {field.soilMoisture ?? 0}%
                             </div>
                             <div className="text-[10px] font-bold mt-1" style={{
-                                color: field.soilMoisture > 40 ? 'var(--ee-primary)' : field.soilMoisture > 20 ? 'var(--ee-sun)' : '#dc2626'
+                                color: getMoistureColor(field.soilMoisture ?? 0)
                             }}>
-                                {field.soilMoisture > 55 ? 'Adequate' : field.soilMoisture > 40 ? 'Good' : field.soilMoisture > 20 ? 'Low' : 'Critical'}
+                                {getMoistureLabel(field.soilMoisture ?? 0)}
                             </div>
                         </div>
 
