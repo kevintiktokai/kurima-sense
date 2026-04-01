@@ -68,7 +68,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [isSaving, setIsSaving] = useState(false);
 
     // Crops that are typically transplanted (not direct-seeded)
-    const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Pepper', 'Eggplant', 'Lettuce', 'Paprika', 'Green Pepper', 'Strawberries', 'Tea', 'Blueberries'];
+    const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Paprika', 'Green Pepper', 'Strawberries', 'Tea', 'Blueberries', 'Coffee', 'Tobacco', 'Covo', 'Rape', 'Mustard'];
     const isTransplantedCrop = TRANSPLANTED_CROPS.includes(newFieldCrop);
 
     useEffect(() => {

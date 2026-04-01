@@ -18,6 +18,8 @@ const CROP_CATALOG = [
         { value: "Paprika", label: "Paprika / Chillies", aka: "" },
         { value: "Sesame", label: "Sesame", aka: "Runinga" },
         { value: "Tea", label: "Tea", aka: "" },
+        { value: "Coffee", label: "Coffee", aka: "Kofi" },
+        { value: "Macadamia", label: "Macadamia Nuts", aka: "" },
     ]},
     { group: "Legumes & Oilseeds", crops: [
         { value: "Soybeans", label: "Soybeans", aka: "" },
@@ -38,11 +40,18 @@ const CROP_CATALOG = [
         { value: "Butternut", label: "Butternut / Pumpkin", aka: "Nhanga" },
         { value: "Green Pepper", label: "Green Pepper", aka: "" },
         { value: "Garlic", label: "Garlic", aka: "" },
+        { value: "Carrot", label: "Carrot", aka: "Karoti" },
+        { value: "Covo", label: "Covo (Ethiopian Kale)", aka: "Muriwo" },
+        { value: "Mustard", label: "Mustard Greens", aka: "Tsunga" },
+        { value: "Rape", label: "Rape", aka: "Muriwo weRape" },
     ]},
     { group: "Export Horticulture & Fruits", crops: [
         { value: "Snow Peas", label: "Snow Peas / Mange Tout", aka: "" },
         { value: "Blueberries", label: "Blueberries", aka: "" },
         { value: "Strawberries", label: "Strawberries", aka: "" },
+        { value: "Avocado", label: "Avocado", aka: "" },
+        { value: "Banana", label: "Banana", aka: "Bhanana" },
+        { value: "Citrus", label: "Citrus (Oranges/Lemons)", aka: "" },
     ]},
 ];
 
