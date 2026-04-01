@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { api } from '@/services/api';
 
 const Header: React.FC = () => {
     const pathname = usePathname();
-    const [yieldValue, setYieldValue] = useState<string>("$0");
-    const [loading, setLoading] = useState(true);
+    const [yieldValue, setYieldValue] = useState<string>("—");
+    const mountedRef = useRef(true);
 
     useEffect(() => {
+        mountedRef.current = true;
+
         const calculateYieldValue = async () => {
             try {
                 const [fields, marketData] = await Promise.all([
                     api.getFields(),
                     api.getMarketPrices("Zimbabwe")
                 ]);
+
+                if (!mountedRef.current) return;
 
                 let totalValue = 0;
 
@@ -41,16 +45,13 @@ const Header: React.FC = () => {
                 setYieldValue(`$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             } catch (err) {
                 console.error("Yield value calculation error:", err);
-                setYieldValue("$14,820.00"); // Fallback
-            } finally {
-                setLoading(false);
             }
         };
 
         calculateYieldValue();
         // Refresh every 5 minutes
         const interval = setInterval(calculateYieldValue, 5 * 60 * 1000);
-        return () => clearInterval(interval);
+        return () => { mountedRef.current = false; clearInterval(interval); };
     }, []);
 
     const getHeaderTitle = () => {

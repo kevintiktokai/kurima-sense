@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '@/services/api';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { RiskRadar, RiskItem, AIInsightCard, ActionQueue, ActionItem, AIInsight, YieldConfidenceChart, GrowthStageTracker } from '@/components/ai';
 import { DashboardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
+
+// Staleness thresholds (industry-standard for dashboard data)
+const STALE_THRESHOLD_DASHBOARD = 5 * 60 * 1000;  // 5 min — fields, stats
+const STALE_THRESHOLD_AI = 15 * 60 * 1000;         // 15 min — AI insights, proactive tips
+const STALE_THRESHOLD_YIELD = 10 * 60 * 1000;      // 10 min — yield projections
 
 const generateProjectionData = (bands: { low: number, mid: number, high: number } | undefined | null) => {
     // Defensive check - ensure bands is a valid object with numeric values
@@ -42,8 +45,20 @@ const Overview: React.FC = () => {
     const [yieldAnalysis, setYieldAnalysis] = useState<any>(null);
     const [selectedFieldIndex, setSelectedFieldIndex] = useState(0);
 
-    const loadData = async () => {
-        setLoading(true);
+    // Track when data was last fetched to enable stale-while-revalidate
+    const lastDashboardFetch = useRef<number>(0);
+    const lastAIFetch = useRef<number>(0);
+    const lastYieldFetch = useRef<number>(0);
+    const initializedRef = useRef(false);
+
+    const loadData = useCallback(async (opts?: { skipAI?: boolean; background?: boolean }) => {
+        const now = Date.now();
+
+        // Only show skeleton on first-ever load (not on background refreshes)
+        if (!initializedRef.current) {
+            setLoading(true);
+        }
+
         let currentFieldsData = null;
         try {
             // Phase 1: render the dashboard fast
@@ -54,13 +69,18 @@ const Overview: React.FC = () => {
             setStats(statsData);
             setFields(fieldsData);
             currentFieldsData = fieldsData;
+            lastDashboardFetch.current = now;
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
+            initializedRef.current = true;
         }
 
         // Phase 2: load AI extras without blocking UI
+        // Skip AI calls on background refresh if data is still fresh (saves tokens)
+        if (opts?.skipAI) return;
+
         try {
             // Use actual field coordinates if available, otherwise default to Harare
             const firstField = currentFieldsData?.[0];
@@ -80,18 +100,45 @@ const Overview: React.FC = () => {
                 })
                 .catch(() => {});
 
+            lastAIFetch.current = now;
+
             // Trigger detailed yield analysis for primary field if available
             if (currentFieldsData && currentFieldsData.length > 0) {
                 api.generateYieldProjection(currentFieldsData[0].id)
-                    .then(data => setYieldAnalysis(data))
+                    .then(data => { setYieldAnalysis(data); lastYieldFetch.current = Date.now(); })
                     .catch(err => console.error("Yield projection background fetch failed", err));
             }
         } catch {}
-    };
+    }, []);
 
+    // Initial load
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
+
+    // Visibility-aware smart refresh: only refetch stale data when user returns to tab
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState !== 'visible') return;
+            if (!initializedRef.current) return; // Haven't loaded yet
+
+            const now = Date.now();
+            const dashboardAge = now - lastDashboardFetch.current;
+            const aiAge = now - lastAIFetch.current;
+
+            if (dashboardAge > STALE_THRESHOLD_DASHBOARD) {
+                // Dashboard data is stale — refresh in background (no skeleton)
+                const skipAI = aiAge <= STALE_THRESHOLD_AI;
+                loadData({ background: true, skipAI });
+            }
+            // If only AI is stale but dashboard is fresh, we still don't refetch AI
+            // on simple tab focus — AI refreshes are expensive (tokens) and only happen
+            // when dashboard data itself is stale, or on explicit user action.
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [loadData]);
 
     if (loading) return <DashboardSkeleton />;
 

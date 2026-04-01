@@ -50,7 +50,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     // Track which user ID we last fetched for
     const lastFetchedUserId = useRef<string | null>(null)
 
-    const fetchProfile = async () => {
+    const fetchProfile = async (opts?: { silent?: boolean }) => {
         if (!user) {
             setProfile(null)
             lastFetchedUserId.current = null
@@ -59,7 +59,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            setLoading(true)
+            // Only show loading spinner if we don't already have a profile for this user
+            // This prevents the full-page skeleton flash on token refresh
+            if (!opts?.silent && lastFetchedUserId.current !== user.id) {
+                setLoading(true)
+            }
             setError(null)
 
             const { data, error: fetchError } = await supabase
@@ -140,9 +144,10 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on user.id, not user reference
     useEffect(() => {
         fetchProfile()
-    }, [user])
+    }, [user?.id])
 
     // Compute effective loading state:
     // We're loading if auth is loading, OR if we have a user but haven't fetched their profile yet
