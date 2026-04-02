@@ -174,55 +174,55 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ lat, lon, compact 
     }
 
     return (
-        <div id="weather-widget-main" className="neu-surface p-6 lg:p-8 relative overflow-hidden">
+        <div id="weather-widget-main" className="neu-surface p-4 sm:p-6 lg:p-8 relative overflow-hidden">
             {/* Gradient sun circle decoration */}
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full -mr-10 -mt-10" style={{
+            <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 rounded-full -mr-8 sm:-mr-10 -mt-8 sm:-mt-10" style={{
                 background: 'radial-gradient(circle, rgba(232, 163, 101, 0.2) 0%, transparent 70%)',
             }} />
 
             {/* Current Weather */}
             <div id="current-weather-section" className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Current Weather</h4>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-5xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.temperature}°</span>
-                            <span className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 500, color: 'var(--ee-muted)' }}>C</span>
+                        <h4 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 sm:mb-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Current Weather</h4>
+                        <div className="flex items-baseline gap-0.5">
+                            <span className="text-3xl sm:text-4xl lg:text-5xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.temperature}°</span>
+                            <span className="text-base sm:text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 500, color: 'var(--ee-muted)' }}>C</span>
                         </div>
-                        <p className="text-sm font-semibold mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{weather.condition}</p>
+                        <p className="text-xs sm:text-sm font-semibold mt-0.5 sm:mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{weather.condition}</p>
                     </div>
                     <div
-                        className="w-16 h-16 rounded-full flex items-center justify-center"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{
                             background: 'linear-gradient(135deg, rgba(232, 163, 101, 0.25), rgba(232, 163, 101, 0.05))',
                         }}
                     >
-                        <span className="text-4xl">{weather.icon}</span>
+                        <span className="text-2xl sm:text-4xl">{weather.icon}</span>
                     </div>
                 </div>
 
                 {/* Stats Row */}
-                <div className="flex gap-6 mb-6">
+                <div className="flex gap-4 sm:gap-6 mb-4 sm:mb-6">
                     <div>
-                        <span className="text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Humidity</span>
-                        <p className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-water)' }}>{weather.humidity}%</p>
+                        <span className="text-[10px] sm:text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Humidity</span>
+                        <p className="text-base sm:text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-water)' }}>{weather.humidity}%</p>
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Wind</span>
-                        <p className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.windSpeed} km/h</p>
+                        <span className="text-[10px] sm:text-xs font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Wind</span>
+                        <p className="text-base sm:text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{weather.windSpeed} km/h</p>
                     </div>
                 </div>
 
                 {/* 5-Day Forecast */}
                 {weather.forecast && weather.forecast.length > 0 && (
-                    <div id="forecast-row" className="rounded-[16px] p-4" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                    <div id="forecast-row" className="rounded-[12px] sm:rounded-[16px] p-3 sm:p-4" style={{ backgroundColor: 'var(--ee-bg)' }}>
                         <div className="flex justify-between">
                             {weather.forecast.map((day, i) => (
-                                <div key={i} className="text-center">
-                                    <p className="text-[10px] font-bold uppercase mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{day.day}</p>
-                                    <span className="text-xl">{day.icon}</span>
-                                    <p className="text-xs font-bold mt-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>{day.high}°</p>
-                                    <p className="text-[10px]" style={{ color: 'var(--ee-muted)' }}>{day.low}°</p>
+                                <div key={i} className="text-center min-w-0">
+                                    <p className="text-[8px] sm:text-[10px] font-bold uppercase mb-0.5 sm:mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{day.day}</p>
+                                    <span className="text-base sm:text-xl">{day.icon}</span>
+                                    <p className="text-[10px] sm:text-xs font-bold mt-0.5 sm:mt-1" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>{day.high}°</p>
+                                    <p className="text-[8px] sm:text-[10px]" style={{ color: 'var(--ee-muted)' }}>{day.low}°</p>
                                 </div>
                             ))}
                         </div>

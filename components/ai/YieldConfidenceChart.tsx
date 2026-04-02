@@ -61,44 +61,44 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
         : 0;
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
             {/* Yield Estimate Disclaimer */}
-            <div className="rounded-[12px] p-2 mb-4 flex items-center gap-2" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-sun)' }}>info</span>
-                <p className="text-[10px]" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
-                    <span className="font-bold">ESTIMATE ONLY:</span> Results vary with weather, pests & management. Not a guarantee.
+            <div className="rounded-[10px] sm:rounded-[12px] p-2 mb-3 sm:mb-4 flex items-start sm:items-center gap-2" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
+                <span className="material-symbols-outlined flex-shrink-0 mt-0.5 sm:mt-0" style={{ fontSize: '14px', color: 'var(--ee-sun)' }}>info</span>
+                <p className="text-[9px] sm:text-[10px] leading-snug" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
+                    <span className="font-bold">ESTIMATE ONLY:</span> Results vary with weather, pests & management.
                 </p>
             </div>
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
                     >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>analytics</span>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '20px' }}>analytics</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
-                            {methodology || 'Agronomic projection'} {confidenceScore ? `· ${Math.round(confidenceScore * 100)}% confidence` : ''}
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest truncate" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            {methodology || 'Agronomic projection'} {confidenceScore ? `· ${Math.round(confidenceScore * 100)}%` : ''}
                         </p>
                     </div>
                 </div>
 
                 {/* Key Metrics */}
-                <div className="flex gap-4">
+                <div className="flex gap-3 sm:gap-4 flex-shrink-0">
                     {projectedYield && (
-                        <div className="text-right">
-                            <p className="text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{projectedYield.toFixed(1)}</p>
-                            <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>Projected {unit}</p>
+                        <div className="sm:text-right">
+                            <p className="text-xl sm:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{projectedYield.toFixed(1)}</p>
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>Projected {unit}</p>
                         </div>
                     )}
                     {yieldPotential && (
-                        <div className="text-right">
-                            <p className="text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-bg-border)' }}>{yieldPotential.toFixed(1)}</p>
-                            <p className="text-[10px] font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Potential {unit}</p>
+                        <div className="sm:text-right">
+                            <p className="text-xl sm:text-2xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-bg-border)' }}>{yieldPotential.toFixed(1)}</p>
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Potential {unit}</p>
                         </div>
                     )}
                 </div>
@@ -106,16 +106,16 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
 
             {/* Yield Gap Indicator */}
             {gapPercent > 0 && (
-                <div className="rounded-[12px] p-3 mb-6 flex items-center gap-3" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-sun)', fontSize: '20px' }}>warning</span>
-                    <p className="text-sm" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
-                        <span className="font-bold">{gapPercent}% yield gap</span> — room for improvement with optimized inputs
+                <div className="rounded-[10px] sm:rounded-[12px] p-2.5 sm:p-3 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
+                    <span className="material-symbols-outlined flex-shrink-0" style={{ color: 'var(--ee-sun)', fontSize: '18px' }}>warning</span>
+                    <p className="text-xs sm:text-sm" style={{ color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
+                        <span className="font-bold">{gapPercent}% yield gap</span> — room for improvement
                     </p>
                 </div>
             )}
 
             {/* Chart */}
-            <div className="h-[250px] lg:h-[300px]">
+            <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>

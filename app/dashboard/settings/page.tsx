@@ -82,7 +82,7 @@ export default function SettingsPage() {
     return (
         <div
             id="settings-container"
-            className="neu-surface p-10 lg:p-14 max-w-2xl mx-auto animate-in fade-in zoom-in duration-500"
+            className="neu-surface p-5 sm:p-8 lg:p-14 max-w-2xl mx-auto animate-in fade-in zoom-in duration-500"
             style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}
         >
             <h3
@@ -112,11 +112,11 @@ export default function SettingsPage() {
                 {/* Profile Header */}
                 <div
                     id="profile-header"
-                    className="flex items-center gap-6 p-6 rounded-[16px]"
+                    className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-[16px]"
                     style={{ background: 'var(--ee-bg)' }}
                 >
                     <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold"
+                        className="w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-bold flex-shrink-0"
                         style={{
                             background: 'var(--ee-primary)',
                             color: 'var(--ee-surface)',

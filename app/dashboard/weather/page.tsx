@@ -125,13 +125,13 @@ export default function WeatherPage() {
     const gddData = agricultural?.growing_degree_days?.daily_breakdown || [];
 
     return (
-        <div className="grid grid-cols-12 gap-4 lg:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+        <div className="grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
 
             {/* Field Selector */}
             {fields.length > 0 && (
                 <div className="col-span-12">
-                    <div className="flex items-center gap-4">
-                        <label className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Weather for:</label>
+                    <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                        <label className="text-xs sm:text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Weather for:</label>
                         <select
                             value={selectedFieldId || ''}
                             onChange={(e) => setSelectedFieldId(e.target.value || undefined)}
@@ -169,7 +169,7 @@ export default function WeatherPage() {
 
             {/* Current Weather Hero */}
             <div className="col-span-12 lg:col-span-8">
-                <div className="p-8 lg:p-12 rounded-[24px] text-white relative overflow-hidden min-h-[280px]" style={{ background: 'linear-gradient(135deg, var(--ee-text), #1E2B20)', boxShadow: 'var(--shadow-neu)' }}>
+                <div className="p-5 sm:p-8 lg:p-12 rounded-[20px] sm:rounded-[24px] text-white relative overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: 'linear-gradient(135deg, var(--ee-text), #1E2B20)', boxShadow: 'var(--shadow-neu)' }}>
                     {!current || current.temperature == null ? (
                         <div className="relative z-10 flex flex-col items-center justify-center min-h-[200px] text-center">
                             <p className="text-4xl mb-3">🌐</p>
@@ -181,30 +181,28 @@ export default function WeatherPage() {
                         </div>
                     ) : (
                         <div className="relative z-10">
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                 <div>
-                                    <p className="font-bold text-sm uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Current Conditions</p>
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-7xl lg:text-8xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current.temperature)}°</span>
-                                        <span className="text-6xl mb-2">{getWeatherIcon(current.weather_code || 0)}</span>
+                                    <p className="font-bold text-xs sm:text-sm uppercase tracking-widest mb-1.5 sm:mb-2" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Current Conditions</p>
+                                    <div className="flex items-end gap-2 sm:gap-4">
+                                        <span className="text-5xl sm:text-7xl lg:text-8xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{Math.round(current.temperature)}°</span>
+                                        <span className="text-3xl sm:text-5xl lg:text-6xl mb-1 sm:mb-2">{getWeatherIcon(current.weather_code || 0)}</span>
                                     </div>
-                                    <p className="text-2xl font-bold mt-2" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>{current.weather_description}</p>
-                                    <p className="mt-1" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}>Feels like {Math.round(current.feels_like ?? current.temperature)}°C</p>
+                                    <p className="text-lg sm:text-2xl font-bold mt-1 sm:mt-2" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}>{current.weather_description}</p>
+                                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-base" style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}>Feels like {Math.round(current.feels_like ?? current.temperature)}°C</p>
                                 </div>
-                                <div className="text-right space-y-3">
-                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Humidity</p>
-                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.humidity ?? '—'}%</p>
+                                <div className="flex sm:flex-col gap-2 sm:gap-3 sm:text-right overflow-x-auto scrollbar-hide">
+                                    <div className="rounded-[12px] sm:rounded-[16px] px-3 sm:px-4 py-1.5 sm:py-2 flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Humidity</p>
+                                        <p className="text-base sm:text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.humidity ?? '—'}%</p>
                                     </div>
-                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Wind</p>
-                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.wind_speed != null ? Math.round(current.wind_speed) : '—'} km/h</p>
-                                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{current.wind_direction_text || ''}</p>
+                                    <div className="rounded-[12px] sm:rounded-[16px] px-3 sm:px-4 py-1.5 sm:py-2 flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>Wind</p>
+                                        <p className="text-base sm:text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.wind_speed != null ? Math.round(current.wind_speed) : '—'} km/h</p>
                                     </div>
-                                    <div className="rounded-[16px] px-4 py-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                        <p className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>UV Index</p>
-                                        <p className="text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.uv_index ?? '—'}</p>
-                                        <p className="text-xs" style={{ color: 'var(--ee-primary)' }}>{current.uv_level || ''}</p>
+                                    <div className="rounded-[12px] sm:rounded-[16px] px-3 sm:px-4 py-1.5 sm:py-2 flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <p className="text-[10px] sm:text-xs uppercase" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}>UV Index</p>
+                                        <p className="text-base sm:text-xl font-black" style={{ fontFamily: 'var(--font-heading)' }}>{current.uv_index ?? '—'}</p>
                                     </div>
                                 </div>
                             </div>

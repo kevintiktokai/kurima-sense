@@ -171,40 +171,40 @@ const Overview: React.FC = () => {
         : 0;
 
     return (
-        <div className="grid grid-cols-12 gap-5 lg:gap-8 pb-12 relative">
+        <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-8 pb-12 relative">
 
             {/* Welcome Widget (Left 8) */}
-            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 neu-surface p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[350px]">
+            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 neu-surface p-5 sm:p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
                 <div className="relative z-10 flex-1 flex flex-col justify-center">
                     <h3
-                        className="text-3xl lg:text-5xl mb-4 tracking-tight leading-tight"
+                        className="text-2xl sm:text-3xl lg:text-5xl mb-3 lg:mb-4 tracking-tight leading-tight"
                         style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}
                     >
                         {new Date().getHours() < 12 ? 'Good Morning' : 'Good Afternoon'}, {profile?.full_name?.split(' ')[0] || 'Farmer'}.
                     </h3>
-                    <div className="p-3 lg:p-4 rounded-[16px] mb-6 inline-block" style={{ backgroundColor: 'rgba(15, 184, 133, 0.08)' }}>
-                        <p className="text-sm lg:text-base" style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'var(--ee-text)' }}>
-                            <span className="material-symbols-outlined align-middle mr-1" style={{ fontSize: '18px', color: 'var(--ee-primary)' }}>lightbulb</span>
+                    <div className="p-2.5 sm:p-3 lg:p-4 rounded-[12px] lg:rounded-[16px] mb-4 lg:mb-6 inline-block" style={{ backgroundColor: 'rgba(15, 184, 133, 0.08)' }}>
+                        <p className="text-xs sm:text-sm lg:text-base leading-snug" style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'var(--ee-text)' }}>
+                            <span className="material-symbols-outlined align-middle mr-1" style={{ fontSize: '16px', color: 'var(--ee-primary)' }}>lightbulb</span>
                             {insight || "Analyzing your fields..."}
                         </p>
                     </div>
-                    <p className="text-base lg:text-xl max-w-lg leading-relaxed" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ee-muted)' }}>
+                    <p className="text-sm sm:text-base lg:text-xl max-w-lg leading-relaxed" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ee-muted)' }}>
                         {activeFieldsCount > 0
                             ? `${activeFieldsCount} active field${activeFieldsCount > 1 ? 's' : ''} monitored across ${totalHectares.toFixed(1)} ha.`
                             : 'Add your first field to get started with precision farming.'}
                     </p>
-                    <div className="flex flex-wrap gap-5 lg:gap-6 mt-8 lg:mt-10">
-                        <div className="px-6 lg:px-8 py-3 lg:py-4 rounded-[16px] flex-1 min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Active Fields</p>
-                            <p className="text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{activeFieldsCount}</p>
+                    <div className="flex flex-wrap gap-3 sm:gap-5 lg:gap-6 mt-5 sm:mt-8 lg:mt-10">
+                        <div className="px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Active Fields</p>
+                            <p className="text-xl sm:text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{activeFieldsCount}</p>
                         </div>
-                        <div className="px-6 lg:px-8 py-3 lg:py-4 rounded-[16px] flex-1 min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Total Area</p>
-                            <p className="text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{totalHectares.toFixed(1)} ha</p>
+                        <div className="px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Total Area</p>
+                            <p className="text-xl sm:text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{totalHectares.toFixed(1)} ha</p>
                         </div>
                     </div>
                 </div>
-                <div className="absolute top-0 right-0 w-48 lg:w-64 h-48 lg:h-64 rounded-full -mr-24 lg:-mr-32 -mt-24 lg:-mt-32" style={{
+                <div className="absolute top-0 right-0 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mt-16 sm:-mt-24 lg:-mt-32" style={{
                     background: 'radial-gradient(circle, rgba(15, 184, 133, 0.08) 0%, transparent 70%)',
                 }}></div>
             </div>
@@ -220,7 +220,7 @@ const Overview: React.FC = () => {
                         onActionComplete={handleActionComplete}
                     />
                 ) : (
-                    <div className="neu-surface p-8 lg:p-10 flex flex-col items-center justify-center h-full min-h-[350px]">
+                    <div className="neu-surface p-6 sm:p-8 lg:p-10 flex flex-col items-center justify-center h-full min-h-[200px] lg:min-h-[350px]">
                         <span className="material-symbols-outlined mb-3" style={{ fontSize: '40px', color: 'var(--ee-primary)' }}>check_circle</span>
                         <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>All caught up</p>
                         <p className="text-sm mt-1 text-center" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>No tasks for today. Check back tomorrow.</p>
@@ -232,12 +232,12 @@ const Overview: React.FC = () => {
             <div className="col-span-12 grid grid-cols-12 gap-5 lg:gap-8">
                 {/* Field Selector Tabs */}
                 {fields.length > 1 && (
-                    <div className="col-span-12 flex gap-2 overflow-x-auto pb-2 -mb-2">
+                    <div className="col-span-12 flex gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-hide">
                         {fields.map((field: any, idx: number) => (
                             <button
                                 key={field.id}
                                 onClick={() => handleFieldChange(idx)}
-                                className="px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap"
+                                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all whitespace-nowrap"
                                 style={{
                                     backgroundColor: selectedFieldIndex === idx ? 'var(--ee-text)' : 'var(--ee-bg)',
                                     color: selectedFieldIndex === idx ? '#fff' : 'var(--ee-muted)',
@@ -299,7 +299,7 @@ const Overview: React.FC = () => {
 
                 {/* Crop Health Card — always visible (uses shared field data, no AI needed) */}
                 <div className="col-span-12 md:col-span-4">
-                    <div className="p-6 lg:p-8 rounded-[24px] text-white relative overflow-hidden h-full min-h-[260px]" style={{
+                    <div className="p-5 sm:p-6 lg:p-8 rounded-[20px] lg:rounded-[24px] text-white relative overflow-hidden h-full min-h-[220px] lg:min-h-[260px]" style={{
                         backgroundColor: 'var(--ee-text)',
                         boxShadow: 'var(--shadow-ambient)',
                     }}>

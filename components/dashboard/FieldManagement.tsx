@@ -398,31 +398,31 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             )}
 
             {/* Header Bar */}
-            <div className="neu-surface flex justify-between items-center p-4 rounded-[24px]">
-                <div className="flex items-center gap-3">
+            <div className="neu-surface flex justify-between items-center p-3 sm:p-4 rounded-[20px] sm:rounded-[24px] gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <h2
-                        className="text-lg font-black pl-4"
+                        className="text-base sm:text-lg font-black pl-2 sm:pl-4 truncate"
                         style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                     >
                         My Fields
                     </h2>
                     {fields.length > 0 && (
                         <span
-                            className="text-xs font-bold px-3 py-1 rounded-full"
+                            className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex-shrink-0"
                             style={{
                                 background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)',
                                 color: 'var(--ee-text)',
                                 fontFamily: 'var(--font-body)',
                             }}
                         >
-                            {fields.length} {fields.length === 1 ? 'field' : 'fields'}
+                            {fields.length}
                         </span>
                     )}
                 </div>
                 <button
                     id="add-field-btn"
                     onClick={() => setMapMode(mapMode === 'view' ? 'draw' : 'view')}
-                    className="px-8 py-3 rounded-[16px] font-bold flex items-center gap-2 hover:scale-105 transition-transform"
+                    className="px-4 sm:px-8 py-2.5 sm:py-3 rounded-[12px] sm:rounded-[16px] font-bold flex items-center gap-1.5 sm:gap-2 hover:scale-105 transition-transform flex-shrink-0 text-sm sm:text-base"
                     style={{
                         background: mapMode !== 'view' ? 'var(--ee-primary)' : 'var(--ee-text)',
                         color: '#FFFFFF',
@@ -430,17 +430,18 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                         boxShadow: 'var(--shadow-neu)',
                     }}
                 >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
                         {mapMode !== 'view' ? 'close' : 'add'}
                     </span>
-                    {mapMode !== 'view' ? 'Cancel Mapping' : 'Add Field'}
+                    <span className="hidden sm:inline">{mapMode !== 'view' ? 'Cancel Mapping' : 'Add Field'}</span>
+                    <span className="sm:hidden">{mapMode !== 'view' ? 'Cancel' : 'Add'}</span>
                 </button>
             </div>
 
             {/* Map — always visible */}
             <div
                 id="fields-map-container"
-                className="relative h-[500px] rounded-[24px] overflow-hidden z-0"
+                className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-[20px] sm:rounded-[24px] overflow-hidden z-0"
                 style={{ boxShadow: 'var(--shadow-ambient)' }}
             >
                 <MapComponent
@@ -544,7 +545,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                     id={`field-card-${field.id}`}
                                     key={field.id}
                                     onClick={() => handleFieldCardClick(field)}
-                                    className={`neu-surface p-8 rounded-[24px] transition-all cursor-pointer group relative`}
+                                    className={`neu-surface p-5 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-[24px] transition-all cursor-pointer group relative`}
                                     style={{
                                         boxShadow: isSelected ? 'var(--shadow-neu), 0 0 0 3px var(--ee-primary)' : 'var(--shadow-neu)',
                                         transform: isSelected ? 'scale(1.01)' : undefined,

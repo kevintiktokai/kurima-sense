@@ -48,26 +48,26 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
     const urgentCount = pendingActions.filter(a => a.priority === 'urgent').length;
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
                     >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>checklist</span>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '20px' }}>checklist</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {pendingActions.length} pending
                         </p>
                     </div>
                 </div>
 
                 {urgentCount > 0 && (
-                    <span className="text-xs font-bold px-3 py-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'rgba(220,80,80,0.1)', color: '#c44', fontFamily: 'var(--font-body)' }}>
+                    <span className="text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: 'rgba(220,80,80,0.1)', color: '#c44', fontFamily: 'var(--font-body)' }}>
                         {urgentCount} Urgent
                     </span>
                 )}
@@ -82,10 +82,10 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
                     return (
                         <div
                             key={action.id}
-                            className="p-4 rounded-[16px] transition-all duration-200 group"
+                            className="p-3 sm:p-4 rounded-[12px] sm:rounded-[16px] transition-all duration-200 group"
                             style={{ backgroundColor: config.bg }}
                         >
-                            <div className="flex items-start gap-3">
+                            <div className="flex items-start gap-2 sm:gap-3">
                                 {/* Checkbox */}
                                 <button
                                     onClick={() => {
@@ -98,42 +98,42 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
                                     <span className="material-symbols-outlined text-transparent group-hover:text-[var(--ee-primary)] transition-colors" style={{ fontSize: '16px' }}>check</span>
                                 </button>
 
-                                {/* Icon */}
+                                {/* Icon - hidden on very small screens to save space */}
                                 <div
-                                    className="flex-shrink-0 w-10 h-10 rounded-[12px] flex items-center justify-center"
+                                    className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] hidden sm:flex items-center justify-center"
                                     style={{ backgroundColor: 'var(--ee-surface)', boxShadow: '2px 2px 6px #D5D2CE, -2px -2px 6px #FFFFFF' }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>{icon}</span>
+                                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '18px' }}>{icon}</span>
                                 </div>
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{action.title}</h4>
+                                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                                        <h4 className="text-xs sm:text-sm truncate max-w-[70%]" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{action.title}</h4>
                                         <span
-                                            className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                            className="text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase flex-shrink-0"
                                             style={{ backgroundColor: config.badgeBg, color: config.badgeColor, fontFamily: 'var(--font-body)' }}
                                         >
                                             {action.priority}
                                         </span>
                                     </div>
 
-                                    <p className="text-xs mb-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{action.description}</p>
+                                    <p className="text-[11px] sm:text-xs mb-2 line-clamp-2" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{action.description}</p>
 
-                                    <div className="flex items-center gap-4 text-[10px]" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                    <div className="flex items-center gap-2 sm:gap-4 text-[9px] sm:text-[10px] flex-wrap" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                                         {action.fieldName && (
                                             <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>grass</span> {action.fieldName}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>grass</span> {action.fieldName}
                                             </span>
                                         )}
                                         {action.dueDate && (
                                             <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>calendar_today</span> {action.dueDate}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>calendar_today</span> {action.dueDate}
                                             </span>
                                         )}
                                         {action.estimatedTime && (
                                             <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>schedule</span> {action.estimatedTime}
+                                                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>schedule</span> {action.estimatedTime}
                                             </span>
                                         )}
                                     </div>

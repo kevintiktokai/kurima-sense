@@ -41,22 +41,22 @@ export const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
 
     return (
         <div
-            className="p-5 rounded-[24px] transition-all duration-200"
+            className="p-3.5 sm:p-5 rounded-[16px] sm:rounded-[24px] transition-all duration-200"
             style={{ backgroundColor: config.bg, boxShadow: 'var(--shadow-neu)' }}
         >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-2.5 sm:gap-4">
                 <div
-                    className="flex-shrink-0 w-12 h-12 rounded-[16px] flex items-center justify-center"
+                    className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-[12px] sm:rounded-[16px] flex items-center justify-center"
                     style={{ backgroundColor: config.iconBg }}
                 >
-                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '24px' }}>{typeIcon}</span>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>{typeIcon}</span>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{insight.title}</h4>
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                        <h4 className="text-xs sm:text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{insight.title}</h4>
                         <span
-                            className="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
+                            className="text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0"
                             style={{
                                 backgroundColor: config.iconBg,
                                 color: 'var(--ee-text)',
@@ -132,32 +132,32 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
     const remainingCount = insights.length - maxVisible;
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
+            <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
                     >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>auto_awesome</span>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '20px' }}>auto_awesome</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {insights.length} active
                         </p>
                     </div>
                 </div>
 
                 {(criticalCount > 0 || highCount > 0) && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
                         {criticalCount > 0 && (
-                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(220,80,80,0.1)', color: '#c44', fontFamily: 'var(--font-body)' }}>
+                            <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full" style={{ backgroundColor: 'rgba(220,80,80,0.1)', color: '#c44', fontFamily: 'var(--font-body)' }}>
                                 {criticalCount} Critical
                             </span>
                         )}
                         {highCount > 0 && (
-                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: 'rgba(232,163,101,0.15)', color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
+                            <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full" style={{ backgroundColor: 'rgba(232,163,101,0.15)', color: 'var(--ee-sun)', fontFamily: 'var(--font-body)' }}>
                                 {highCount} High
                             </span>
                         )}

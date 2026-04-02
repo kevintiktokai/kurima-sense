@@ -59,21 +59,21 @@ export default function PlanPage() {
 
     return (
         <div
-            className="p-8 h-screen overflow-y-auto"
+            className="p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto"
             style={{ background: 'var(--ee-bg)' }}
         >
             <h1
-                className="text-4xl font-black mb-8 tracking-tight"
+                className="text-2xl sm:text-3xl lg:text-4xl font-black mb-5 sm:mb-8 tracking-tight"
                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
             >
-                <span className="material-symbols-outlined align-middle mr-2" style={{ fontSize: '2rem', color: 'var(--ee-primary)' }}>
+                <span className="material-symbols-outlined align-middle mr-1.5 sm:mr-2" style={{ fontSize: '1.5rem', color: 'var(--ee-primary)' }}>
                     eco
                 </span>
                 Smart Crop Plan
             </h1>
 
             {/* Field Selector */}
-            <div className="flex gap-4 mb-8 overflow-x-auto pb-4 snap-x">
+            <div className="flex gap-3 sm:gap-4 mb-5 sm:mb-8 overflow-x-auto pb-3 sm:pb-4 snap-x scrollbar-hide">
                 {fields.map(field => {
                     const dsp = getDaysSincePlanting(field);
                     const isSelected = selectedField?.id === field.id;
@@ -81,7 +81,7 @@ export default function PlanPage() {
                         <button
                             key={field.id}
                             onClick={() => setSelectedField(field)}
-                            className={`flex-shrink-0 p-6 rounded-[24px] transition-all min-w-[220px] text-left snap-start ${
+                            className={`flex-shrink-0 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] transition-all min-w-[170px] sm:min-w-[220px] text-left snap-start ${
                                 isSelected ? 'neu-surface scale-105' : 'neu-surface'
                             }`}
                             style={{
@@ -142,7 +142,7 @@ export default function PlanPage() {
 
             {/* Plan Display */}
             <div
-                className="rounded-[24px] p-2 mb-8 neu-surface"
+                className="rounded-[20px] sm:rounded-[24px] p-1.5 sm:p-2 mb-5 sm:mb-8 neu-surface overflow-hidden"
                 style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }}
             >
                 <CropPlan

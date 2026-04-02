@@ -112,28 +112,28 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
     const progressPercent = ((completedCount + 0.5) / processedStages.length) * 100;
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
                     >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>eco</span>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '20px' }}>eco</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>Growth Stage</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>Growth Stage</h3>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {cropType} · Day {daysSincePlanting}
                         </p>
                     </div>
                 </div>
 
                 {daysToHarvest && (
-                    <div className="px-4 py-2 rounded-full" style={{ backgroundColor: 'rgba(15, 184, 133, 0.1)' }}>
-                        <p className="text-xs font-bold" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>
-                            <span className="material-symbols-outlined align-middle" style={{ fontSize: '14px' }}>agriculture</span> {daysToHarvest}d to harvest
+                    <div className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex-shrink-0" style={{ backgroundColor: 'rgba(15, 184, 133, 0.1)' }}>
+                        <p className="text-[10px] sm:text-xs font-bold whitespace-nowrap" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>
+                            <span className="material-symbols-outlined align-middle" style={{ fontSize: '13px' }}>agriculture</span> {daysToHarvest}d
                         </p>
                     </div>
                 )}
@@ -141,24 +141,24 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
 
             {/* Current Stage Highlight */}
             {currentStageData && (
-                <div className="rounded-[16px] p-4 mb-6" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
-                    <div className="flex items-center gap-3">
+                <div className="rounded-[12px] sm:rounded-[16px] p-3 sm:p-4 mb-4 sm:mb-6" style={{ backgroundColor: 'rgba(232, 163, 101, 0.1)' }}>
+                    <div className="flex items-center gap-2.5 sm:gap-3">
                         <div
-                            className="w-12 h-12 rounded-[12px] flex items-center justify-center"
-                            style={{ backgroundColor: 'var(--ee-sun)', color: '#fff', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.875rem' }}
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-[12px] flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: 'var(--ee-sun)', color: '#fff', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '0.75rem' }}
                         >
                             {currentStageData.shortName}
                         </div>
-                        <div>
-                            <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{currentStageData.name}</p>
-                            <p className="text-sm" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{currentStageData.description}</p>
+                        <div className="min-w-0">
+                            <p className="text-sm sm:text-base truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{currentStageData.name}</p>
+                            <p className="text-xs sm:text-sm line-clamp-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{currentStageData.description}</p>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Progress Bar */}
-            <div className="relative mb-6">
+            <div className="relative mb-4 sm:mb-6">
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--ee-bg)' }}>
                     <div
                         className="h-full rounded-full transition-all duration-1000"
@@ -171,44 +171,44 @@ export const GrowthStageTracker: React.FC<GrowthStageTrackerProps> = ({
             </div>
 
             {/* Stage Timeline */}
-            <div className="flex justify-between items-start overflow-x-auto pb-2">
+            <div className="flex justify-between items-start overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
                 {processedStages.map((stage, idx) => {
                     const isCompleted = stage.status === 'completed';
                     const isCurrent = stage.status === 'current';
                     const isLast = idx === processedStages.length - 1;
 
                     return (
-                        <div key={stage.id} className="flex flex-col items-center min-w-[60px] relative">
+                        <div key={stage.id} className="flex flex-col items-center min-w-[44px] sm:min-w-[60px] relative">
                             {/* Connector Line */}
                             {!isLast && (
                                 <div
-                                    className="absolute top-4 left-1/2 w-full h-0.5 z-0"
+                                    className="absolute top-3 sm:top-4 left-1/2 w-full h-0.5 z-0"
                                     style={{ backgroundColor: isCompleted ? 'var(--ee-primary)' : 'var(--ee-bg-pressed)' }}
                                 />
                             )}
 
                             {/* Stage Dot */}
                             <div
-                                className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
+                                className={`relative z-10 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${isCurrent ? 'animate-pulse' : ''}`}
                                 style={{
                                     backgroundColor: isCompleted ? 'var(--ee-primary)' : isCurrent ? 'var(--ee-sun)' : 'var(--ee-bg-pressed)',
-                                    boxShadow: isCurrent ? '0 0 0 4px rgba(232, 163, 101, 0.2)' : 'none',
+                                    boxShadow: isCurrent ? '0 0 0 3px rgba(232, 163, 101, 0.2)' : 'none',
                                     border: stage.status === 'upcoming' ? '2px solid var(--ee-bg-border)' : 'none',
                                 }}
                             >
                                 {isCompleted && (
-                                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#fff' }}>check</span>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#fff' }}>check</span>
                                 )}
                             </div>
 
                             {/* Label */}
-                            <p className="text-[10px] font-bold mt-2 text-center" style={{
+                            <p className="text-[8px] sm:text-[10px] font-bold mt-1.5 sm:mt-2 text-center" style={{
                                 color: isCompleted ? 'var(--ee-primary)' : isCurrent ? 'var(--ee-sun)' : 'var(--ee-muted)',
                                 fontFamily: 'var(--font-body)',
                             }}>
                                 {stage.shortName}
                             </p>
-                            <p className="text-[8px] text-center hidden lg:block" style={{
+                            <p className="text-[7px] sm:text-[8px] text-center hidden sm:block" style={{
                                 color: stage.status === 'upcoming' ? 'var(--ee-bg-border)' : 'var(--ee-muted)',
                                 fontFamily: 'var(--font-body)',
                             }}>

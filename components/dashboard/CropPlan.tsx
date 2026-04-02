@@ -98,72 +98,72 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
             {/* Header / Context Card */}
-            <div id="crop-plan-header" className="bg-gradient-to-br from-brand-dark to-slate-900 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
+            <div id="crop-plan-header" className="bg-gradient-to-br from-brand-dark to-slate-900 p-5 sm:p-8 rounded-[24px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-32 bg-brand-lime/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
                 <div className="relative z-10">
                     {/* Top Row: Field Name + Yield */}
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 className="text-3xl font-black mb-1">{selectedField.name}</h2>
-                            <p className="text-brand-lime font-bold uppercase tracking-widest text-sm">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <div className="min-w-0">
+                            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black mb-1 truncate">{selectedField.name}</h2>
+                            <p className="text-brand-lime font-bold uppercase tracking-widest text-[10px] sm:text-sm truncate">
                                 {selectedField.crop}
                                 {selectedField.variety ? ` • ${selectedField.variety}` : ''}
                                 {currentStageText ? ` • ${currentStageText.split(' - ')[0]}` : ''}
                             </p>
                         </div>
                         {plan?.projected_yield != null && (
-                            <div className="text-right">
-                                <p className="text-slate-400 text-xs font-bold uppercase mb-1">Yield Projection</p>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-5xl font-black text-brand-lime">{plan.projected_yield}t</span>
+                            <div className="sm:text-right flex-shrink-0">
+                                <p className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase mb-1">Yield Projection</p>
+                                <div className="flex items-baseline gap-1.5 sm:gap-2">
+                                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-brand-lime">{plan.projected_yield}t</span>
                                     {plan.yield_potential != null && (
-                                        <span className="text-slate-500 font-bold">/ {plan.yield_potential}t pot.</span>
+                                        <span className="text-slate-500 font-bold text-xs sm:text-base">/ {plan.yield_potential}t pot.</span>
                                     )}
                                 </div>
                                 {plan.confidence_score != null && (
-                                    <p className="text-slate-500 text-xs mt-1">Confidence: {plan.confidence_score}%</p>
+                                    <p className="text-slate-500 text-[10px] sm:text-xs mt-1">Confidence: {plan.confidence_score}%</p>
                                 )}
                             </div>
                         )}
                     </div>
 
                     {/* Field Context Chips */}
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
                         {plantingDate && (
-                            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Planted</p>
-                                <p className="text-sm font-black text-white">
+                            <div className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Planted</p>
+                                <p className="text-xs sm:text-sm font-black text-white">
                                     {new Date(plantingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </p>
                             </div>
                         )}
                         {daysSincePlanting != null && daysSincePlanting > 0 && (
-                            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Age</p>
-                                <p className="text-sm font-black text-white">{daysSincePlanting} days</p>
+                            <div className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Age</p>
+                                <p className="text-xs sm:text-sm font-black text-white">{daysSincePlanting} days</p>
                             </div>
                         )}
                         {plan?.days_to_harvest != null && plan.days_to_harvest > 0 && (
-                            <div className="bg-brand-lime/20 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <p className="text-[10px] font-bold text-brand-lime/70 uppercase tracking-wider">Harvest In</p>
-                                <p className="text-sm font-black text-brand-lime">{plan.days_to_harvest} days</p>
+                            <div className="bg-brand-lime/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                                <p className="text-[9px] sm:text-[10px] font-bold text-brand-lime/70 uppercase tracking-wider">Harvest In</p>
+                                <p className="text-xs sm:text-sm font-black text-brand-lime">{plan.days_to_harvest} days</p>
                             </div>
                         )}
                         {plan?.variety_info?.days_to_maturity && (
-                            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Maturity</p>
-                                <p className="text-sm font-black text-white">{plan.variety_info.days_to_maturity} days</p>
+                            <div className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Maturity</p>
+                                <p className="text-xs sm:text-sm font-black text-white">{plan.variety_info.days_to_maturity} days</p>
                             </div>
                         )}
-                        <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Area</p>
-                            <p className="text-sm font-black text-white">{selectedField.area?.toFixed(1)} ha</p>
+                        <div className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                            <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Area</p>
+                            <p className="text-xs sm:text-sm font-black text-white">{selectedField.area?.toFixed(1)} ha</p>
                         </div>
                         {plan?.variety_info?.breeder && (
-                            <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Breeder</p>
-                                <p className="text-sm font-black text-white">{plan.variety_info.breeder}</p>
+                            <div className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Breeder</p>
+                                <p className="text-xs sm:text-sm font-black text-white">{plan.variety_info.breeder}</p>
                             </div>
                         )}
                     </div>
@@ -210,7 +210,7 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Immediate Actions */}
-                <div id="next-actions-card" className="bg-white p-8 rounded-[3.5rem] shadow-xl border border-slate-50">
+                <div id="next-actions-card" className="bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-black text-brand-dark flex items-center gap-2">
                             <span className="bg-rose-100 text-rose-600 p-2 rounded-xl">⚡</span>
@@ -253,7 +253,7 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                 </div>
 
                 {/* Timeline / Cycle */}
-                <div id="growth-cycle-timeline" className="lg:col-span-2 bg-white p-8 rounded-[3.5rem] shadow-xl border border-slate-50">
+                <div id="growth-cycle-timeline" className="lg:col-span-2 bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50">
                     <h3 className="text-xl font-black text-brand-dark mb-6 flex items-center gap-2">
                         <span className="bg-brand-lime/20 text-brand-dark p-2 rounded-xl">📅</span>
                         Growth Cycle

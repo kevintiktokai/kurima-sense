@@ -51,30 +51,30 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
     const overallLevel = getRiskLevel(overallRisk);
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: 'var(--ee-bg-dim)' }}
                     >
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '22px' }}>target</span>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>target</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.125rem' }}>{title}</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
+                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {risks.length} active risks
                         </p>
                     </div>
                 </div>
 
                 {/* Overall Risk Indicator */}
-                <div className="px-4 py-2 rounded-[16px] flex items-center gap-2" style={{ backgroundColor: 'var(--ee-bg)' }}>
-                    <span className="text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: overallLevel.color }}>{overallRisk}</span>
+                <div className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-[12px] sm:rounded-[16px] flex items-center gap-1.5 sm:gap-2 flex-shrink-0" style={{ backgroundColor: 'var(--ee-bg)' }}>
+                    <span className="text-base sm:text-lg" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: overallLevel.color }}>{overallRisk}</span>
                     <div className="text-right">
-                        <p className="text-xs font-bold" style={{ color: overallLevel.color, fontFamily: 'var(--font-body)' }}>{overallLevel.label}</p>
-                        <p className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Overall</p>
+                        <p className="text-[10px] sm:text-xs font-bold" style={{ color: overallLevel.color, fontFamily: 'var(--font-body)' }}>{overallLevel.label}</p>
+                        <p className="text-[8px] sm:text-[9px] uppercase tracking-wider" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Overall</p>
                     </div>
                 </div>
             </div>
@@ -89,35 +89,35 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
                         <div
                             key={risk.id}
                             onClick={() => onRiskClick?.(risk)}
-                            className="flex items-center gap-4 p-4 rounded-[16px] transition-all duration-200 cursor-pointer"
+                            className="flex items-center gap-2.5 sm:gap-4 p-3 sm:p-4 rounded-[12px] sm:rounded-[16px] transition-all duration-200 cursor-pointer"
                             style={{ backgroundColor: 'var(--ee-bg)' }}
                         >
                             <div
-                                className="w-10 h-10 rounded-[12px] flex items-center justify-center"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] flex items-center justify-center flex-shrink-0"
                                 style={{ backgroundColor: 'var(--ee-surface)', boxShadow: '2px 2px 6px #D5D2CE, -2px -2px 6px #FFFFFF' }}
                             >
-                                <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>{config.icon}</span>
+                                <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '18px' }}>{config.icon}</span>
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <p className="text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{risk.name}</p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-xs sm:text-sm truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{risk.name}</p>
                                     <TrendIndicator trend={risk.trend} />
                                 </div>
-                                <p className="text-[10px] font-medium uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-widest truncate" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                                     {config.label} {risk.fieldName ? `· ${risk.fieldName}` : ''}
                                 </p>
                             </div>
 
                             {/* Risk Bar */}
-                            <div className="w-24 flex items-center gap-2">
-                                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--ee-bg-pressed)' }}>
+                            <div className="w-16 sm:w-24 flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                <div className="flex-1 h-1.5 sm:h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--ee-bg-pressed)' }}>
                                     <div
                                         className="h-full rounded-full transition-all"
                                         style={{ width: `${risk.risk}%`, backgroundColor: level.color }}
                                     />
                                 </div>
-                                <span className="text-xs font-bold w-8 text-right" style={{ color: level.color, fontFamily: 'var(--font-heading)' }}>
+                                <span className="text-[10px] sm:text-xs font-bold w-7 sm:w-8 text-right" style={{ color: level.color, fontFamily: 'var(--font-heading)' }}>
                                     {risk.risk}%
                                 </span>
                             </div>

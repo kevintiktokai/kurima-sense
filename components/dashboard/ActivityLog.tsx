@@ -225,36 +225,36 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
     }, {});
 
     return (
-        <div className="neu-surface p-6 lg:p-8">
+        <div className="neu-surface p-4 sm:p-6 lg:p-8 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-[16px] flex items-center justify-center" style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}>
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '24px' }}>calendar_month</span>
+            <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-[12px] sm:rounded-[16px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '22px' }}>calendar_month</span>
                     </div>
-                    <div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)', fontSize: '1.25rem' }}>Activity Log</h3>
-                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
-                            Track daily farm activities
+                    <div className="min-w-0">
+                        <h3 className="text-base sm:text-xl truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>Activity Log</h3>
+                        <p className="text-[9px] sm:text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                            Track daily activities
                         </p>
                     </div>
                 </div>
                 <button
                     onClick={() => setShowAddForm(true)}
-                    className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 transition-all"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 transition-all flex-shrink-0"
                     style={{ backgroundColor: 'var(--ee-primary)', color: '#fff', boxShadow: 'var(--shadow-neu)', fontFamily: 'var(--font-body)' }}
                 >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span> Add Activity
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span> <span className="hidden sm:inline">Add Activity</span><span className="sm:hidden">Add</span>
                 </button>
             </div>
 
             {/* Tab Switcher */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-4 sm:mb-6">
                 {(['today', 'history'] as const).map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className="px-4 py-2 rounded-full text-sm font-bold transition-all"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all"
                         style={{
                             backgroundColor: activeTab === tab ? 'var(--ee-text)' : 'var(--ee-bg)',
                             color: activeTab === tab ? '#fff' : 'var(--ee-muted)',
@@ -262,7 +262,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                             fontFamily: 'var(--font-body)',
                         }}
                     >
-                        {tab === 'today' ? 'Daily View' : 'History (30 days)'}
+                        {tab === 'today' ? 'Daily' : 'History'}
                     </button>
                 ))}
             </div>
