@@ -125,6 +125,38 @@ export const api = {
         }
     },
 
+    /**
+     * Combined endpoint — fetches dashboard stats, fields, and market prices in ONE request.
+     * Eliminates 2 extra HTTP round-trips on initial dashboard load.
+     */
+    async getDashboardInit(): Promise<{
+        stats: any;
+        fields: FieldData[];
+        market: any;
+    } | null> {
+        const cacheKey = 'dashboard_init';
+        const cached = getCached<{ stats: any; fields: FieldData[]; market: any }>(cacheKey);
+        if (cached) return cached;
+
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/dashboard/init`, { headers });
+            if (!res.ok) return null;
+            const data = await res.json();
+
+            // Also populate individual caches so other components benefit
+            if (data.stats) setCache('dashboard_stats', data.stats, CACHE_TTL.DASHBOARD);
+            if (data.fields) setCache('fields', Array.isArray(data.fields) ? data.fields : [], CACHE_TTL.FIELDS);
+            if (data.market) setCache('market_prices_Zimbabwe', data.market, CACHE_TTL.MARKET);
+
+            setCache(cacheKey, data, CACHE_TTL.FIELDS); // shortest TTL of the three
+            return data;
+        } catch (e) {
+            console.error('[API] getDashboardInit error:', e);
+            return null;
+        }
+    },
+
     async getDashboardStats() {
         const cacheKey = 'dashboard_stats';
         const cached = getCached(cacheKey);

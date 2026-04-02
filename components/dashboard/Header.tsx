@@ -1,58 +1,37 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { api } from '@/services/api';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 
 const Header: React.FC = () => {
     const pathname = usePathname();
-    const [yieldValue, setYieldValue] = useState<string>("—");
-    const mountedRef = useRef(true);
+    const { fields, marketData } = useDashboardData();
 
-    useEffect(() => {
-        mountedRef.current = true;
+    // Compute yield value from shared data (no independent fetch)
+    const yieldValue = useMemo(() => {
+        if (!fields.length || !marketData?.prices) return "—";
 
-        const calculateYieldValue = async () => {
-            try {
-                const [fields, marketData] = await Promise.all([
-                    api.getFields(),
-                    api.getMarketPrices("Zimbabwe")
-                ]);
+        let totalValue = 0;
+        for (const field of fields) {
+            const crop = field.crop;
+            const projectedYield = (field as any).projected_yield || (field.area * 5);
+            const priceData = marketData.prices[crop];
 
-                if (!mountedRef.current) return;
-
-                let totalValue = 0;
-
-                for (const field of fields) {
-                    const crop = field.crop;
-                    const projectedYield = field.projected_yield || (field.area * 5); // tonnes
-                    const priceData = marketData.prices[crop];
-
-                    if (priceData) {
-                        // Handle different units
-                        let pricePerTonne = priceData.price;
-                        if (priceData.unit === "$/kg") {
-                            pricePerTonne = priceData.price * 1000; // Convert to $/t
-                        } else if (priceData.unit === "$/lb") {
-                            pricePerTonne = priceData.price * 2204.62; // Convert to $/t
-                        }
-
-                        totalValue += projectedYield * pricePerTonne;
-                    }
+            if (priceData) {
+                let pricePerTonne = priceData.price;
+                if (priceData.unit === "$/kg") {
+                    pricePerTonne = priceData.price * 1000;
+                } else if (priceData.unit === "$/lb") {
+                    pricePerTonne = priceData.price * 2204.62;
                 }
-
-                setYieldValue(`$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-            } catch (err) {
-                console.error("Yield value calculation error:", err);
+                totalValue += projectedYield * pricePerTonne;
             }
-        };
+        }
 
-        calculateYieldValue();
-        // Refresh every 5 minutes
-        const interval = setInterval(calculateYieldValue, 5 * 60 * 1000);
-        return () => { mountedRef.current = false; clearInterval(interval); };
-    }, []);
+        return `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }, [fields, marketData]);
 
     const getHeaderTitle = () => {
         if (pathname === '/dashboard') return 'Agro-Feed';

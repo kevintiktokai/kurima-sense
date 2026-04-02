@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { UserProfileProvider, useUserProfile } from '@/components/providers/UserProfileProvider';
+import { DashboardDataProvider } from '@/components/providers/DashboardDataProvider';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
@@ -72,7 +73,9 @@ export default function DashboardLayout({
 }) {
     return (
         <UserProfileProvider>
-            <DashboardContent>{children}</DashboardContent>
+            <DashboardDataProvider>
+                <DashboardContent>{children}</DashboardContent>
+            </DashboardDataProvider>
         </UserProfileProvider>
     );
 }

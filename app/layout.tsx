@@ -30,10 +30,31 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preload hint — browser starts downloading immediately but doesn't block render */}
         <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          as="style"
+          crossOrigin="anonymous"
+        />
+        {/* Load as print media first (non-blocking), then swap to all via inline script */}
+        <link
+          id="material-symbols-font"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
+          media="print"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.getElementById('material-symbols-font').addEventListener('load',function(){this.media='all'})`,
+          }}
+        />
+        <noscript>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
+          />
+        </noscript>
       </head>
       <body
         className={`${fraunces.variable} ${nunito.variable} antialiased`}
