@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api';
 import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
+import type { MapMode } from './MapComponent';
 
 interface FieldManagementProps {
     onSelectField?: (field: FieldData) => void;
@@ -54,6 +55,9 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
         }
     };
 
+    // Map mode state
+    const [mapMode, setMapMode] = useState<MapMode>('view');
+
     // Field creation state
     const [isCreating, setIsCreating] = useState(false);
     const [newFieldCoords, setNewFieldCoords] = useState<{ lat: number, lon: number }[]>([]);
@@ -85,6 +89,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const handleFieldCreated = (points: { lat: number, lon: number }[], area?: number) => {
         setNewFieldCoords(points);
         setNewFieldArea(area || 0);
+        setMapMode('view');
         setIsCreating(true);
     };
 
@@ -416,16 +421,19 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 </div>
                 <button
                     id="add-field-btn"
+                    onClick={() => setMapMode(mapMode === 'view' ? 'draw' : 'view')}
                     className="px-8 py-3 rounded-[16px] font-bold flex items-center gap-2 hover:scale-105 transition-transform"
                     style={{
-                        background: 'var(--ee-text)',
+                        background: mapMode !== 'view' ? 'var(--ee-primary)' : 'var(--ee-text)',
                         color: '#FFFFFF',
                         fontFamily: 'var(--font-heading)',
                         boxShadow: 'var(--shadow-neu)',
                     }}
                 >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
-                    Add Field
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                        {mapMode !== 'view' ? 'close' : 'add'}
+                    </span>
+                    {mapMode !== 'view' ? 'Cancel Mapping' : 'Add Field'}
                 </button>
             </div>
 
@@ -439,12 +447,13 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                     fields={fields}
                     onSelectField={(field) => {
                         setHighlightedFieldId(field.id);
-                        // Scroll the field card into view
                         const el = document.getElementById(`field-card-${field.id}`);
                         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }}
                     onFieldCreated={handleFieldCreated}
                     highlightedFieldId={highlightedFieldId}
+                    mode={mapMode}
+                    onModeChange={setMapMode}
                 />
             </div>
 
@@ -505,17 +514,17 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                             className="font-medium mb-6 max-w-sm mx-auto"
                             style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                         >
-                            Draw a polygon on the map above to mark your first field. We&apos;ll track satellite data, weather, and crop health automatically.
+                            Tap &ldquo;Add Field&rdquo; to map your first field. Draw on the satellite map or walk your boundary with GPS.
                         </p>
                         <div className="flex items-center justify-center gap-3 text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
-                                Click the polygon tool
+                                Tap Add Field
                             </span>
                             <span style={{ color: 'var(--ee-bg)' }}>|</span>
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
-                                Trace your field
+                                Draw or Walk GPS
                             </span>
                             <span style={{ color: 'var(--ee-bg)' }}>|</span>
                             <span className="flex items-center gap-1.5">

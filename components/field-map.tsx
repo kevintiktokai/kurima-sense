@@ -1,14 +1,13 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { MapContainer, TileLayer, Polygon, Popup, useMap, FeatureGroup, Circle, Marker } from "react-leaflet"
+import { useEffect, useState } from "react"
+import { MapContainer, TileLayer, Polygon, Popup, useMap, Circle, Marker } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
-import "leaflet-draw/dist/leaflet.draw.css"
-import { EditControl } from "react-leaflet-draw"
-import { Loader2, Disc, Plus, Minus, Crosshair } from "lucide-react"
+import { Loader2, Plus, Minus, Crosshair } from "lucide-react"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Button } from "@/components/ui/button"
 import L from "leaflet"
+import { calculatePolygonArea, calculatePolygonPerimeter } from "@/lib/geo"
 
 // Fix for default marker icons in Next.js
 const iconUrl = "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png";
@@ -17,8 +16,6 @@ const shadowUrl = "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png
 
 // Default Fallback (Zimbabwe)
 const DEFAULT_CENTER = [-17.82, 31.05] as [number, number];
-
-const NDVI_COLOR = "#fff"; // White outline for contrast on satellite
 
 function MapController({ center }: { center: [number, number] }) {
     const map = useMap();
@@ -127,9 +124,12 @@ interface FieldMapProps {
     center?: [number, number]
     polygon?: [number, number][]
     fieldName?: string
+    area?: number
+    ndvi?: number
+    healthStatus?: string
 }
 
-export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName = "Main Field" }: FieldMapProps) {
+export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName = "Main Field", area, ndvi, healthStatus }: FieldMapProps) {
     const [mounted, setMounted] = useState(false);
 
     // Mock polygon based on center if not provided
@@ -140,16 +140,18 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
         [center[0] - 0.002, center[1] - 0.002],
     ] as [number, number][];
 
+    // Calculate stats from the polygon
+    const polygonPoints = displayPolygon.map(p => ({ lat: p[0], lon: p[1] }));
+    const computedArea = area || calculatePolygonArea(polygonPoints);
+    const perimeter = calculatePolygonPerimeter(polygonPoints);
+
     useEffect(() => {
         setMounted(true);
-        // Fix Leaflet icon issue
-        (async () => {
-            L.Icon.Default.mergeOptions({
-                iconUrl: iconUrl,
-                iconRetinaUrl: iconRetinaUrl,
-                shadowUrl: shadowUrl,
-            });
-        })();
+        L.Icon.Default.mergeOptions({
+            iconUrl: iconUrl,
+            iconRetinaUrl: iconRetinaUrl,
+            shadowUrl: shadowUrl,
+        });
     }, []);
 
     if (!mounted) {
@@ -163,67 +165,9 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
     return (
         <div className="h-full w-full relative rounded-3xl overflow-hidden z-0 shadow-inner group">
             <style jsx global>{`
-                /* Hide default Leaflet controls we replaced */
                 .leaflet-control-zoom { display: none !important; }
-                
-                /* Style the Draw Toolbar to match Glassmorphism */
-                .leaflet-draw-toolbar {
-                    margin-top: 12px !important;
-                    margin-left: 12px !important;
-                    background: transparent !important;
-                    border: none !important;
-                    box-shadow: none !important;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                }
-                .leaflet-draw-toolbar a {
-                    background-color: rgba(0, 0, 0, 0.6) !important;
-                    backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                    color: white !important;
-                    border-radius: 8px !important;
-                    width: 36px !important;
-                    height: 36px !important;
-                    line-height: 36px !important;
-                    display: flex !important;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s;
-                }
-                .leaflet-draw-toolbar a:hover {
-                    background-color: rgba(255, 255, 255, 0.1) !important;
-                    border-color: #D7F26C !important;
-                }
-                /* Custom icons for draw tools could be set here by overriding background-image */
-                .leaflet-draw-draw-polygon {
-                    background-image: none !important;
-                }
-                .leaflet-draw-draw-polygon::after {
-                    content: '⬠';
-                    font-size: 18px;
-                    color: white;
-                }
-                .leaflet-draw-edit-edit {
-                    background-image: none !important;
-                }
-                .leaflet-draw-edit-edit::after {
-                    content: '✎';
-                    font-size: 18px;
-                    color: white;
-                }
-                .leaflet-draw-edit-remove {
-                    background-image: none !important;
-                }
-                .leaflet-draw-edit-remove::after {
-                    content: '✕';
-                    font-size: 18px;
-                    color: white;
-                }
-                /* Hide unused draw tools if any */
-                .leaflet-draw-draw-circle, .leaflet-draw-draw-rectangle, .leaflet-draw-draw-circlemarker, .leaflet-draw-draw-marker, .leaflet-draw-draw-polyline {
-                    display: none !important;
-                }
+                .leaflet-draw { display: none !important; }
+                .leaflet-draw-toolbar { display: none !important; }
                 .leaflet-bar {
                      box-shadow: none !important;
                      border: none !important;
@@ -233,7 +177,7 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
             <MapContainer
                 center={center}
                 zoom={16}
-                zoomControl={false} // Disable default zoom
+                zoomControl={false}
                 scrollWheelZoom={true}
                 className="h-full w-full"
                 style={{ background: "#020617" }}
@@ -244,57 +188,54 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                 />
 
-                <FeatureGroup>
-                    <EditControl
-                        position="topleft"
-                        onCreated={(e) => console.log(e)}
-                        draw={{
-                            rectangle: false,
-                            polyline: false,
-                            circle: false,
-                            circlemarker: false,
-                            marker: false,
-                            polygon: {
-                                allowIntersection: false,
-                                drawError: {
-                                    color: "#e1e100",
-                                    message: "<strong>Oh snap!<strong> you can't draw that!"
-                                },
-                                shapeOptions: {
-                                    color: "#D7F26C", // Brand Lime
-                                    fillColor: "#D7F26C",
-                                    fillOpacity: 0.2,
-                                    weight: 2
-
-                                }
-                            }
-                        }}
-                    />
-                </FeatureGroup>
-
+                {/* Field boundary polygon */}
                 <Polygon
                     positions={displayPolygon}
                     pathOptions={{
-                        color: NDVI_COLOR,
-                        fillColor: "transparent",
-                        fillOpacity: 0,
-                        weight: 2,
-                        dashArray: "10, 5"
+                        color: '#D7F26C',
+                        fillColor: '#D7F26C',
+                        fillOpacity: 0.1,
+                        weight: 2.5,
                     }}
                 >
                     <Popup className="glass-popup">
-                        <div className="p-2">
-                            <h3 className="font-bold text-charcoal">{fieldName}</h3>
-                            <p className="text-xs text-slate-600">NDVI: 0.72 (Good)</p>
-                            <p className="text-xs text-slate-600">Status: Healthy</p>
+                        <div className="p-2 text-center">
+                            <h3 className="font-bold text-charcoal text-sm">{fieldName}</h3>
+                            <p className="text-xs text-slate-600">{computedArea} ha &bull; {perimeter >= 1000 ? `${(perimeter / 1000).toFixed(1)} km` : `${perimeter} m`} perimeter</p>
+                            {ndvi !== undefined && <p className="text-xs text-slate-600">NDVI: {ndvi.toFixed(2)}</p>}
+                            {healthStatus && <p className="text-xs text-slate-600">Status: {healthStatus}</p>}
                         </div>
                     </Popup>
                 </Polygon>
+
+                {/* Vertex dots on the boundary */}
+                {displayPolygon.map((pos, i) => (
+                    <Marker
+                        key={`vertex-${i}`}
+                        position={pos}
+                        icon={L.divIcon({
+                            className: 'field-vertex',
+                            html: `<div style="width:8px;height:8px;background:#D7F26C;border:2px solid #2D3A26;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3);"></div>`,
+                            iconSize: [8, 8],
+                            iconAnchor: [4, 4],
+                        })}
+                    />
+                ))}
 
                 <MapController center={center} />
                 <CustomControls />
                 <LocationMarker />
             </MapContainer>
+
+            {/* Field info overlay */}
+            <div className="absolute bottom-20 left-4 z-[400] pointer-events-none">
+                <div className="bg-black/50 backdrop-blur-xl border border-white/10 rounded-xl px-3 py-2 shadow-lg">
+                    <p className="text-white font-bold text-sm">{fieldName}</p>
+                    <p className="text-white/60 text-xs">
+                        {computedArea} ha &bull; {perimeter >= 1000 ? `${(perimeter / 1000).toFixed(1)} km` : `${perimeter} m`}
+                    </p>
+                </div>
+            </div>
 
             {/* Overlay Gradient for clearer UI on top */}
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-[300]" />

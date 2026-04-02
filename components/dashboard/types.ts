@@ -67,6 +67,23 @@ export interface FieldData {
     latestInsight?: string; // AI generated insight
 }
 
+// Scouting observation type
+export type ScoutingCategory = 'pest' | 'disease' | 'weed' | 'water' | 'nutrient' | 'general';
+export type ScoutingSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface ScoutingPin {
+    id: string;
+    fieldId: string;
+    lat: number;
+    lon: number;
+    category: ScoutingCategory;
+    severity: ScoutingSeverity;
+    title: string;
+    notes?: string;
+    photoUrl?: string;
+    createdAt: string;
+}
+
 export interface UserProfile {
     name: string;
     email: string;
