@@ -51,7 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                     alt="KurimaSense"
                     width={48}
                     height={48}
-                    className="flex-shrink-0"
+                    className="rounded-[16px] flex-shrink-0"
+                    style={{ boxShadow: 'var(--shadow-neu)' }}
                 />
                 {!isCollapsed && (
                     <h1
