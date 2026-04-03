@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/services/api';
 import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
@@ -18,8 +18,8 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
     ssr: false,
     loading: () => (
         <div
-            className="w-full h-full animate-pulse rounded-[24px] flex items-center justify-center"
-            style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', fontWeight: 700 }}
+            className="w-full h-full animate-pulse flex items-center justify-center"
+            style={{ background: '#1a2e1a', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', fontWeight: 700 }}
         >
             Loading Satellite Map...
         </div>
@@ -33,6 +33,10 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [deletingFieldId, setDeletingFieldId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
+
+    // Panel state: open/closed on mobile, always visible on desktop
+    const [panelOpen, setPanelOpen] = useState(false);
+    const panelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         api.getFields().then(data => {
@@ -126,24 +130,328 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     };
 
     const handleFieldCardClick = (field: FieldData) => {
-        // Toggle highlight — if already selected, deselect
         if (highlightedFieldId === field.id) {
             setHighlightedFieldId(null);
         } else {
             setHighlightedFieldId(field.id);
+            // On mobile, close the panel so the user can see the map
+            if (window.innerWidth < 1024) {
+                setPanelOpen(false);
+            }
         }
     };
 
     // Health status config
-    const healthConfig = {
+    const healthConfig: Record<string, { color: string; label: string }> = {
         Excellent: { color: 'var(--ee-primary)', label: 'Healthy' },
         Good: { color: 'var(--ee-sun)', label: 'Fair' },
         Critical: { color: '#E05C5C', label: 'Needs Attention' },
     };
 
+    // Close panel when entering draw/GPS mode
+    useEffect(() => {
+        if (mapMode !== 'view') {
+            setPanelOpen(false);
+        }
+    }, [mapMode]);
+
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 relative">
-            {/* Field Creation Modal */}
+        <>
+            {/* ───── FULL-SCREEN MAP CONTAINER ───── */}
+            <div
+                className="fixed inset-0 bottom-[80px] lg:bottom-0 lg:left-[288px] z-0"
+            >
+                <MapComponent
+                    fields={fields}
+                    onSelectField={(field) => {
+                        setHighlightedFieldId(field.id);
+                        setPanelOpen(true);
+                        // Scroll to field card
+                        setTimeout(() => {
+                            const el = document.getElementById(`field-card-${field.id}`);
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }}
+                    onFieldCreated={handleFieldCreated}
+                    highlightedFieldId={highlightedFieldId}
+                    mode={mapMode}
+                    onModeChange={setMapMode}
+                    fullscreen
+                />
+            </div>
+
+            {/* ───── FLOATING TOP BAR ───── */}
+            <div
+                className="fixed top-3 left-3 right-3 lg:left-[300px] z-[400] flex items-center gap-2 sm:gap-3"
+                style={{ pointerEvents: 'none' }}
+            >
+                {/* My Fields pill */}
+                <div
+                    className="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full backdrop-blur-xl"
+                    style={{
+                        background: 'rgba(45,58,38,0.85)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                        pointerEvents: 'auto',
+                    }}
+                >
+                    <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }}>map</span>
+                    <h2
+                        className="text-sm sm:text-base font-black text-white truncate"
+                        style={{ fontFamily: 'var(--font-heading)' }}
+                    >
+                        My Fields
+                    </h2>
+                    {fields.length > 0 && (
+                        <span
+                            className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full"
+                            style={{
+                                background: 'rgba(215,242,108,0.25)',
+                                color: '#D7F26C',
+                                fontFamily: 'var(--font-body)',
+                            }}
+                        >
+                            {fields.length}
+                        </span>
+                    )}
+                </div>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Add Field / Cancel button */}
+                <button
+                    onClick={() => setMapMode(mapMode === 'view' ? 'draw' : 'view')}
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold flex items-center gap-1.5 sm:gap-2 hover:scale-105 transition-transform text-sm sm:text-base backdrop-blur-xl"
+                    style={{
+                        background: mapMode !== 'view' ? '#D7F26C' : 'rgba(45,58,38,0.85)',
+                        color: mapMode !== 'view' ? '#2D3A26' : '#FFFFFF',
+                        fontFamily: 'var(--font-heading)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                        pointerEvents: 'auto',
+                    }}
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                        {mapMode !== 'view' ? 'close' : 'add'}
+                    </span>
+                    <span className="hidden sm:inline">{mapMode !== 'view' ? 'Cancel Mapping' : 'Add Field'}</span>
+                    <span className="sm:hidden">{mapMode !== 'view' ? 'Cancel' : 'Add'}</span>
+                </button>
+
+                {/* Toggle field list panel (mobile) */}
+                {fields.length > 0 && mapMode === 'view' && (
+                    <button
+                        onClick={() => setPanelOpen(!panelOpen)}
+                        className="lg:hidden px-3 py-2.5 sm:py-3 rounded-full backdrop-blur-xl flex items-center gap-1.5"
+                        style={{
+                            background: panelOpen ? '#D7F26C' : 'rgba(45,58,38,0.85)',
+                            color: panelOpen ? '#2D3A26' : '#FFFFFF',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                            pointerEvents: 'auto',
+                        }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                            {panelOpen ? 'close' : 'list'}
+                        </span>
+                    </button>
+                )}
+            </div>
+
+            {/* ───── FIELD LIST PANEL ───── */}
+            {/* Desktop: right side panel, always visible when fields exist */}
+            {/* Mobile: bottom sheet drawer */}
+            {fields.length > 0 && mapMode === 'view' && (
+                <>
+                    {/* DESKTOP SIDE PANEL */}
+                    <div
+                        className="hidden lg:flex fixed top-[72px] right-4 bottom-4 w-[320px] xl:w-[360px] z-[400] flex-col rounded-2xl overflow-hidden"
+                        style={{
+                            background: 'rgba(45,58,38,0.88)',
+                            backdropFilter: 'blur(20px)',
+                            boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+                        }}
+                    >
+                        {/* Panel header */}
+                        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                            <p
+                                className="text-xs font-bold uppercase tracking-wider"
+                                style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}
+                            >
+                                Tap a field to locate on map
+                            </p>
+                            {highlightedFieldId && (
+                                <button
+                                    onClick={() => setHighlightedFieldId(null)}
+                                    className="text-xs font-bold flex items-center gap-1 transition-colors"
+                                    style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = '#D7F26C')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Scrollable field list */}
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
+                            {loading ? (
+                                <>
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="rounded-xl p-5 animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                            <div className="h-5 rounded-lg w-2/3 mb-3" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                                            <div className="h-3 rounded-lg w-1/3" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                                        </div>
+                                    ))}
+                                </>
+                            ) : (
+                                fields.map(field => (
+                                    <FieldCard
+                                        key={field.id}
+                                        field={field}
+                                        isSelected={highlightedFieldId === field.id}
+                                        healthConfig={healthConfig}
+                                        showDeleteConfirm={showDeleteConfirm}
+                                        deletingFieldId={deletingFieldId}
+                                        onCardClick={handleFieldCardClick}
+                                        onDeleteClick={setShowDeleteConfirm}
+                                        onDeleteConfirm={handleDeleteField}
+                                        onDeleteCancel={() => setShowDeleteConfirm(null)}
+                                        onAnalyze={(field) => {
+                                            api.analyzeField(field.id).then(() => router.push(`/fields/${field.id}`));
+                                        }}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    {/* MOBILE BOTTOM SHEET */}
+                    <div
+                        ref={panelRef}
+                        className={`lg:hidden fixed left-0 right-0 bottom-[80px] z-[400] transition-transform duration-300 ease-out`}
+                        style={{
+                            transform: panelOpen ? 'translateY(0)' : 'translateY(100%)',
+                            maxHeight: '60vh',
+                        }}
+                    >
+                        <div
+                            className="rounded-t-2xl overflow-hidden flex flex-col"
+                            style={{
+                                background: 'rgba(45,58,38,0.92)',
+                                backdropFilter: 'blur(20px)',
+                                boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
+                                maxHeight: '60vh',
+                            }}
+                        >
+                            {/* Drag handle */}
+                            <div
+                                className="flex justify-center py-3 cursor-pointer"
+                                onClick={() => setPanelOpen(!panelOpen)}
+                            >
+                                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.3)' }} />
+                            </div>
+
+                            {/* Panel header */}
+                            <div className="px-4 pb-3 flex items-center justify-between">
+                                <p
+                                    className="text-xs font-bold uppercase tracking-wider"
+                                    style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-body)' }}
+                                >
+                                    {fields.length} field{fields.length !== 1 ? 's' : ''} mapped
+                                </p>
+                                {highlightedFieldId && (
+                                    <button
+                                        onClick={() => setHighlightedFieldId(null)}
+                                        className="text-xs font-bold flex items-center gap-1"
+                                        style={{ color: '#D7F26C', fontFamily: 'var(--font-body)' }}
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Scrollable field list */}
+                            <div className="overflow-y-auto px-3 pb-6 space-y-2.5" style={{ maxHeight: 'calc(60vh - 80px)' }}>
+                                {loading ? (
+                                    <>
+                                        {[1, 2].map(i => (
+                                            <div key={i} className="rounded-xl p-5 animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                                <div className="h-5 rounded-lg w-2/3 mb-3" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                                                <div className="h-3 rounded-lg w-1/3" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : (
+                                    fields.map(field => (
+                                        <FieldCard
+                                            key={field.id}
+                                            field={field}
+                                            isSelected={highlightedFieldId === field.id}
+                                            healthConfig={healthConfig}
+                                            showDeleteConfirm={showDeleteConfirm}
+                                            deletingFieldId={deletingFieldId}
+                                            onCardClick={handleFieldCardClick}
+                                            onDeleteClick={setShowDeleteConfirm}
+                                            onDeleteConfirm={handleDeleteField}
+                                            onDeleteCancel={() => setShowDeleteConfirm(null)}
+                                            onAnalyze={(field) => {
+                                                api.analyzeField(field.id).then(() => router.push(`/fields/${field.id}`));
+                                            }}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* ───── EMPTY STATE (no fields) ───── */}
+            {!loading && fields.length === 0 && mapMode === 'view' && (
+                <div
+                    className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] w-[90vw] max-w-sm text-center p-8 rounded-2xl backdrop-blur-xl"
+                    style={{
+                        background: 'rgba(45,58,38,0.88)',
+                        boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+                    }}
+                >
+                    <div
+                        className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
+                        style={{ background: 'rgba(215,242,108,0.2)' }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#D7F26C' }}>map</span>
+                    </div>
+                    <h3
+                        className="text-xl font-black mb-2 text-white"
+                        style={{ fontFamily: 'var(--font-heading)' }}
+                    >
+                        No fields yet
+                    </h3>
+                    <p
+                        className="font-medium mb-5 text-sm"
+                        style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-body)' }}
+                    >
+                        Tap &ldquo;Add Field&rdquo; to map your first field. Draw on the satellite map or walk your boundary with GPS.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-body)' }}>
+                        <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ background: '#D7F26C' }} />
+                            Tap Add Field
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ background: '#D7F26C' }} />
+                            Draw or Walk GPS
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ background: '#D7F26C' }} />
+                            Add crop details
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {/* ───── FIELD CREATION MODAL ───── */}
             {isCreating && (
                 <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4" style={{ background: 'rgba(45,58,48,0.4)', backdropFilter: 'blur(8px)' }}>
                     <div
@@ -396,328 +704,151 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                     </div>
                 </div>
             )}
+        </>
+    );
+};
 
-            {/* Header Bar */}
-            <div className="neu-surface flex justify-between items-center p-3 sm:p-4 rounded-[20px] sm:rounded-[24px] gap-2">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <h2
-                        className="text-base sm:text-lg font-black pl-2 sm:pl-4 truncate"
-                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                    >
-                        My Fields
-                    </h2>
-                    {fields.length > 0 && (
-                        <span
-                            className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full flex-shrink-0"
-                            style={{
-                                background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)',
-                                color: 'var(--ee-text)',
-                                fontFamily: 'var(--font-body)',
-                            }}
-                        >
-                            {fields.length}
-                        </span>
-                    )}
-                </div>
-                <button
-                    id="add-field-btn"
-                    onClick={() => setMapMode(mapMode === 'view' ? 'draw' : 'view')}
-                    className="px-4 sm:px-8 py-2.5 sm:py-3 rounded-[12px] sm:rounded-[16px] font-bold flex items-center gap-1.5 sm:gap-2 hover:scale-105 transition-transform flex-shrink-0 text-sm sm:text-base"
-                    style={{
-                        background: mapMode !== 'view' ? 'var(--ee-primary)' : 'var(--ee-text)',
-                        color: '#FFFFFF',
-                        fontFamily: 'var(--font-heading)',
-                        boxShadow: 'var(--shadow-neu)',
-                    }}
+/* ───── FIELD CARD COMPONENT ───── */
+interface FieldCardProps {
+    field: FieldData;
+    isSelected: boolean;
+    healthConfig: Record<string, { color: string; label: string }>;
+    showDeleteConfirm: string | null;
+    deletingFieldId: string | null;
+    onCardClick: (field: FieldData) => void;
+    onDeleteClick: (id: string) => void;
+    onDeleteConfirm: (id: string, name: string) => void;
+    onDeleteCancel: () => void;
+    onAnalyze: (field: FieldData) => void;
+}
+
+const FieldCard: React.FC<FieldCardProps> = ({
+    field,
+    isSelected,
+    healthConfig,
+    showDeleteConfirm,
+    deletingFieldId,
+    onCardClick,
+    onDeleteClick,
+    onDeleteConfirm,
+    onDeleteCancel,
+    onAnalyze,
+}) => {
+    const health = healthConfig[field.healthStatus] || healthConfig.Good;
+
+    return (
+        <div
+            id={`field-card-${field.id}`}
+            onClick={() => onCardClick(field)}
+            className="relative rounded-xl p-4 transition-all cursor-pointer group"
+            style={{
+                background: isSelected ? 'rgba(215,242,108,0.15)' : 'rgba(255,255,255,0.06)',
+                border: isSelected ? '1px solid rgba(215,242,108,0.4)' : '1px solid rgba(255,255,255,0.06)',
+            }}
+        >
+            {/* Delete Confirmation */}
+            {showDeleteConfirm === field.id && (
+                <div
+                    className="absolute inset-0 rounded-xl z-10 flex flex-col items-center justify-center p-4 backdrop-blur-sm"
+                    style={{ background: 'rgba(45,58,38,0.95)' }}
                 >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                        {mapMode !== 'view' ? 'close' : 'add'}
-                    </span>
-                    <span className="hidden sm:inline">{mapMode !== 'view' ? 'Cancel Mapping' : 'Add Field'}</span>
-                    <span className="sm:hidden">{mapMode !== 'view' ? 'Cancel' : 'Add'}</span>
-                </button>
-            </div>
-
-            {/* Map — always visible */}
-            <div
-                id="fields-map-container"
-                className="relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-[20px] sm:rounded-[24px] overflow-hidden z-0"
-                style={{ boxShadow: 'var(--shadow-ambient)' }}
-            >
-                <MapComponent
-                    fields={fields}
-                    onSelectField={(field) => {
-                        setHighlightedFieldId(field.id);
-                        const el = document.getElementById(`field-card-${field.id}`);
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }}
-                    onFieldCreated={handleFieldCreated}
-                    highlightedFieldId={highlightedFieldId}
-                    mode={mapMode}
-                    onModeChange={setMapMode}
-                />
-            </div>
-
-            {/* Fields List — always below map */}
-            <div>
-                {/* Section header */}
-                {fields.length > 0 && (
-                    <div className="flex items-center justify-between mb-4 px-2">
-                        <p
-                            className="text-xs font-bold uppercase tracking-wider"
-                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                    <p className="text-sm font-bold text-white mb-3 text-center" style={{ fontFamily: 'var(--font-body)' }}>
+                        Delete <strong>{field.name}</strong>?
+                    </p>
+                    <div className="flex gap-2 w-full">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteCancel(); }}
+                            className="flex-1 py-2 rounded-lg text-sm font-bold"
+                            style={{ color: 'rgba(255,255,255,0.6)' }}
                         >
-                            Click a field to locate on map
-                        </p>
-                        {highlightedFieldId && (
-                            <button
-                                onClick={() => setHighlightedFieldId(null)}
-                                className="text-xs font-bold transition-colors flex items-center gap-1"
-                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--ee-text)')}
-                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--ee-muted)')}
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
-                                Clear selection
-                            </button>
+                            Cancel
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteConfirm(field.id, field.name); }}
+                            disabled={deletingFieldId === field.id}
+                            className="flex-1 py-2 rounded-lg text-sm font-black disabled:opacity-50"
+                            style={{ background: '#E05C5C', color: '#fff' }}
+                        >
+                            {deletingFieldId === field.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Card content */}
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        {isSelected && (
+                            <div className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse" style={{ background: '#D7F26C' }} />
                         )}
-                    </div>
-                )}
-
-                {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="neu-surface rounded-[24px] p-8 animate-pulse">
-                                <div className="h-6 rounded-[16px] w-2/3 mb-4" style={{ background: 'var(--ee-bg)' }}></div>
-                                <div className="h-4 rounded-[12px] w-1/3 mb-8" style={{ background: 'var(--ee-bg)' }}></div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="h-12 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
-                                    <div className="h-12 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}></div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : fields.length === 0 ? (
-                    <div className="neu-surface rounded-[24px] p-16 text-center">
-                        <div
-                            className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
-                            style={{ background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)' }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '40px', color: 'var(--ee-text)' }}>map</span>
-                        </div>
                         <h3
-                            className="text-2xl font-black mb-2"
-                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                            className="text-sm font-black text-white truncate"
+                            style={{ fontFamily: 'var(--font-heading)' }}
                         >
-                            No fields yet
+                            {field.name}
                         </h3>
-                        <p
-                            className="font-medium mb-6 max-w-sm mx-auto"
-                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                        >
-                            Tap &ldquo;Add Field&rdquo; to map your first field. Draw on the satellite map or walk your boundary with GPS.
-                        </p>
-                        <div className="flex items-center justify-center gap-3 text-xs" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
-                                Tap Add Field
-                            </span>
-                            <span style={{ color: 'var(--ee-bg)' }}>|</span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
-                                Draw or Walk GPS
-                            </span>
-                            <span style={{ color: 'var(--ee-bg)' }}>|</span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--ee-primary)' }}></span>
-                                Add crop details
-                            </span>
-                        </div>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {fields.map(field => {
-                            const isSelected = highlightedFieldId === field.id;
-                            const health = healthConfig[field.healthStatus] || healthConfig.Good;
-
-                            return (
-                                <div
-                                    id={`field-card-${field.id}`}
-                                    key={field.id}
-                                    onClick={() => handleFieldCardClick(field)}
-                                    className={`neu-surface p-5 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-[24px] transition-all cursor-pointer group relative`}
-                                    style={{
-                                        boxShadow: isSelected ? 'var(--shadow-neu), 0 0 0 3px var(--ee-primary)' : 'var(--shadow-neu)',
-                                        transform: isSelected ? 'scale(1.01)' : undefined,
-                                    }}
-                                >
-                                    {/* Delete Confirmation Overlay */}
-                                    {showDeleteConfirm === field.id && (
-                                        <div
-                                            className="absolute inset-0 rounded-[24px] z-10 flex flex-col items-center justify-center p-6"
-                                            style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}
-                                        >
-                                            <div className="text-center">
-                                                <div
-                                                    className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center"
-                                                    style={{ background: 'color-mix(in srgb, #E05C5C 15%, transparent)' }}
-                                                >
-                                                    <span className="material-symbols-outlined" style={{ fontSize: '28px', color: '#E05C5C' }}>delete</span>
-                                                </div>
-                                                <h4
-                                                    className="text-lg font-black mb-1"
-                                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                                                >
-                                                    Delete Field?
-                                                </h4>
-                                                <p
-                                                    className="text-sm mb-5"
-                                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                                >
-                                                    This will permanently delete <strong>{field.name}</strong>.
-                                                </p>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowDeleteConfirm(null);
-                                                        }}
-                                                        className="flex-1 py-2.5 rounded-[16px] font-bold transition-colors"
-                                                        style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-bg)')}
-                                                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteField(field.id, field.name);
-                                                        }}
-                                                        disabled={deletingFieldId === field.id}
-                                                        className="flex-1 py-2.5 rounded-[16px] font-black transition-colors disabled:opacity-50"
-                                                        style={{
-                                                            background: '#E05C5C',
-                                                            color: '#FFFFFF',
-                                                            fontFamily: 'var(--font-heading)',
-                                                        }}
-                                                    >
-                                                        {deletingFieldId === field.id ? 'Deleting...' : 'Delete'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Card Content */}
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                {isSelected && (
-                                                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 animate-pulse" style={{ background: 'var(--ee-primary)' }}></div>
-                                                )}
-                                                <h3
-                                                    className="text-xl font-black tracking-tight truncate"
-                                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                                                >
-                                                    {field.name}
-                                                </h3>
-                                            </div>
-                                            <p
-                                                className="font-bold text-xs uppercase"
-                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                            >
-                                                {field.crop} &bull; {field.area.toFixed(1)} ha
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                                            {/* Health badge */}
-                                            <span
-                                                className="text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
-                                                style={{
-                                                    background: `color-mix(in srgb, ${health.color} 15%, transparent)`,
-                                                    color: health.color,
-                                                    fontFamily: 'var(--font-body)',
-                                                }}
-                                            >
-                                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: health.color }}></span>
-                                                {health.label}
-                                            </span>
-                                            {/* Delete Button */}
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setShowDeleteConfirm(field.id);
-                                                }}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full"
-                                                title="Delete field"
-                                                onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, #E05C5C 10%, transparent)')}
-                                                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                                            >
-                                                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#E05C5C' }}>delete</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Metrics Row */}
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="rounded-[16px] p-3" style={{ background: 'var(--ee-bg)' }}>
-                                            <p
-                                                className="text-[10px] font-bold uppercase mb-1"
-                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                            >
-                                                NDVI
-                                            </p>
-                                            <span
-                                                className="text-xl font-black"
-                                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                                            >
-                                                {field.ndvi.toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="rounded-[16px] p-3" style={{ background: 'var(--ee-bg)' }}>
-                                            <p
-                                                className="text-[10px] font-bold uppercase mb-1"
-                                                style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                            >
-                                                Moisture
-                                            </p>
-                                            <span
-                                                className="text-xl font-black"
-                                                style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                                            >
-                                                {field.soilMoisture}%
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Analyze Button */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const btn = e.currentTarget;
-                                            btn.innerText = "Starting Analysis...";
-                                            api.analyzeField(field.id).then(() => {
-                                                router.push(`/fields/${field.id}`);
-                                            });
-                                        }}
-                                        className="w-full py-3.5 rounded-[16px] font-black text-xs uppercase tracking-widest transition-colors active:scale-95"
-                                        style={{
-                                            background: 'var(--ee-bg)',
-                                            color: 'var(--ee-text)',
-                                            fontFamily: 'var(--font-heading)',
-                                        }}
-                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-primary)', e.currentTarget.style.color = '#FFFFFF')}
-                                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--ee-bg)', e.currentTarget.style.color = 'var(--ee-text)')}
-                                    >
-                                        Analyze Insights
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+                    <p
+                        className="text-[10px] font-bold uppercase"
+                        style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-body)' }}
+                    >
+                        {field.crop} &bull; {field.area.toFixed(1)} ha
+                    </p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                    <span
+                        className="text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                        style={{
+                            background: `color-mix(in srgb, ${health.color} 20%, transparent)`,
+                            color: health.color,
+                            fontFamily: 'var(--font-body)',
+                        }}
+                    >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: health.color }} />
+                        {health.label}
+                    </span>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDeleteClick(field.id); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
+                        title="Delete field"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#E05C5C' }}>delete</span>
+                    </button>
+                </div>
             </div>
+
+            {/* Metrics */}
+            <div className="flex gap-3 mb-3">
+                <div className="flex-1 rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <p className="text-[9px] font-bold uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>NDVI</p>
+                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{field.ndvi.toFixed(2)}</span>
+                </div>
+                <div className="flex-1 rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <p className="text-[9px] font-bold uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>Moisture</p>
+                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{field.soilMoisture}%</span>
+                </div>
+            </div>
+
+            {/* Analyze button */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    const btn = e.currentTarget;
+                    btn.innerText = "Starting...";
+                    onAnalyze(field);
+                }}
+                className="w-full py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all active:scale-95"
+                style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.7)',
+                    fontFamily: 'var(--font-heading)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#D7F26C', e.currentTarget.style.color = '#2D3A26')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)', e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+            >
+                Analyze Insights
+            </button>
         </div>
     );
 };

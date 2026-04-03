@@ -40,6 +40,7 @@ interface MapComponentProps {
     highlightedFieldId?: string | null;
     mode?: MapMode;
     onModeChange?: (mode: MapMode) => void;
+    fullscreen?: boolean;
 }
 
 // ─── Location marker (blue dot) ───────────────────────────────────────────────
@@ -761,6 +762,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     highlightedFieldId,
     mode = 'view',
     onModeChange,
+    fullscreen = false,
 }) => {
     const defaultCenter: [number, number] = [-17.82, 31.05];
     const center = fields.length > 0 && fields[0].location
@@ -806,7 +808,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             <MapContainer
                 center={center}
                 zoom={16}
-                style={{ height: "100%", width: "100%", borderRadius: "3.5rem" }}
+                style={{ height: "100%", width: "100%", borderRadius: fullscreen ? 0 : "3.5rem" }}
                 zoomControl={false}
                 className="z-0"
             >
@@ -918,7 +920,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             </MapContainer>
 
             {/* Overlay Gradient for clearer UI on top */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-[300] rounded-[3.5rem]" />
+            <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-[300] ${fullscreen ? '' : 'rounded-[3.5rem]'}`} />
         </div>
     );
 };
