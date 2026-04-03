@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
     return (
@@ -17,16 +18,12 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 mb-6">
-                            <div
-                                className="w-8 h-8 rounded-[10px] flex items-center justify-center font-black text-lg"
-                                style={{
-                                    backgroundColor: 'var(--ee-primary)',
-                                    color: '#FFFFFF',
-                                    fontFamily: 'var(--font-heading)',
-                                }}
-                            >
-                                K
-                            </div>
+                            <Image
+                                src="/logo-200.png"
+                                alt="KurimaSense"
+                                width={36}
+                                height={36}
+                            />
                             <span
                                 className="text-2xl font-black tracking-tighter"
                                 style={{ fontFamily: 'var(--font-heading)' }}

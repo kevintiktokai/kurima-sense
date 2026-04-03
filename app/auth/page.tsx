@@ -125,7 +125,7 @@ export default function AuthPage() {
                             alt="KurimaSense"
                             width={64}
                             height={64}
-                            className="mx-auto mb-3 rounded-2xl"
+                            className="mx-auto mb-3"
                         />
                         <h1 className="text-4xl font-bold text-[#2D3A26] mb-2 tracking-tight">
                             KurimaSense

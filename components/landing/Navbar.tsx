@@ -48,7 +48,7 @@ export default function Navbar() {
                         alt="KurimaSense"
                         width={40}
                         height={40}
-                        className="rounded-[12px] shadow-lg group-hover:scale-110 transition-transform duration-300"
+                        className="group-hover:scale-110 transition-transform duration-300"
                     />
                     <span
                         className="text-2xl font-black tracking-tighter"
