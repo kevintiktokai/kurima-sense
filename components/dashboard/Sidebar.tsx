@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useTutorial } from '@/components/providers/TutorialProvider';
@@ -45,15 +46,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         >
             {/* Logo */}
             <div className={`flex items-center gap-4 px-2 mb-14 ${isCollapsed ? 'justify-center' : ''}`}>
-                <div
-                    className="w-12 h-12 rounded-[16px] flex items-center justify-center flex-shrink-0"
-                    style={{
-                        backgroundColor: 'var(--ee-primary)',
-                        boxShadow: 'var(--shadow-neu)',
-                    }}
-                >
-                    <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '26px' }}>eco</span>
-                </div>
+                <Image
+                    src="/logo-200.png"
+                    alt="KurimaSense"
+                    width={48}
+                    height={48}
+                    className="rounded-[16px] flex-shrink-0"
+                    style={{ boxShadow: 'var(--shadow-neu)' }}
+                />
                 {!isCollapsed && (
                     <h1
                         className="text-2xl tracking-tight uppercase"

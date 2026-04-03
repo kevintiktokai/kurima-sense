@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -119,6 +120,13 @@ export default function AuthPage() {
                 <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#2D3A26]/10 p-8 sm:p-10">
                     {/* Logo/Header */}
                     <div className="text-center mb-8">
+                        <Image
+                            src="/logo-200.png"
+                            alt="KurimaSense"
+                            width={64}
+                            height={64}
+                            className="mx-auto mb-3 rounded-2xl"
+                        />
                         <h1 className="text-4xl font-bold text-[#2D3A26] mb-2 tracking-tight">
                             KurimaSense
                         </h1>

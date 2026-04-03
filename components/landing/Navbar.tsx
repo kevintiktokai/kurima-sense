@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
@@ -42,16 +43,13 @@ export default function Navbar() {
             <div className="container mx-auto px-6 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div
-                        className="w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-xl shadow-lg group-hover:scale-110 transition-transform duration-300"
-                        style={{
-                            backgroundColor: 'var(--ee-primary)',
-                            color: '#FFFFFF',
-                            fontFamily: 'var(--font-heading)',
-                        }}
-                    >
-                        K
-                    </div>
+                    <Image
+                        src="/logo-200.png"
+                        alt="KurimaSense"
+                        width={40}
+                        height={40}
+                        className="rounded-[12px] shadow-lg group-hover:scale-110 transition-transform duration-300"
+                    />
                     <span
                         className="text-2xl font-black tracking-tighter"
                         style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
