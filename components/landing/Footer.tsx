@@ -14,9 +14,9 @@ export default function Footer() {
                 style={{ backgroundColor: 'rgba(15, 184, 133, 0.06)' }}
             />
 
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                    <div className="col-span-1 md:col-span-1">
+            <div className="container mx-auto px-4 sm:px-6 relative z-10">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10 md:gap-12 mb-12 md:mb-16">
+                    <div className="col-span-2 md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-6">
                             <Image
                                 src="/logo-200.png"
@@ -32,11 +32,34 @@ export default function Footer() {
                             </span>
                         </Link>
                         <p
-                            className="mb-6 font-medium"
+                            className="mb-6 font-medium max-w-sm"
                             style={{ color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'var(--font-body)' }}
                         >
-                            Empowering the next generation of African agriculture with intelligence and community.
+                            Empowering the next generation of African agriculture with AI-powered satellite intelligence, precision monitoring, and data-driven farming advice.
                         </p>
+                        {/* Social Icons */}
+                        <div className="flex gap-3">
+                            {[
+                                { icon: 'public', label: 'Website' },
+                                { icon: 'smart_toy', label: 'AI Chat' },
+                                { icon: 'mail', label: 'Email' },
+                                { icon: 'groups', label: 'Community' },
+                            ].map((social) => (
+                                <div
+                                    key={social.label}
+                                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'var(--ee-primary)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#FFFFFF' }}>{social.icon}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div>
@@ -47,9 +70,19 @@ export default function Footer() {
                             Product
                         </h4>
                         <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Features</Link></li>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Pricing</Link></li>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Sentinel API</Link></li>
+                            {['Features', 'How It Works', 'AI Insights', 'Pricing'].map((item) => (
+                                <li key={item}>
+                                    <Link
+                                        href={item === 'Features' ? '#features' : item === 'How It Works' ? '#how-it-works' : item === 'AI Insights' ? '#ai-insights' : '#'}
+                                        className="transition-colors"
+                                        style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
+                                    >
+                                        {item}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -58,12 +91,27 @@ export default function Footer() {
                             className="font-bold uppercase tracking-widest text-xs mb-6"
                             style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}
                         >
-                            Company
+                            Resources
                         </h4>
                         <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>About Us</Link></li>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Careers</Link></li>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Blog</Link></li>
+                            {[
+                                { name: 'Blog', href: '/blog' },
+                                { name: 'For Farmers', href: '#farmers' },
+                                { name: 'For Agronomists', href: '#agronomists' },
+                                { name: 'Community', href: '#' },
+                            ].map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        href={item.href}
+                                        className="transition-colors"
+                                        style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -75,8 +123,22 @@ export default function Footer() {
                             Legal
                         </h4>
                         <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Privacy Policy</Link></li>
-                            <li><Link href="#" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.55)' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')} onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}>Terms of Service</Link></li>
+                            {[
+                                { name: 'Privacy Policy', href: '/privacy' },
+                                { name: 'Terms of Service', href: '/terms' },
+                            ].map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        href={item.href}
+                                        className="transition-colors"
+                                        style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 </div>
@@ -88,45 +150,9 @@ export default function Footer() {
                     <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.3)', fontFamily: 'var(--font-body)' }}>
                         &copy; {new Date().getFullYear()} KurimaSense. All rights reserved.
                     </p>
-                    <div className="flex gap-6">
-                        {/* Social Icons */}
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--ee-primary)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                            }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#FFFFFF' }}>public</span>
-                        </div>
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--ee-primary)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                            }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#FFFFFF' }}>chat</span>
-                        </div>
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--ee-primary)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                            }}
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#FFFFFF' }}>mail</span>
-                        </div>
-                    </div>
+                    <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.2)', fontFamily: 'var(--font-body)' }}>
+                        Cultivating Intelligence, Harvesting Success.
+                    </p>
                 </div>
             </div>
         </footer>

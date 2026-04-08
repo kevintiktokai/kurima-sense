@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
@@ -17,9 +17,10 @@ export default function Navbar() {
 
     const navLinks = [
         { name: 'Features', href: '#features' },
+        { name: 'How It Works', href: '#how-it-works' },
+        { name: 'AI Insights', href: '#ai-insights' },
         { name: 'For Farmers', href: '#farmers' },
-        { name: 'For Agronomists', href: '#agronomists' },
-        { name: 'Community', href: '#community' },
+        { name: 'Blog', href: '/blog' },
     ];
 
     return (
@@ -40,7 +41,7 @@ export default function Navbar() {
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <div className="container mx-auto px-6 flex items-center justify-between">
+            <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
                     <Image
@@ -59,7 +60,7 @@ export default function Navbar() {
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden lg:flex items-center gap-8">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
@@ -78,7 +79,7 @@ export default function Navbar() {
                 </div>
 
                 {/* CTA Button */}
-                <div className="hidden md:flex items-center gap-4">
+                <div className="hidden lg:flex items-center gap-4">
                     <Link
                         href="/auth?mode=login"
                         className="font-bold text-sm transition-colors"
@@ -105,7 +106,7 @@ export default function Navbar() {
 
                 {/* Mobile Menu Toggle */}
                 <button
-                    className="md:hidden"
+                    className="lg:hidden"
                     style={{ color: 'var(--ee-text)' }}
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
@@ -118,25 +119,25 @@ export default function Navbar() {
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="md:hidden overflow-hidden"
+                    className="lg:hidden overflow-hidden"
                     style={{
                         backgroundColor: 'var(--ee-bg)',
                         boxShadow: 'var(--shadow-ambient)',
                     }}
                 >
-                    <div className="flex flex-col p-6 gap-4">
+                    <div className="flex flex-col px-4 sm:px-6 py-4 gap-1">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="font-bold text-lg"
+                                className="font-bold text-base py-3 px-2 rounded-xl active:bg-[var(--ee-bg-pressed)] transition-colors"
                                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        <div className="flex flex-col gap-3 mt-4 pt-4" style={{ borderTop: '2px solid var(--ee-bg-pressed)' }}>
+                        <div className="flex flex-col gap-3 mt-2 pt-4" style={{ borderTop: '2px solid var(--ee-bg-pressed)' }}>
                             <Link
                                 href="/auth?mode=login"
                                 className="font-bold text-lg text-center py-2"

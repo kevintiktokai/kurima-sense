@@ -17,7 +17,7 @@ export default function Hero() {
     return (
         <div
             ref={containerRef}
-            className="relative min-h-[100svh] flex items-center justify-center overflow-hidden py-20 md:py-0"
+            className="relative min-h-[100svh] flex items-center justify-center overflow-hidden pt-24 pb-16 md:py-0"
             style={{ backgroundColor: 'var(--ee-bg)' }}
         >
 
@@ -37,7 +37,7 @@ export default function Hero() {
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03]" />
             </motion.div>
 
-            <div className="container mx-auto px-6 relative z-10 text-center">
+            <div className="container mx-auto px-4 sm:px-6 relative z-10 text-center">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -56,7 +56,7 @@ export default function Hero() {
                     </span>
 
                     <h1
-                        className="text-4xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] md:leading-[0.9] mb-6 md:mb-8"
+                        className="text-[2.25rem] sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] md:leading-[0.9] mb-5 md:mb-8"
                         style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                     >
                         Cultivating{' '}
@@ -89,7 +89,7 @@ export default function Hero() {
                     </h1>
 
                     <p
-                        className="text-xl md:text-2xl max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
+                        className="text-base sm:text-lg md:text-2xl max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed font-medium"
                         style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                     >
                         Empowering farmers with satellite precision and an AI agronomist that fits in your pocket.
@@ -100,7 +100,7 @@ export default function Hero() {
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="px-10 py-5 rounded-full font-bold text-lg flex items-center gap-2 group"
+                                className="px-8 py-4 md:px-10 md:py-5 rounded-full font-bold text-base md:text-lg flex items-center gap-2 group"
                                 style={{
                                     backgroundColor: 'var(--ee-text)',
                                     color: '#FFFFFF',
@@ -118,7 +118,7 @@ export default function Hero() {
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="neu-surface px-10 py-5 rounded-full font-bold text-lg transition-colors"
+                                className="neu-surface px-8 py-4 md:px-10 md:py-5 rounded-full font-bold text-base md:text-lg transition-colors"
                                 style={{
                                     color: 'var(--ee-text)',
                                     fontFamily: 'var(--font-body)',
