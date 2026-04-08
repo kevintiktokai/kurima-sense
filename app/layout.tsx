@@ -8,13 +8,16 @@ import { TutorialProvider } from "@/components/providers/TutorialProvider"
 const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  // Only load weights actually used in the app (reduces font download size)
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 const nunito = Nunito({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -37,6 +40,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect to external APIs — saves ~100-200ms per origin on first request */}
+        <link rel="preconnect" href="https://api.open-meteo.com" />
+        <link rel="dns-prefetch" href="https://api.open-meteo.com" />
         {/* Preload hint — browser starts downloading immediately but doesn't block render */}
         <link
           rel="preload"

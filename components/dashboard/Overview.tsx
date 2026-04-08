@@ -1,12 +1,23 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { api } from '@/services/api';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
-import { RiskRadar, RiskItem, AIInsightCard, ActionQueue, ActionItem, AIInsight, YieldConfidenceChart, GrowthStageTracker } from '@/components/ai';
+import { RiskRadar, RiskItem, AIInsightCard, ActionQueue, ActionItem, AIInsight, GrowthStageTracker } from '@/components/ai';
 import { DashboardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
-import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
+
+// Dynamic imports — these heavy components load in parallel AFTER the dashboard shell renders
+// YieldConfidenceChart pulls in recharts (~100KB), WeatherWidget makes external API calls
+const YieldConfidenceChart = dynamic(
+    () => import('@/components/ai/YieldConfidenceChart').then(mod => ({ default: mod.YieldConfidenceChart })),
+    { loading: () => <ChartSkeleton />, ssr: false }
+);
+const WeatherWidget = dynamic(
+    () => import('@/components/dashboard/WeatherWidget').then(mod => ({ default: mod.WeatherWidget })),
+    { loading: () => <div className="neu-surface p-6 animate-pulse min-h-[180px]" />, ssr: false }
+);
 
 // Staleness thresholds
 const STALE_THRESHOLD_AI = 15 * 60 * 1000;         // 15 min — AI insights, proactive tips
@@ -100,15 +111,14 @@ const Overview: React.FC = () => {
         }
     }, []);
 
-    // When fields are available from shared provider, trigger deferred AI load
+    // When fields are available from shared provider, trigger AI load after first paint
     useEffect(() => {
         if (fields.length > 0 && !aiInitializedRef.current) {
-            // Use requestIdleCallback to defer AI calls until after paint
-            if (typeof requestIdleCallback !== 'undefined') {
-                requestIdleCallback(() => loadAIData(fields));
-            } else {
-                setTimeout(() => loadAIData(fields), 100);
-            }
+            // Use requestAnimationFrame + microtask to start after the first paint
+            // but without the excessive 5s idle timeout that made insights feel slow
+            requestAnimationFrame(() => {
+                setTimeout(() => loadAIData(fields), 0);
+            });
         }
     }, [fields, loadAIData]);
 
@@ -134,7 +144,7 @@ const Overview: React.FC = () => {
 
     const chartData = stats?.chartData || [];
     const activeFieldsCount = fields.length;
-    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
+    const totalHectares = useMemo(() => fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0), [fields]);
     const primaryField = fields[selectedFieldIndex] || fields[0];
 
     const handleFieldChange = (index: number) => {
@@ -163,12 +173,12 @@ const Overview: React.FC = () => {
         }
     };
 
-    const avgNdvi = fields.length
+    const avgNdvi = useMemo(() => fields.length
         ? (fields.reduce((sum: number, f: any) => sum + (f.ndvi || 0), 0) / fields.length).toFixed(2)
-        : "0.00";
-    const avgMoisture = fields.length
+        : "0.00", [fields]);
+    const avgMoisture = useMemo(() => fields.length
         ? Math.round(fields.reduce((sum: number, f: any) => sum + (f.soilMoisture || 0), 0) / fields.length)
-        : 0;
+        : 0, [fields]);
 
     return (
         <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-8 pb-12 relative">

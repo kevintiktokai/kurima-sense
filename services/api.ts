@@ -26,6 +26,9 @@ interface CacheEntry<T> {
 
 const apiCache = new Map<string, CacheEntry<unknown>>();
 
+// In-flight request deduplication — prevents duplicate concurrent requests for the same resource
+const inflightRequests = new Map<string, Promise<unknown>>();
+
 function getCached<T>(key: string): T | null {
     const entry = apiCache.get(key);
     if (!entry) return null;
@@ -38,6 +41,29 @@ function getCached<T>(key: string): T | null {
 
 function setCache<T>(key: string, data: T, ttlMs: number): void {
     apiCache.set(key, { data, timestamp: Date.now(), ttl: ttlMs });
+    // Evict stale entries when cache grows beyond 50 items
+    if (apiCache.size > 50) {
+        const now = Date.now();
+        for (const [k, v] of apiCache) {
+            if (now - v.timestamp > v.ttl) apiCache.delete(k);
+        }
+    }
+}
+
+/**
+ * Deduplicate concurrent requests for the same key.
+ * If a request for `key` is already in flight, returns the existing promise
+ * instead of firing a duplicate network call.
+ */
+async function deduplicatedFetch<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+    const inflight = inflightRequests.get(key) as Promise<T> | undefined;
+    if (inflight) return inflight;
+
+    const promise = fetcher().finally(() => {
+        inflightRequests.delete(key);
+    });
+    inflightRequests.set(key, promise);
+    return promise;
 }
 
 // Cache TTLs
@@ -139,18 +165,20 @@ export const api = {
         if (cached) return cached;
 
         try {
-            const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/dashboard/init`, { headers });
-            if (!res.ok) return null;
-            const data = await res.json();
+            return await deduplicatedFetch(cacheKey, async () => {
+                const headers = await getAuthHeaders();
+                const res = await fetch(`${API_BASE_URL}/dashboard/init`, { headers });
+                if (!res.ok) return null;
+                const data = await res.json();
 
-            // Also populate individual caches so other components benefit
-            if (data.stats) setCache('dashboard_stats', data.stats, CACHE_TTL.DASHBOARD);
-            if (data.fields) setCache('fields', Array.isArray(data.fields) ? data.fields : [], CACHE_TTL.FIELDS);
-            if (data.market) setCache('market_prices_Zimbabwe', data.market, CACHE_TTL.MARKET);
+                // Also populate individual caches so other components benefit
+                if (data.stats) setCache('dashboard_stats', data.stats, CACHE_TTL.DASHBOARD);
+                if (data.fields) setCache('fields', Array.isArray(data.fields) ? data.fields : [], CACHE_TTL.FIELDS);
+                if (data.market) setCache('market_prices_Zimbabwe', data.market, CACHE_TTL.MARKET);
 
-            setCache(cacheKey, data, CACHE_TTL.FIELDS); // shortest TTL of the three
-            return data;
+                setCache(cacheKey, data, CACHE_TTL.FIELDS);
+                return data;
+            });
         } catch (e) {
             console.error('[API] getDashboardInit error:', e);
             return null;
@@ -308,18 +336,25 @@ export const api = {
     },
 
     async generateYieldProjection(fieldId: string) {
+        const cacheKey = `yield_${fieldId}`;
+        const cached = getCached(cacheKey);
+        if (cached) return cached;
+
         try {
-            const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/yield`, {
-                method: 'POST',
-                headers
+            return await deduplicatedFetch(cacheKey, async () => {
+                const headers = await getAuthHeaders();
+                const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/yield`, {
+                    method: 'POST',
+                    headers
+                });
+                if (!res.ok) throw new Error("Yield gen failed");
+                const data = await res.json();
+                // Cache yield projections for 10 minutes — they change slowly
+                setCache(cacheKey, data, 10 * 60 * 1000);
+                return data;
             });
-            if (!res.ok) throw new Error("Yield gen failed");
-            return await res.json();
         } catch (e) {
             console.error("Yield Gen Error", e);
-            // Return null to indicate no data available — let the UI handle it
-            // rather than showing fake numbers that could mislead the farmer
             return null;
         }
     },
@@ -596,14 +631,21 @@ export const api = {
         generated_at: string;
         field_count: number;
     }> {
+        const cacheKey = 'ai_insights';
+        const cached = getCached<any>(cacheKey);
+        if (cached) return cached;
+
         try {
-            const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/insights`, { headers });
-            if (!res.ok) throw new Error("Failed to fetch AI insights");
-            return await res.json();
+            return await deduplicatedFetch(cacheKey, async () => {
+                const headers = await getAuthHeaders();
+                const res = await fetch(`${API_BASE_URL}/ai/insights`, { headers });
+                if (!res.ok) throw new Error("Failed to fetch AI insights");
+                const data = await res.json();
+                setCache(cacheKey, data, CACHE_TTL.INSIGHTS);
+                return data;
+            });
         } catch (e) {
             console.error("AI insights error", e);
-            // Return empty fallback
             return {
                 insights: [],
                 risks: [],
