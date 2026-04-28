@@ -35,7 +35,7 @@ const typeIcons: Record<AIInsight['type'], string> = {
     action: 'task_alt'
 };
 
-export const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
+const AIInsightCardImpl: React.FC<AIInsightCardProps> = ({ insight }) => {
     const config = severityConfig[insight.severity];
     const typeIcon = typeIcons[insight.type];
 
@@ -112,6 +112,8 @@ export const AIInsightCard: React.FC<AIInsightCardProps> = ({ insight }) => {
         </div>
     );
 };
+
+export const AIInsightCard = React.memo(AIInsightCardImpl);
 
 // Container for multiple insights
 interface AIInsightsPanelProps {

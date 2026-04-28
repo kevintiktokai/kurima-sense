@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, useCallback, useMemo, ReactNode } from 'react'
 import { api } from '@/services/api'
 import { FieldData } from '@/components/dashboard/types'
 import { useAuth } from './AuthProvider'
@@ -131,17 +131,20 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         return () => document.removeEventListener('visibilitychange', handleVisibility)
     }, [fetchAll])
 
+    const value = useMemo(
+        () => ({
+            fields,
+            marketData,
+            dashboardStats,
+            loading,
+            refreshFields,
+            refreshAll: fetchAll,
+        }),
+        [fields, marketData, dashboardStats, loading, refreshFields, fetchAll]
+    )
+
     return (
-        <DashboardDataContext.Provider
-            value={{
-                fields,
-                marketData,
-                dashboardStats,
-                loading,
-                refreshFields,
-                refreshAll: fetchAll,
-            }}
-        >
+        <DashboardDataContext.Provider value={value}>
             {children}
         </DashboardDataContext.Provider>
     )

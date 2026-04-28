@@ -3,7 +3,6 @@ import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
-import { TutorialProvider } from "@/components/providers/TutorialProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 
 // Editorial serif for headlines (field-journal gravitas) + precise grotesque
@@ -11,13 +10,15 @@ import InstallPrompt from "@/components/InstallPrompt"
 const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["500", "600", "700", "900"],
+  display: "swap",
 });
 
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -127,10 +128,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TutorialProvider>
-              {children}
-              <InstallPrompt />
-            </TutorialProvider>
+            {children}
+            <InstallPrompt />
           </AuthProvider>
         </ThemeProvider>
       </body>

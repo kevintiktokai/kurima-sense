@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -50,7 +50,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     // Track which user ID we last fetched for
     const lastFetchedUserId = useRef<string | null>(null)
 
-    const fetchProfile = async (opts?: { silent?: boolean }) => {
+    const fetchProfile = useCallback(async (opts?: { silent?: boolean }) => {
         if (!user) {
             setProfile(null)
             lastFetchedUserId.current = null
@@ -102,9 +102,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false)
         }
-    }
+    }, [user])
 
-    const updateProfile = async (updates: Partial<UserProfile>): Promise<boolean> => {
+    const updateProfile = useCallback(async (updates: Partial<UserProfile>): Promise<boolean> => {
         if (!user) return false
 
         try {
@@ -142,7 +142,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             setError(err?.message || 'Failed to update profile')
             return false
         }
-    }
+    }, [user, fetchProfile])
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on user.id, not user reference
     useEffect(() => {
@@ -150,17 +150,25 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     }, [user?.id])
 
     // Compute effective loading state:
-    // We're loading if auth is loading, OR if we have a user but haven't fetched their profile yet
-    const isEffectivelyLoading = Boolean(authLoading || loading || (user && lastFetchedUserId.current !== user.id))
+    // Loading if auth is loading, OR we have a user but haven't fetched their profile yet.
+    // We compare user.id directly against the fetched ID so re-renders that don't change
+    // the user (e.g. token refresh) don't flicker the loading state.
+    const fetchedForCurrentUser = !user || lastFetchedUserId.current === user.id
+    const isEffectivelyLoading = Boolean(authLoading || (loading && !fetchedForCurrentUser))
 
-    return (
-        <UserProfileContext.Provider value={{
+    const value = useMemo(
+        () => ({
             profile,
             loading: isEffectivelyLoading,
             error,
             refreshProfile: fetchProfile,
-            updateProfile
-        }}>
+            updateProfile,
+        }),
+        [profile, isEffectivelyLoading, error, fetchProfile, updateProfile]
+    )
+
+    return (
+        <UserProfileContext.Provider value={value}>
             {children}
         </UserProfileContext.Provider>
     )

@@ -38,7 +38,7 @@ const TrendIndicator: React.FC<{ trend: RiskItem['trend'] }> = ({ trend }) => {
     return <span className="material-symbols-outlined" style={{ fontSize: '16px', color }}>{icon}</span>;
 };
 
-export const RiskRadar: React.FC<RiskRadarProps> = ({
+const RiskRadarImpl: React.FC<RiskRadarProps> = ({
     risks,
     title = "Risk Radar",
     onRiskClick
@@ -148,6 +148,8 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({
         </div>
     );
 };
+
+export const RiskRadar = React.memo(RiskRadarImpl);
 
 export type { RiskItem };
 export default RiskRadar;

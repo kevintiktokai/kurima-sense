@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/services/api';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
 import type { MapMode } from './MapComponent';
@@ -28,8 +29,7 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
 
 const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const router = useRouter();
-    const [fields, setFields] = useState<FieldData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { fields, loading, refreshFields } = useDashboardData();
     const [deletingFieldId, setDeletingFieldId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
@@ -38,18 +38,11 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [panelOpen, setPanelOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        api.getFields().then(data => {
-            setFields(data);
-            setLoading(false);
-        });
-    }, []);
-
     const handleDeleteField = async (fieldId: string, fieldName: string) => {
         setDeletingFieldId(fieldId);
         try {
             await api.deleteField(fieldId);
-            setFields(prev => prev.filter(f => f.id !== fieldId));
+            await refreshFields();
             setShowDeleteConfirm(null);
             if (highlightedFieldId === fieldId) setHighlightedFieldId(null);
         } catch (e: any) {
@@ -119,8 +112,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             setNewFieldVariety("");
             setNewFieldFertilizer("");
 
-            const data = await api.getFields();
-            setFields(data);
+            await refreshFields();
         } catch (e: any) {
             console.error(e);
             alert(e.message || "Failed to save field");

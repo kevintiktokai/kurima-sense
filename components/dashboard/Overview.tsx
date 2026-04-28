@@ -129,15 +129,7 @@ const Overview: React.FC = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [loadAIData, fields]);
 
-    // Show skeleton only during initial data load (not AI)
-    if (dataLoading) return <DashboardSkeleton />;
-
-    const chartData = stats?.chartData || [];
-    const activeFieldsCount = fields.length;
-    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
-    const primaryField = fields[selectedFieldIndex] || fields[0];
-
-    const handleFieldChange = (index: number) => {
+    const handleFieldChange = useCallback((index: number) => {
         setSelectedFieldIndex(index);
         const field = fields[index];
         if (field) {
@@ -146,9 +138,9 @@ const Overview: React.FC = () => {
                 .then(data => setYieldAnalysis(data))
                 .catch(err => console.error('Yield projection failed', err));
         }
-    };
+    }, [fields]);
 
-    const handleActionComplete = async (actionId: string) => {
+    const handleActionComplete = useCallback(async (actionId: string) => {
         setActions(prev => prev.map(a =>
             a.id === actionId ? { ...a, completed: true } : a
         ));
@@ -161,7 +153,14 @@ const Overview: React.FC = () => {
                 a.id === actionId ? { ...a, completed: false } : a
             ));
         }
-    };
+    }, []);
+
+    // Show skeleton only during initial data load (not AI)
+    if (dataLoading) return <DashboardSkeleton />;
+
+    const activeFieldsCount = fields.length;
+    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
+    const primaryField = fields[selectedFieldIndex] || fields[0];
 
     const avgNdvi = fields.length
         ? (fields.reduce((sum: number, f: any) => sum + (f.ndvi || 0), 0) / fields.length).toFixed(2)

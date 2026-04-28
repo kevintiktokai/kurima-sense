@@ -46,11 +46,12 @@ export const waitForAuth = (): Promise<void> => {
                 }
             })
 
-            // Timeout after 2 seconds to prevent hanging
+            // Timeout after 800ms — Supabase normally restores in <300ms;
+            // a longer wait here delays the first authenticated API call on every page.
             setTimeout(() => {
                 subscription.unsubscribe()
                 resolve()
-            }, 2000)
+            }, 800)
         })
     })
 }

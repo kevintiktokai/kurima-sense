@@ -1,10 +1,23 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { driver, DriveStep } from 'driver.js';
+import React, { createContext, useContext, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import "driver.js/dist/driver.css";
+import type { DriveStep } from 'driver.js';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { usePathname } from 'next/navigation';
+
+// Lazy-load driver.js JS only when a tutorial actually runs (~30KB JS savings).
+// CSS stays top-level since dynamic CSS imports are unreliable in Next.js.
+type DriverInstance = ReturnType<typeof import('driver.js')['driver']>;
+type DriverFactory = typeof import('driver.js')['driver'];
+
+let _driverLoader: Promise<DriverFactory> | null = null;
+const loadDriver = (): Promise<DriverFactory> => {
+    if (!_driverLoader) {
+        _driverLoader = import('driver.js').then(mod => mod.driver);
+    }
+    return _driverLoader;
+};
 
 interface TutorialContextType {
     startTutorial: () => void;
@@ -192,20 +205,34 @@ const tourConfig: Record<string, DriveStep[]> = {
 export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { profile, updateProfile, loading } = useUserProfile();
     const [isRunning, setIsRunning] = useState(false);
-    const driverObj = useRef<ReturnType<typeof driver> | null>(null);
+    const driverObj = useRef<DriverInstance | null>(null);
     const pathname = usePathname();
 
-    const initDriver = (path: string) => {
+    const handleTutorialComplete = useCallback(async (path: string) => {
+        setIsRunning(false);
+        if (profile) {
+            const currentProgress = profile.tutorial_progress || {};
+            if (!currentProgress[path]) {
+                const newProgress = { ...currentProgress, [path]: true };
+                await updateProfile({
+                    tutorial_progress: newProgress,
+                    has_seen_tutorial: true,
+                });
+            }
+        }
+    }, [profile, updateProfile]);
+
+    const initDriver = useCallback(async (path: string) => {
         const steps = tourConfig[path];
         if (!steps || steps.length === 0) return null;
 
-        const d = driver({
+        const driverFactory = await loadDriver();
+        const d = driverFactory({
             showProgress: true,
             animate: true,
             steps: steps,
             allowClose: true,
             onDestroyStarted: () => {
-                // If user closes it manually or it finishes
                 if (!d.hasNextStep() || confirm("Skip the rest of this page's tutorial?")) {
                     d.destroy();
                     handleTutorialComplete(path);
@@ -214,71 +241,41 @@ export const TutorialProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
         driverObj.current = d;
         return d;
-    };
+    }, [handleTutorialComplete]);
 
-    const handleTutorialComplete = async (path: string) => {
-        setIsRunning(false);
-        // Mark THIS specific path as seen
-        if (profile) {
-            const currentProgress = profile.tutorial_progress || {};
-            if (!currentProgress[path]) {
-                const newProgress = { ...currentProgress, [path]: true };
-                console.log(`Marking tutorial for ${path} as seen...`, newProgress);
-
-                // Also mark legacy boolean for backward compatibility if needed, but we rely on progress now
-                await updateProfile({
-                    tutorial_progress: newProgress,
-                    has_seen_tutorial: true // Keep this true generally once allowed 
-                });
-            }
-        }
-    };
-
-    const startTutorial = () => {
-        // Start tutorial for CURRENT path
+    const startTutorial = useCallback(async () => {
         const path = pathname || '/dashboard';
-        const d = initDriver(path);
+        const d = await initDriver(path);
         if (d) {
             setIsRunning(true);
             d.drive();
-        } else {
-            // Fallback or notification that no tutorial exists for this page
-            console.log("No tutorial defined for this route:", path);
-            // Try default dashboard if on root?
-            if (path === '/') {
-                const dashboardDriver = initDriver('/dashboard');
-                if (dashboardDriver) {
-                    setIsRunning(true);
-                    dashboardDriver.drive();
-                }
+        } else if (path === '/') {
+            const dashboardDriver = await initDriver('/dashboard');
+            if (dashboardDriver) {
+                setIsRunning(true);
+                dashboardDriver.drive();
             }
         }
-    };
+    }, [pathname, initDriver]);
 
     // Auto-trigger logic
     useEffect(() => {
         if (loading || !profile || !pathname) return;
-
-        // Check if user has seen tutorial for THIS specific route
         const progress = profile.tutorial_progress || {};
-        // Also check legacy flag - if they saw the old full tutorial, maybe we don't annoy them? 
-        // But the user requested "custom tutorial for every page", so we assume they should see page-specific ones.
-        // We will strictly check the route progress.
-
         const hasSeenThisRoute = progress[pathname];
 
-        // Only auto-trigger if we have steps for this route AND haven't seen it
         if (tourConfig[pathname] && !hasSeenThisRoute) {
             const timer = setTimeout(() => {
-                console.log(`Auto-starting tutorial for route: ${pathname}`);
                 startTutorial();
-            }, 1500); // Slightly longer delay to let page load/animations finish
+            }, 1500);
             return () => clearTimeout(timer);
         }
-    }, [loading, profile, pathname]);
+    }, [loading, profile, pathname, startTutorial]);
+
+    const value = useMemo(() => ({ startTutorial, isRunning }), [startTutorial, isRunning]);
 
     return (
-        <TutorialContext.Provider value={{ startTutorial, isRunning }}>
+        <TutorialContext.Provider value={value}>
             {children}
         </TutorialContext.Provider>
     );
