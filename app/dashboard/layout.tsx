@@ -48,12 +48,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="flex min-h-screen relative" style={{ backgroundColor: 'var(--ee-bg)' }}>
-            <Sidebar className="hidden lg:flex" />
+            <Sidebar className="hidden md:flex" />
 
-            <main className="flex-1 flex flex-col min-w-0 pb-24 lg:pb-0">
+            <main className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
                 <MarketTicker />
 
-                <div className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto overflow-x-hidden">
+                <div className="flex-1 p-4 sm:p-6 md:p-7 lg:p-10 overflow-y-auto overflow-x-hidden">
                     <Header />
                     <div className="max-w-[1600px] mx-auto">
                         {children}

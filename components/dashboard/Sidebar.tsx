@@ -15,7 +15,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     const pathname = usePathname();
     const { profile, loading } = useUserProfile();
     const { startTutorial } = useTutorial();
+    // Default collapsed on tablet-sized screens (< 1280px) so content has room to breathe
     const [isCollapsed, setIsCollapsed] = React.useState(false);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        // Set initial state once based on viewport; respect user's manual toggle thereafter
+        setIsCollapsed(window.matchMedia('(max-width: 1279px)').matches);
+    }, []);
 
 
     const menuItems = [
@@ -37,9 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         <aside
             id="sidebar-nav"
             className={`
-                flex flex-col h-screen sticky top-0 overflow-hidden py-10 px-6 transition-all duration-300 ease-in-out
-                ${isCollapsed ? 'w-[6.5rem]' : 'w-72'}
-                hidden lg:flex
+                flex flex-col h-screen sticky top-0 overflow-hidden py-8 md:py-10 px-4 md:px-6 transition-all duration-300 ease-in-out
+                ${isCollapsed ? 'w-[5.5rem] md:w-[6.5rem]' : 'w-72'}
+                hidden md:flex
                 ${className}
             `}
             style={{ backgroundColor: 'var(--ee-bg-dim)' }}

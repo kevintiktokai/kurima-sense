@@ -174,7 +174,7 @@ const Overview: React.FC = () => {
         <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-8 pb-12 relative">
 
             {/* Welcome Widget (Left 8) */}
-            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 neu-surface p-5 sm:p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
+            <div id="dashboard-welcome" className="col-span-12 md:col-span-8 neu-surface p-5 sm:p-8 md:p-10 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
                 <div className="relative z-10 flex-1 flex flex-col justify-center">
                     <h3
                         className="text-2xl sm:text-3xl lg:text-5xl mb-3 lg:mb-4 tracking-tight leading-tight"
@@ -210,7 +210,7 @@ const Overview: React.FC = () => {
             </div>
 
             {/* Action Queue (Right Column - Top Priority) */}
-            <div id="action-queue" className="col-span-12 lg:col-span-4 flex flex-col h-full">
+            <div id="action-queue" className="col-span-12 md:col-span-4 flex flex-col h-full">
                 {!aiLoaded ? (
                     <AICardPlaceholder icon="task_alt" label="Loading priorities..." />
                 ) : actions.filter(a => !a.completed).length > 0 ? (
@@ -252,7 +252,7 @@ const Overview: React.FC = () => {
                 )}
 
                 {/* Yield Confidence Chart (Left 8) */}
-                <div className="col-span-12 lg:col-span-8">
+                <div className="col-span-12 md:col-span-8">
                     {yieldAnalysis && yieldAnalysis.confidence_bands ? (
                         <YieldConfidenceChart
                             data={generateProjectionData(yieldAnalysis.confidence_bands)}
@@ -276,7 +276,7 @@ const Overview: React.FC = () => {
                 </div>
 
                 {/* Weather + Growth Stage Stack (Right 4) */}
-                <div id="weather-widget" className="col-span-12 lg:col-span-4 flex flex-col gap-5 lg:gap-6">
+                <div id="weather-widget" className="col-span-12 md:col-span-4 flex flex-col gap-5 lg:gap-6">
                     <WeatherWidget
                         lat={(primaryField?.coordinates?.[0] as any)?.[1] ?? (primaryField?.coordinates?.[0] as any)?.lat ?? -17.8292}
                         lon={(primaryField?.coordinates?.[0] as any)?.[0] ?? (primaryField?.coordinates?.[0] as any)?.lon ?? 31.0522}

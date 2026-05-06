@@ -59,7 +59,7 @@ export default function PlanPage() {
 
     return (
         <div
-            className="p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto"
+            className="pb-12"
             style={{ background: 'var(--ee-bg)' }}
         >
             <h1

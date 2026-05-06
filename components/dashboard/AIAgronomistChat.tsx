@@ -207,7 +207,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
     };
 
     return (
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] lg:h-[calc(100vh-180px)] gap-4 lg:gap-8 animate-in fade-in duration-500 pb-20 lg:pb-0">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-140px)] md:h-[calc(100vh-180px)] gap-4 md:gap-6 lg:gap-8 animate-in fade-in duration-500 pb-20 md:pb-0">
             {/* Main Chat Area */}
             <div id="ai-chat-interface" className="flex-1 bg-white rounded-[2.5rem] lg:rounded-[4rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden relative">
                 <div className="p-5 lg:p-8 bg-brand-dark text-white flex items-center justify-between border-b border-brand-lime/10 relative z-20">
@@ -222,7 +222,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                     </div>
 
                     {/* Mobile Field Selector Toggle */}
-                    <div className="lg:hidden flex items-center gap-2">
+                    <div className="md:hidden flex items-center gap-2">
                         <button
                             onClick={() => setShowMobileSelector(!showMobileSelector)}
                             className={`p-2 rounded-xl transition-all border ${showMobileSelector
@@ -239,7 +239,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
 
                 {/* Mobile Selector Overlay/Dropdown */}
                 {showMobileSelector && (
-                    <div className="lg:hidden absolute top-[76px] left-0 right-0 bg-brand-dark border-b border-brand-lime/10 z-30 animate-in slide-in-from-top duration-300 shadow-2xl">
+                    <div className="md:hidden absolute top-[76px] left-0 right-0 bg-brand-dark border-b border-brand-lime/10 z-30 animate-in slide-in-from-top duration-300 shadow-2xl">
                         <div className="p-5 space-y-4">
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Select Context</label>
                             <div className="grid grid-cols-1 gap-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -439,7 +439,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
             </div>
 
             {/* Context Panel (Strategic Side Panel) */}
-            <div className="hidden lg:flex flex-col w-80 xl:w-96 gap-6 overflow-y-auto min-h-0 pb-8">
+            <div className="hidden md:flex flex-col w-72 lg:w-80 xl:w-96 gap-5 lg:gap-6 overflow-y-auto min-h-0 pb-8">
                 <div className="bg-brand-beige p-8 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] border border-slate-200 shadow-sm transition-all hover:bg-white group flex-shrink-0">
                     <h4 className="font-black text-brand-dark text-lg lg:text-xl mb-6">Active Context</h4>
 

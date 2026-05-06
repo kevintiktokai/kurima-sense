@@ -208,9 +208,9 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
                 {/* Immediate Actions */}
-                <div id="next-actions-card" className="bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50">
+                <div id="next-actions-card" className="bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50 md:col-span-1">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-xl font-black text-brand-dark flex items-center gap-2">
                             <span className="bg-rose-100 text-rose-600 p-2 rounded-xl">⚡</span>
@@ -253,7 +253,7 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                 </div>
 
                 {/* Timeline / Cycle */}
-                <div id="growth-cycle-timeline" className="lg:col-span-2 bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50">
+                <div id="growth-cycle-timeline" className="md:col-span-2 bg-white p-5 sm:p-8 rounded-[20px] sm:rounded-[2.5rem] lg:rounded-[3.5rem] shadow-xl border border-slate-50">
                     <h3 className="text-xl font-black text-brand-dark mb-6 flex items-center gap-2">
                         <span className="bg-brand-lime/20 text-brand-dark p-2 rounded-xl">📅</span>
                         Growth Cycle

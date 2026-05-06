@@ -241,7 +241,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 {fields.length > 0 && mapMode === 'view' && (
                     <button
                         onClick={() => setPanelOpen(!panelOpen)}
-                        className="lg:hidden px-3 py-2.5 sm:py-3 rounded-full backdrop-blur-xl flex items-center gap-1.5"
+                        className="md:hidden px-3 py-2.5 sm:py-3 rounded-full backdrop-blur-xl flex items-center gap-1.5"
                         style={{
                             background: panelOpen ? '#D7F26C' : 'rgba(45,58,38,0.85)',
                             color: panelOpen ? '#2D3A26' : '#FFFFFF',
@@ -263,7 +263,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 <>
                     {/* DESKTOP SIDE PANEL */}
                     <div
-                        className="hidden lg:flex fixed top-[72px] right-4 bottom-4 w-[320px] xl:w-[360px] z-[400] flex-col rounded-2xl overflow-hidden"
+                        className="hidden md:flex fixed top-[72px] right-4 bottom-4 w-[280px] lg:w-[320px] xl:w-[360px] z-[400] flex-col rounded-2xl overflow-hidden"
                         style={{
                             background: 'rgba(45,58,38,0.88)',
                             backdropFilter: 'blur(20px)',
@@ -328,7 +328,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                     {/* MOBILE BOTTOM SHEET */}
                     <div
                         ref={panelRef}
-                        className={`lg:hidden fixed left-0 right-0 bottom-[80px] z-[400] transition-transform duration-300 ease-out`}
+                        className={`md:hidden fixed left-0 right-0 bottom-[80px] z-[400] transition-transform duration-300 ease-out`}
                         style={{
                             transform: panelOpen ? 'translateY(0)' : 'translateY(100%)',
                             maxHeight: '60vh',

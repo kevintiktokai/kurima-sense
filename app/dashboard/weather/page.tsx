@@ -168,7 +168,7 @@ export default function WeatherPage() {
             )}
 
             {/* Current Weather Hero */}
-            <div className="col-span-12 lg:col-span-8">
+            <div className="col-span-12 md:col-span-8">
                 <div className="p-5 sm:p-8 lg:p-12 rounded-[20px] sm:rounded-[24px] text-white relative overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: 'linear-gradient(135deg, var(--ee-text), #1E2B20)', boxShadow: 'var(--shadow-neu)' }}>
                     {!current || current.temperature == null ? (
                         <div className="relative z-10 flex flex-col items-center justify-center min-h-[200px] text-center">
@@ -217,7 +217,7 @@ export default function WeatherPage() {
             </div>
 
             {/* Historical Comparison */}
-            <div className="col-span-12 lg:col-span-4">
+            <div className="col-span-12 md:col-span-4">
                 <div className="neu-surface rounded-[24px] p-6 h-full" style={{ background: 'var(--ee-surface)' }}>
                     <h4 className="font-black text-lg mb-4 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>bar_chart</span>
@@ -296,7 +296,7 @@ export default function WeatherPage() {
 
                     {/* Selected day details */}
                     {daily[selectedDay] && (
-                        <div className="mt-6 pt-6 grid grid-cols-2 lg:grid-cols-5 gap-4" style={{ borderTop: 'none', background: 'transparent' }}>
+                        <div className="mt-6 pt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4" style={{ borderTop: 'none', background: 'transparent' }}>
                             <div className="rounded-[16px] p-4 text-center" style={{ background: 'var(--ee-bg)' }}>
                                 <p className="text-xs uppercase" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Sunrise</p>
                                 <p className="font-bold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{daily[selectedDay].sunrise?.split('T')[1]?.slice(0, 5) || '—'}</p>
@@ -323,7 +323,7 @@ export default function WeatherPage() {
             </div>
 
             {/* 24-Hour Temperature & Precipitation Chart */}
-            <div className="col-span-12 lg:col-span-8">
+            <div className="col-span-12 md:col-span-8">
                 <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
                     <h4 className="font-black text-xl mb-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>24-Hour Outlook</h4>
                     <p className="text-sm mb-6" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Temperature and precipitation probability</p>
@@ -393,7 +393,7 @@ export default function WeatherPage() {
             </div>
 
             {/* Spray Window Optimizer */}
-            <div className="col-span-12 lg:col-span-4">
+            <div className="col-span-12 md:col-span-4">
                 <div className="neu-surface rounded-[24px] p-6 h-full" style={{ background: 'var(--ee-surface)' }}>
                     <h4 className="font-black text-lg mb-1 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>spa</span>
@@ -455,7 +455,7 @@ export default function WeatherPage() {
             </div>
 
             {/* Agricultural Metrics */}
-            <div className="col-span-12 lg:col-span-6">
+            <div className="col-span-12 md:col-span-6">
                 <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
                     <h4 className="font-black text-xl mb-6 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-primary)' }}>eco</span>
@@ -553,7 +553,7 @@ export default function WeatherPage() {
             </div>
 
             {/* Water Balance & Soil */}
-            <div className="col-span-12 lg:col-span-6">
+            <div className="col-span-12 md:col-span-6">
                 <div className="neu-surface rounded-[24px] p-6 lg:p-8" style={{ background: 'var(--ee-surface)' }}>
                     <h4 className="font-black text-xl mb-6 flex items-center gap-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--ee-water)' }}>water_drop</span>
