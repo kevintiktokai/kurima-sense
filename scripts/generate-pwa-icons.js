@@ -45,12 +45,18 @@ const SPLASH_SCREENS = [
   { width: 1170, height: 2532, device: "iPhone 13 / 14" },
   { width: 1284, height: 2778, device: "iPhone 12 Pro Max / 13 Pro Max" },
   { width: 750,  height: 1334, device: "iPhone 6 / 7 / 8 / SE2" },
-  // iPad
-  { width: 2048, height: 2732, device: "iPad Pro 12.9\"" },
-  { width: 1668, height: 2388, device: "iPad Pro 11\"" },
-  { width: 1640, height: 2360, device: "iPad Air 10.9\"" },
-  { width: 1620, height: 2160, device: "iPad 10.2\"" },
-  { width: 1488, height: 2266, device: "iPad mini 8.3\"" },
+  // iPad — portrait
+  { width: 2048, height: 2732, device: "iPad Pro 12.9\" (portrait)" },
+  { width: 1668, height: 2388, device: "iPad Pro 11\" (portrait)" },
+  { width: 1640, height: 2360, device: "iPad Air 10.9\" (portrait)" },
+  { width: 1620, height: 2160, device: "iPad 10.2\" (portrait)" },
+  { width: 1488, height: 2266, device: "iPad mini 8.3\" (portrait)" },
+  // iPad — landscape (dimensions swapped)
+  { width: 2732, height: 2048, device: "iPad Pro 12.9\" (landscape)" },
+  { width: 2388, height: 1668, device: "iPad Pro 11\" (landscape)" },
+  { width: 2360, height: 1640, device: "iPad Air 10.9\" (landscape)" },
+  { width: 2160, height: 1620, device: "iPad 10.2\" (landscape)" },
+  { width: 2266, height: 1488, device: "iPad mini 8.3\" (landscape)" },
 ];
 
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
