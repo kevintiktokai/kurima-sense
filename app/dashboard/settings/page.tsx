@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useUserProfile } from '@/components/providers/UserProfileProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { requestInstallPrompt } from '@/components/InstallPrompt'
 
 export default function SettingsPage() {
     const { profile, loading, updateProfile } = useUserProfile()
@@ -324,6 +325,20 @@ export default function SettingsPage() {
                     >
                         <span className="material-symbols-outlined text-base mr-2 align-middle">save</span>
                         {saving ? 'Saving...' : 'Save Settings'}
+                    </button>
+
+                    <button
+                        onClick={requestInstallPrompt}
+                        className="w-full py-4 rounded-[16px] font-bold transition-all hover:opacity-80"
+                        style={{
+                            background: 'var(--ee-bg-dim)',
+                            color: 'var(--ee-text)',
+                            boxShadow: 'var(--shadow-neu)',
+                            fontFamily: 'var(--font-body)'
+                        }}
+                    >
+                        <span className="material-symbols-outlined text-base mr-2 align-middle">install_mobile</span>
+                        Install App
                     </button>
 
                     <button
