@@ -37,13 +37,20 @@ const FAVICON_ICO_SIZES = [16, 32, 48];
 const APPLE_TOUCH_SIZE = 180;
 const MASKABLE_SAFE_ZONE = 0.8; // logo fills 80% of canvas; outer 10% padding each side
 
-// iPhone-only splash screens. iPad sizes can be added later if needed.
+// Portrait splash screens for current iPhone + iPad lineup.
 const SPLASH_SCREENS = [
+  // iPhone
   { width: 1290, height: 2796, device: "iPhone 14 Pro Max / 15 Plus / 15 Pro Max" },
   { width: 1179, height: 2556, device: "iPhone 14 Pro / 15 / 15 Pro" },
   { width: 1170, height: 2532, device: "iPhone 13 / 14" },
   { width: 1284, height: 2778, device: "iPhone 12 Pro Max / 13 Pro Max" },
   { width: 750,  height: 1334, device: "iPhone 6 / 7 / 8 / SE2" },
+  // iPad
+  { width: 2048, height: 2732, device: "iPad Pro 12.9\"" },
+  { width: 1668, height: 2388, device: "iPad Pro 11\"" },
+  { width: 1640, height: 2360, device: "iPad Air 10.9\"" },
+  { width: 1620, height: 2160, device: "iPad 10.2\"" },
+  { width: 1488, height: 2266, device: "iPad mini 8.3\"" },
 ];
 
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
