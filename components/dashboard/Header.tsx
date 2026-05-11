@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
+import InstallButton from '@/components/InstallButton';
 
 const Header: React.FC = () => {
     const pathname = usePathname();
@@ -55,6 +56,7 @@ const Header: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                <InstallButton />
                 {/* Neumorphic circular button — notification */}
                 <button
                     className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 active:shadow-[var(--shadow-neu-inset)]"

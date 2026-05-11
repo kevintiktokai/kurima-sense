@@ -104,7 +104,7 @@ export default function RootLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `document.getElementById('material-symbols-font').addEventListener('load',function(){this.media='all'})`,
+            __html: `(function(){var l=document.getElementById('material-symbols-font');if(!l)return;var a=function(){l.media='all'};if(l.sheet)a();else l.addEventListener('load',a);})()`,
           }}
         />
         <noscript>
