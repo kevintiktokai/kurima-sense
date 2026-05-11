@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Nunito } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
@@ -20,6 +20,16 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "KurimaSense — Precision Agriculture",
   description: "AI-powered precision farming intelligence for African agriculture",
+  manifest: "/manifest.json",
+  applicationName: "KurimaSense",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "KurimaSense",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
@@ -27,6 +37,13 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-touch-icon.png',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0fb885",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
