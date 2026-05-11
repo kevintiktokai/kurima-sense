@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Add to Home Screen menu item">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#E0DDD8" stroke-width="2"/>
+  <rect x="14" y="14" width="36" height="36" rx="8" fill="none" stroke="#2D3A30" stroke-width="3"/>
+  <path d="M32 22 L32 42" stroke="#0fb885" stroke-width="3" stroke-linecap="round"/>
+  <path d="M22 32 L42 32" stroke="#0fb885" stroke-width="3" stroke-linecap="round"/>
+</svg>

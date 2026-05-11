@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import { TutorialProvider } from "@/components/providers/TutorialProvider"
+import InstallPrompt from "@/components/InstallPrompt"
 
 const fraunces = Fraunces({
   variable: "--font-heading",
@@ -126,6 +127,7 @@ export default function RootLayout({
           <AuthProvider>
             <TutorialProvider>
               {children}
+              <InstallPrompt />
             </TutorialProvider>
           </AuthProvider>
         </ThemeProvider>
