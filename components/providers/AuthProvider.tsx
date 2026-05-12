@@ -27,6 +27,18 @@ export const useAuth = () => {
     return context
 }
 
+// Refresh proactively while the access token still has at least this long
+// left. Anything below the buffer is treated as "about to expire" and gets
+// refreshed before we either decide the user is logged in or hand them off
+// to a request that would otherwise 401.
+const REFRESH_BUFFER_MS = 60 * 1000
+
+function isSessionStale(session: Session | null): boolean {
+    if (!session?.expires_at) return false
+    const expiresAtMs = session.expires_at * 1000
+    return expiresAtMs - Date.now() < REFRESH_BUFFER_MS
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [session, setSession] = useState<Session | null>(null)
@@ -47,12 +59,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session)
-            setUserStable(session?.user ?? null)
+        let cancelled = false
+
+        // Bootstrap: read the stored session and, if its access token is
+        // about to expire, refresh it before we decide whether the user is
+        // "logged in". Without this, getSession returns the stale session,
+        // we render the dashboard, and Supabase's auto-refresh fires a beat
+        // later — if it fails, we'd bounce the user out.
+        async function bootstrap() {
+            const { data: { session: stored } } = await supabase.auth.getSession()
+            if (cancelled) return
+
+            let resolved = stored
+            if (resolved && isSessionStale(resolved)) {
+                try {
+                    const { data, error } = await supabase.auth.refreshSession()
+                    if (!error && data.session) resolved = data.session
+                } catch {
+                    // Transient network failure — keep the stale session.
+                    // The next user action will retry; better than logging
+                    // them out for a momentary blip.
+                }
+            }
+            if (cancelled) return
+
+            setSession(resolved)
+            setUserStable(resolved?.user ?? null)
             setLoading(false)
-        })
+        }
+        bootstrap()
 
         // Listen for auth changes
         const {
@@ -72,7 +107,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false)
         })
 
-        return () => subscription.unsubscribe()
+        // Supabase's auto-refresh interval doesn't tick while the tab is
+        // backgrounded. When the user comes back the access token may
+        // already be expired — without an explicit nudge they'd perform
+        // an action with a stale token (401), and only then would the SDK
+        // refresh.
+        async function refreshIfStale() {
+            if (typeof document === 'undefined') return
+            if (document.visibilityState !== 'visible') return
+            const { data: { session: current } } = await supabase.auth.getSession()
+            if (current && isSessionStale(current)) {
+                try {
+                    await supabase.auth.refreshSession()
+                } catch {
+                    // ignore — leave the existing session in place
+                }
+            }
+        }
+        document.addEventListener('visibilitychange', refreshIfStale)
+
+        // iOS Safari (and some other browsers) restore pages from the
+        // back/forward cache without firing visibilitychange. pageshow
+        // with persisted=true is the signal we'd otherwise miss.
+        function onPageShow(e: PageTransitionEvent) {
+            if (e.persisted) refreshIfStale()
+        }
+        window.addEventListener('pageshow', onPageShow)
+
+        return () => {
+            cancelled = true
+            subscription.unsubscribe()
+            document.removeEventListener('visibilitychange', refreshIfStale)
+            window.removeEventListener('pageshow', onPageShow)
+        }
     }, [setUserStable])
 
     const signOut = async () => {
