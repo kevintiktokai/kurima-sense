@@ -1,21 +1,20 @@
 'use client'
 
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
 // Use fallback values during build time to prevent build errors
 // These will be replaced with actual values at runtime
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        storageKey: 'kurimasense-auth'
-    }
-})
+// createBrowserClient stores the session in cookies rather than localStorage.
+// Cookies survive across the iOS Safari ↔ installed-PWA boundary (which is
+// the most common reason "the app logs me out when I close it" — the
+// installed PWA has its own WKWebView with a separate localStorage), and
+// they're far less aggressively evicted by iOS ITP / storage purging than
+// localStorage is. The client API surface is the same as the previous
+// `createClient` instance — every existing call site keeps working.
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 // Helper to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
@@ -31,22 +30,22 @@ export const waitForAuth = (): Promise<void> => {
             resolve()
             return
         }
-        
+
         // Check if session already exists
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
                 resolve()
                 return
             }
-            
-            // Wait for auth state change (session restore from localStorage)
+
+            // Wait for auth state change (session restore from cookies)
             const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
                 if (session || event === 'SIGNED_OUT') {
                     subscription.unsubscribe()
                     resolve()
                 }
             })
-            
+
             // Timeout after 2 seconds to prevent hanging
             setTimeout(() => {
                 subscription.unsubscribe()
@@ -58,3 +57,4 @@ export const waitForAuth = (): Promise<void> => {
 
 // Singleton promise — shared across all services so auth is only awaited once
 export const authReadyPromise: Promise<void> = waitForAuth()
+

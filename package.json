@@ -23,6 +23,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.93.2",
     "@types/leaflet-draw": "^1.0.13",
     "class-variance-authority": "^0.7.1",
