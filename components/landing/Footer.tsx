@@ -15,7 +15,7 @@ export default function Footer() {
             />
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10 md:gap-12 mb-12 md:mb-16">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-8 sm:gap-10 md:gap-12 mb-12 md:mb-16">
                     <div className="col-span-2 md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-6">
                             <Image
@@ -99,6 +99,34 @@ export default function Footer() {
                                 { name: 'For Farmers', href: '#farmers' },
                                 { name: 'For Agronomists', href: '#agronomists' },
                                 { name: 'Community', href: '#' },
+                            ].map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        href={item.href}
+                                        className="transition-colors"
+                                        style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4
+                            className="font-bold uppercase tracking-widest text-xs mb-6"
+                            style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}
+                        >
+                            For Organizations
+                        </h4>
+                        <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
+                            {[
+                                { name: 'For Buyers', href: '/for-buyers' },
+                                { name: 'For Lenders', href: '/for-lenders' },
+                                { name: 'For Insurers', href: '/for-insurers' },
                             ].map((item) => (
                                 <li key={item.name}>
                                     <Link

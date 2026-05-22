@@ -6,6 +6,7 @@ import Stats from '@/components/landing/Stats';
 import Features from '@/components/landing/Features';
 import HowItWorks from '@/components/landing/HowItWorks';
 import Segments from '@/components/landing/Segments';
+import ForOrganizations from '@/components/landing/ForOrganizations';
 import AIInsights from '@/components/landing/AIInsights';
 import Testimonials from '@/components/landing/Testimonials';
 import BlogPreview from '@/components/landing/BlogPreview';
@@ -21,6 +22,7 @@ export default function LandingPage() {
       <Features />
       <HowItWorks />
       <Segments />
+      <ForOrganizations />
       <AIInsights />
       <Testimonials />
       <BlogPreview />
