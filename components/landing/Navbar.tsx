@@ -19,6 +19,7 @@ export default function Navbar() {
         { name: 'Features', href: '#features' },
         { name: 'How It Works', href: '#how-it-works' },
         { name: 'AI Insights', href: '#ai-insights' },
+        { name: 'For Organizations', href: '/for-buyers' },
         { name: 'For Farmers', href: '#farmers' },
         { name: 'Blog', href: '/blog' },
     ];

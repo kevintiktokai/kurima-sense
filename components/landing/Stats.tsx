@@ -4,10 +4,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const stats = [
-    { value: '95%', label: 'Yield Prediction Accuracy', icon: 'trending_up' },
-    { value: '24/7', label: 'AI Advisory Available', icon: 'smart_toy' },
+    { value: 'Confidence-Scored', label: 'Predictions with explicit uncertainty', icon: 'trending_up' },
+    { value: 'Zimbabwe-Trained', label: 'Calibrated for local crops, varieties, and Natural Regions', icon: 'smart_toy' },
     { value: '<5 min', label: 'Setup Time', icon: 'timer' },
-    { value: '6+', label: 'Crop Types Supported', icon: 'eco' },
+    { value: 'Local Crops', label: 'Tobacco, maize, cotton, soya, and more', icon: 'eco' },
 ];
 
 export default function Stats() {
@@ -36,7 +36,7 @@ export default function Stats() {
                                 </span>
                             </div>
                             <h3
-                                className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-2"
+                                className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mb-2"
                                 style={{ color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}
                             >
                                 {stat.value}
