@@ -131,6 +131,9 @@ interface FieldMapProps {
 
 export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName = "Main Field", area, ndvi, healthStatus }: FieldMapProps) {
     const [mounted, setMounted] = useState(false);
+    // Satellite imagery is missing at high zoom in many remote regions; let the
+    // user fall back to the Street (OSM) basemap, which has global coverage.
+    const [basemap, setBasemap] = useState<'satellite' | 'street'>('satellite');
 
     // Mock polygon based on center if not provided
     const displayPolygon = polygon || [
@@ -177,16 +180,32 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
             <MapContainer
                 center={center}
                 zoom={16}
+                maxZoom={19}
                 zoomControl={false}
                 scrollWheelZoom={true}
                 className="h-full w-full"
                 style={{ background: "#020617" }}
             >
-                {/* Esri World Imagery (Satellite) */}
-                <TileLayer
-                    attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                />
+                {/* Basemap. maxNativeZoom caps requests at the provider's real imagery
+                    depth so Leaflet upscales instead of showing the "Map data not yet
+                    available" placeholder that appears in remote regions. */}
+                {basemap === 'satellite' ? (
+                    <TileLayer
+                        key="satellite"
+                        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        maxNativeZoom={17}
+                        maxZoom={19}
+                    />
+                ) : (
+                    <TileLayer
+                        key="street"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        maxNativeZoom={19}
+                        maxZoom={19}
+                    />
+                )}
 
                 {/* Field boundary polygon */}
                 <Polygon
@@ -234,6 +253,24 @@ export default function FieldMap({ center = DEFAULT_CENTER, polygon, fieldName =
                     <p className="text-white/60 text-xs">
                         {computedArea} ha &bull; {perimeter >= 1000 ? `${(perimeter / 1000).toFixed(1)} km` : `${perimeter} m`}
                     </p>
+                </div>
+            </div>
+
+            {/* Basemap toggle — Satellite (Esri) / Street (OSM) fallback */}
+            <div className="absolute bottom-8 right-20 z-[400]">
+                <div className="p-1 flex gap-1 bg-black/40 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl">
+                    <button
+                        onClick={() => setBasemap('satellite')}
+                        className={`h-9 px-3 text-xs font-bold rounded-lg transition-all ${basemap === 'satellite' ? 'bg-brand-lime text-brand-dark' : 'text-white hover:bg-white/10'}`}
+                    >
+                        Satellite
+                    </button>
+                    <button
+                        onClick={() => setBasemap('street')}
+                        className={`h-9 px-3 text-xs font-bold rounded-lg transition-all ${basemap === 'street' ? 'bg-brand-lime text-brand-dark' : 'text-white hover:bg-white/10'}`}
+                    >
+                        Street
+                    </button>
                 </div>
             </div>
 
