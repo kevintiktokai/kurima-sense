@@ -91,14 +91,14 @@ export default function RootLayout({
         {/* Preload hint — browser starts downloading immediately but doesn't block render */}
         <link
           rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
           as="style"
           crossOrigin="anonymous"
         />
         {/* Load as print media first (non-blocking), then swap to all via inline script */}
         <link
           id="material-symbols-font"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
           rel="stylesheet"
           media="print"
         />
@@ -109,7 +109,7 @@ export default function RootLayout({
         />
         <noscript>
           <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
             rel="stylesheet"
           />
         </noscript>

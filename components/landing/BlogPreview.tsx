@@ -54,7 +54,7 @@ export default function BlogPreview() {
                             className="text-lg md:text-xl max-w-xl"
                             style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                         >
-                            Expert insights, practical tips, and the latest in agricultural technology — updated daily to help you grow better.
+                            Practical agronomy notes, field observations, and how our intelligence works — written by our team to help you grow better.
                         </p>
                     </div>
                     <Link
