@@ -770,6 +770,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
         : defaultCenter;
 
     const [internalMode, setInternalMode] = useState<'view' | 'choosing' | 'draw' | 'gps-walk'>('view');
+    // Basemap layer. Satellite (Esri) imagery is unavailable at high zoom in many
+    // remote areas — farmers there can switch to the Street (OSM) basemap, which has
+    // global coverage, so they can always outline their field.
+    const [basemap, setBasemap] = useState<'satellite' | 'street'>('satellite');
 
     // Sync external mode prop
     useEffect(() => {
@@ -808,15 +812,32 @@ const MapComponent: React.FC<MapComponentProps> = ({
             <MapContainer
                 center={center}
                 zoom={16}
+                maxZoom={19}
                 style={{ height: "100%", width: "100%", borderRadius: fullscreen ? 0 : "3.5rem" }}
                 zoomControl={false}
                 className="z-0"
             >
-                {/* Esri World Imagery (Satellite) */}
-                <TileLayer
-                    attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                />
+                {/* Basemap. maxNativeZoom caps tile requests at the highest level the
+                    provider actually has imagery for — beyond that Leaflet upscales the
+                    last real tile instead of showing the provider's "Map data not yet
+                    available" placeholder, which appears in remote regions. */}
+                {basemap === 'satellite' ? (
+                    <TileLayer
+                        key="satellite"
+                        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        maxNativeZoom={17}
+                        maxZoom={19}
+                    />
+                ) : (
+                    <TileLayer
+                        key="street"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        maxNativeZoom={19}
+                        maxZoom={19}
+                    />
+                )}
 
                 {/* Render actual field boundary polygons */}
                 {fields.map((field) => {
@@ -918,6 +939,27 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     />
                 )}
             </MapContainer>
+
+            {/* Basemap toggle — lets farmers in regions without satellite imagery
+                switch to the Street map so they can still outline their field. */}
+            <div className="absolute bottom-8 left-8 z-[400]">
+                <div className="p-1 flex gap-1 bg-black/40 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl">
+                    <button
+                        onClick={() => setBasemap('satellite')}
+                        className={`h-9 px-3 flex items-center gap-1.5 text-xs font-bold rounded-lg transition-all ${basemap === 'satellite' ? 'bg-brand-lime text-brand-dark' : 'text-white hover:bg-white/10'}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        Satellite
+                    </button>
+                    <button
+                        onClick={() => setBasemap('street')}
+                        className={`h-9 px-3 flex items-center gap-1.5 text-xs font-bold rounded-lg transition-all ${basemap === 'street' ? 'bg-brand-lime text-brand-dark' : 'text-white hover:bg-white/10'}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                        Street
+                    </button>
+                </div>
+            </div>
 
             {/* Overlay Gradient for clearer UI on top */}
             <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-[300] ${fullscreen ? '' : 'rounded-[3.5rem]'}`} />
