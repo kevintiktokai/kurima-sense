@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { FieldData } from './types';
+import { confidenceFromFraction, formatConfidence } from '@/lib/field-state-types';
 
 interface CropPlanProps {
     selectedField: FieldData | null;
@@ -122,7 +123,12 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                                     )}
                                 </div>
                                 {plan.confidence_score != null && (
-                                    <p className="text-slate-500 text-[10px] sm:text-xs mt-1">Confidence: {plan.confidence_score}%</p>
+                                    /* Confidence is shown as a band with the integer pct as
+                                       secondary detail. confidence_score is a 0-1 fraction, so
+                                       rendering it raw produced the "Confidence: 0.6%" bug. */
+                                    <p className="text-slate-500 text-[10px] sm:text-xs mt-1">
+                                        Confidence: {(() => { const c = confidenceFromFraction(plan.confidence_score); return formatConfidence(c.band, c.pct); })()}
+                                    </p>
                                 )}
                             </div>
                         )}

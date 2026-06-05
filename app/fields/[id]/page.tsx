@@ -4,8 +4,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { FieldData, ScoutingPin, ScoutingCategory, ScoutingSeverity } from '@/components/dashboard/types';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Brush } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, ReferenceArea, Brush } from 'recharts';
 import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
+import { useFieldState } from '@/hooks/useFieldState';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -30,6 +31,12 @@ export default function FieldInsightsPage() {
     const params = useParams();
     const router = useRouter();
     const fieldId = params.id as string;
+
+    // Canonical field state from the aggregator — the single source of truth for
+    // health label, NDVI interpretation, insight and the KurimaScore trend. All
+    // local threshold logic below falls back to this when available so two screens
+    // can never disagree about this field.
+    const { fieldState: fs } = useFieldState(fieldId);
 
     const [field, setField] = useState<FieldData | null>(null);
     const [history, setHistory] = useState<any[]>([]);
@@ -185,6 +192,18 @@ export default function FieldInsightsPage() {
         return history.slice(timelineRange.start, timelineRange.end + 1);
     }, [history, timelineRange]);
 
+    // Crop Health Trends chart data — prefer the aggregator's KurimaScore trend
+    // (0-100, a single clearly-labelled unit) over the old dual-axis NDVI(0-1) +
+    // moisture(0-100) plot whose visible axis read as an unlabelled ~0-32 range.
+    const kurimaTrend = useMemo(
+        () => (fs?.indices?.trend_30d || [])
+            .filter((p) => p.kurima_score !== null && p.kurima_score !== undefined)
+            .map((p) => ({ date: p.date, kurima_score: p.kurima_score, ndvi: p.ndvi })),
+        [fs]
+    );
+    const usingKurima = kurimaTrend.length > 0;
+    const chartData = usingKurima ? kurimaTrend : filteredHistory;
+
     if (loading) {
         return (
             <div
@@ -247,13 +266,28 @@ export default function FieldInsightsPage() {
         'Blueberries': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 50, low: 32, critical: 20 } },
         'Snow Peas': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 28, critical: 15 } },
     };
+    // NOTE: these crop thresholds are retained ONLY as an offline fallback. When the
+    // aggregator (`fs`) is available, NDVI interpretation comes from the server
+    // (`fs.indices.current.ndvi_label/color`) so it can never diverge from the
+    // KurimaScore. This is the fix for "EXCELLENT HEALTH over Critical NDVI".
     const ct = cropThresholds[field.crop] || { ndvi: { excellent: 0.6, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } };
-    const getNdviLabel = (v: number) => v >= ct.ndvi.excellent ? 'Excellent' : v >= ct.ndvi.good ? 'Good' : v >= ct.ndvi.moderate ? 'Moderate' : 'Critical';
-    const getNdviColor = (v: number) => v >= ct.ndvi.good ? 'var(--ee-primary)' : v >= ct.ndvi.moderate ? 'var(--ee-sun)' : '#dc2626';
-    const getMoistureLabel = (v: number) => v >= ct.moisture.adequate ? 'Adequate' : v >= ct.moisture.low ? 'Moderate' : v >= ct.moisture.critical ? 'Low' : 'Critical';
+    const getNdviLabel = (v: number) => fs?.indices?.current?.ndvi_label
+        || (v >= ct.ndvi.excellent ? 'Excellent' : v >= ct.ndvi.good ? 'Good' : v >= ct.ndvi.moderate ? 'Moderate' : 'Critical');
+    const getNdviColor = (v: number) => fs?.indices?.current?.ndvi_color
+        || (v >= ct.ndvi.good ? 'var(--ee-primary)' : v >= ct.ndvi.moderate ? 'var(--ee-sun)' : '#dc2626');
+    const getMoistureLabel = (v: number) => (fs?.water_balance?.soil_moisture_label
+        ? fs.water_balance.soil_moisture_label.charAt(0).toUpperCase() + fs.water_balance.soil_moisture_label.slice(1)
+        : (v >= ct.moisture.adequate ? 'Adequate' : v >= ct.moisture.low ? 'Moderate' : v >= ct.moisture.critical ? 'Low' : 'Critical'));
     const getMoistureColor = (v: number) => v >= ct.moisture.low ? 'var(--ee-primary)' : v >= ct.moisture.critical ? 'var(--ee-sun)' : '#dc2626';
 
-    const displayInsight = aiInsight || field.latestInsight || null;
+    // Agronomist insight now comes from the aggregator's KurimaScore block (which
+    // runs in the field's own scope), so it never shows "Field not found" for a
+    // field that exists. Falls back to the legacy insight only if the aggregator
+    // hasn't loaded yet.
+    const aggregatorInsight = fs?.kurima_score
+        ? [fs.kurima_score.primary_driver, fs.kurima_score.likely_cause, fs.kurima_score.recommended_action].filter(Boolean).join(' ')
+        : null;
+    const displayInsight = aggregatorInsight || aiInsight || field.latestInsight || null;
 
     return (
         <div className="min-h-screen p-6 lg:p-8" style={{ background: 'var(--ee-bg)', fontFamily: 'var(--font-body)' }}>
@@ -355,17 +389,21 @@ export default function FieldInsightsPage() {
                                 Last satellite pass: {field.lastSatellitePass}
                             </p>
                         </div>
+                        {/* Single health badge from the aggregator's KurimaScore.
+                            Replaces the old `field.healthStatus` badge that could read
+                            "EXCELLENT" while the NDVI below it read "Critical". */}
                         <div
                             className="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider"
                             style={{
-                                background: field.healthStatus === 'Excellent' ? 'rgba(15, 184, 133, 0.1)' : field.healthStatus === 'Good' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(220, 38, 38, 0.08)',
-                                color: field.healthStatus === 'Excellent' ? 'var(--ee-primary)' : field.healthStatus === 'Good' ? 'var(--ee-sun)' : '#dc2626'
+                                background: fs?.kurima_score ? `${fs.kurima_score.color}1A` : 'rgba(139,157,143,0.12)',
+                                color: fs?.kurima_score?.color || 'var(--ee-muted)',
                             }}
+                            title={fs?.kurima_score ? `KurimaScore ${fs.kurima_score.score}/100` : undefined}
                         >
                             <span className="material-symbols-outlined text-xs mr-1 align-middle">
-                                {field.healthStatus === 'Excellent' ? 'eco' : field.healthStatus === 'Good' ? 'spa' : 'warning'}
+                                {(fs?.kurima_score?.score ?? 0) >= 70 ? 'eco' : (fs?.kurima_score?.score ?? 0) >= 55 ? 'spa' : 'warning'}
                             </span>
-                            {field.healthStatus} Health
+                            {fs?.kurima_score ? `${fs.kurima_score.label} • ${fs.kurima_score.score}/100` : (field.healthStatus ? `${field.healthStatus} Health` : 'Analyzing…')}
                         </div>
                     </div>
 
@@ -449,7 +487,7 @@ export default function FieldInsightsPage() {
                             <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--ee-primary)' }}>psychology</span>
                             Agronomist Insight
                         </h2>
-                        {insightLoading ? (
+                        {(!displayInsight && insightLoading) ? (
                             <div className="flex items-center gap-3">
                                 <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px', color: 'var(--ee-primary)' }}>progress_activity</span>
                                 <p className="font-medium" style={{ opacity: 0.6 }}>Generating analysis...</p>
@@ -502,22 +540,26 @@ export default function FieldInsightsPage() {
                                     Reset zoom
                                 </button>
                             )}
-                            {history.length > 0 && history[0]?.source && (
-                                <p className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style={{
-                                    color: 'var(--ee-muted)',
-                                    background: 'var(--ee-bg)',
-                                }}>
-                                    {history.some(h => h.source === 'satellite') ? 'Satellite + Climate Model' : 'Climate Model Estimate'}
-                                </p>
-                            )}
+                            <p className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style={{
+                                color: 'var(--ee-muted)',
+                                background: 'var(--ee-bg)',
+                            }}>
+                                {usingKurima
+                                    ? 'KurimaScore (0–100)'
+                                    : (history.some(h => h.source === 'satellite') ? 'Satellite + Climate Model' : 'Climate Model Estimate')}
+                            </p>
                         </div>
                     </div>
-                    {history.length > 0 ? (
+                    {chartData.length > 0 ? (
                         <div className="w-full">
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={filteredHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
+                                            <linearGradient id="colorKurima" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.25} />
+                                                <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
+                                            </linearGradient>
                                             <linearGradient id="colorNdvi" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#0fb885" stopOpacity={0.15} />
                                                 <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
@@ -539,10 +581,29 @@ export default function FieldInsightsPage() {
                                                 return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
                                             }}
                                         />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} />
-                                        {/* NDVI threshold reference lines */}
-                                        <ReferenceLine y={ct.ndvi.good} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} />
-                                        <ReferenceLine y={ct.ndvi.moderate} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.3} />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }}
+                                            domain={usingKurima ? [0, 100] : undefined as any}
+                                            label={usingKurima ? { value: 'KurimaScore (0–100)', angle: -90, position: 'insideLeft', style: { fill: '#8B9D8F', fontSize: 10, fontWeight: 700 } } : undefined}
+                                        />
+                                        {usingKurima ? (
+                                            <>
+                                                {/* Score bands as background regions: Strong/Adequate/Stressed */}
+                                                <ReferenceArea y1={70} y2={100} fill="#0fb885" fillOpacity={0.06} />
+                                                <ReferenceArea y1={55} y2={70} fill="#EAB308" fillOpacity={0.06} />
+                                                <ReferenceArea y1={0} y2={55} fill="#dc2626" fillOpacity={0.05} />
+                                                <ReferenceLine y={70} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Strong', position: 'right', fontSize: 9, fill: '#0fb885' }} />
+                                                <ReferenceLine y={55} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Adequate', position: 'right', fontSize: 9, fill: '#EAB308' }} />
+                                                <ReferenceLine y={40} stroke="#dc2626" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Stressed', position: 'right', fontSize: 9, fill: '#dc2626' }} />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ReferenceLine y={ct.ndvi.good} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} />
+                                                <ReferenceLine y={ct.ndvi.moderate} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.3} />
+                                            </>
+                                        )}
                                         <Tooltip
                                             contentStyle={{
                                                 borderRadius: '16px',
@@ -555,14 +616,20 @@ export default function FieldInsightsPage() {
                                             cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }}
                                             labelFormatter={(val) => new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         />
-                                        <Area type="monotone" dataKey="ndvi" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorNdvi)" name="NDVI" />
-                                        <Area type="monotone" dataKey="soilMoisture" stroke="#5C9EAD" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" name="Moisture (%)" />
+                                        {usingKurima ? (
+                                            <Area type="monotone" dataKey="kurima_score" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorKurima)" name="KurimaScore" connectNulls />
+                                        ) : (
+                                            <>
+                                                <Area type="monotone" dataKey="ndvi" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorNdvi)" name="NDVI" />
+                                                <Area type="monotone" dataKey="soilMoisture" stroke="#5C9EAD" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" name="Moisture (%)" />
+                                            </>
+                                        )}
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
 
-                            {/* Timeline Brush / Slider */}
-                            {history.length > 5 && (
+                            {/* Timeline Brush / Slider (NDVI fallback view only) */}
+                            {!usingKurima && history.length > 5 && (
                                 <div className="h-12 mt-2">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={history} margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
@@ -594,7 +661,7 @@ export default function FieldInsightsPage() {
                             )}
 
                             {/* Timeline hint */}
-                            {history.length > 5 && !timelineRange && (
+                            {!usingKurima && history.length > 5 && !timelineRange && (
                                 <p className="text-[10px] text-center mt-1 font-bold" style={{ color: 'var(--ee-muted)' }}>
                                     Drag the handles above to zoom into a specific time period
                                 </p>
