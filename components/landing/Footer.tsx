@@ -73,16 +73,20 @@ export default function Footer() {
                             Product
                         </h4>
                         <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
-                            {['Features', 'How It Works', 'AI Insights'].map((item) => (
-                                <li key={item}>
+                            {[
+                                { name: 'The moat', href: '#moat' },
+                                { name: 'Methodology', href: '#methodology' },
+                                { name: 'For Institutions', href: '/for-buyers' },
+                            ].map((item) => (
+                                <li key={item.name}>
                                     <Link
-                                        href={item === 'Features' ? '#features' : item === 'How It Works' ? '#how-it-works' : '#ai-insights'}
+                                        href={item.href}
                                         className="transition-colors"
                                         style={{ color: 'rgba(255, 255, 255, 0.55)' }}
                                         onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                                         onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
                                     >
-                                        {item}
+                                        {item.name}
                                     </Link>
                                 </li>
                             ))}

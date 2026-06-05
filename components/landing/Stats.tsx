@@ -1,50 +1,36 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { GaugeCircle, MapPinned, Timer, Wheat } from 'lucide-react';
 
 const stats = [
-    { value: 'Confidence-Scored', label: 'Predictions with explicit uncertainty', icon: 'trending_up' },
-    { value: 'Zimbabwe-Trained', label: 'Calibrated for local crops, varieties, and Natural Regions', icon: 'smart_toy' },
-    { value: '<5 min', label: 'Setup Time', icon: 'timer' },
-    { value: 'Local Crops', label: 'Tobacco, maize, cotton, soya, and more', icon: 'eco' },
+    { value: 'Confidence-scored', label: 'Predictions with explicit uncertainty', icon: GaugeCircle },
+    { value: 'Zimbabwe-trained', label: 'Calibrated for local crops & Natural Regions', icon: MapPinned },
+    { value: '<5 min', label: 'Farmer setup time', icon: Timer },
+    { value: 'Local crops', label: 'Tobacco, maize, cotton, soya & more', icon: Wheat },
 ];
 
 export default function Stats() {
+    const reduceMotion = useReducedMotion();
     return (
-        <section className="py-16 md:py-20" style={{ backgroundColor: 'var(--ee-text)' }}>
+        <section className="py-12 md:py-14" style={{ backgroundColor: 'var(--ee-loam)', borderTop: '1px solid var(--ee-loam-line)' }}>
             <div className="container mx-auto px-4 sm:px-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-12">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
                     {stats.map((stat, index) => (
                         <motion.div
                             key={stat.label}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="text-center"
+                            transition={{ duration: 0.5, delay: index * 0.08 }}
+                            className="flex flex-col items-start"
                         >
-                            <div
-                                className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-                                style={{ backgroundColor: 'rgba(15, 184, 133, 0.15)' }}
-                            >
-                                <span
-                                    className="material-symbols-outlined"
-                                    style={{ fontSize: '24px', color: 'var(--ee-primary)' }}
-                                >
-                                    {stat.icon}
-                                </span>
-                            </div>
-                            <h3
-                                className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mb-2"
-                                style={{ color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}
-                            >
+                            <stat.icon size={22} style={{ color: 'var(--ee-green-bright)' }} aria-hidden />
+                            <h3 className="text-lg sm:text-xl font-semibold mt-3 mb-1.5 leading-tight" style={{ color: '#F8F6F1', fontFamily: 'var(--font-heading)' }}>
                                 {stat.value}
                             </h3>
-                            <p
-                                className="text-xs sm:text-sm md:text-base font-medium"
-                                style={{ color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'var(--font-body)' }}
-                            >
+                            <p className="text-xs sm:text-[13px] leading-snug" style={{ color: 'var(--ee-loam-muted)', fontFamily: 'var(--font-body)' }}>
                                 {stat.label}
                             </p>
                         </motion.div>

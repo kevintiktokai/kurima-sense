@@ -1,21 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Nunito } from "next/font/google";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import { TutorialProvider } from "@/components/providers/TutorialProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 
+// Editorial serif for headlines (field-journal gravitas) + precise grotesque
+// for body/UI (institutional fintech). Avoids Inter/Roboto defaults.
 const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
-const nunito = Nunito({
+const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -115,7 +117,7 @@ export default function RootLayout({
         </noscript>
       </head>
       <body
-        className={`${fraunces.variable} ${nunito.variable} antialiased`}
+        className={`${fraunces.variable} ${hankenGrotesk.variable} antialiased`}
         style={{ fontFamily: "var(--font-body)" }}
       >
         <ThemeProvider

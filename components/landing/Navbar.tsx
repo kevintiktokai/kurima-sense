@@ -6,159 +6,130 @@ import Image from 'next/image';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
+const navLinks = [
+    { name: 'For Institutions', href: '/for-buyers' },
+    { name: 'Methodology', href: '#methodology' },
+    { name: 'For Farmers', href: '#farmers' },
+    { name: 'Blog', href: '/blog' },
+];
+
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { scrollY } = useScroll();
 
-    useMotionValueEvent(scrollY, "change", (latest) => {
+    useMotionValueEvent(scrollY, 'change', (latest) => {
         setIsScrolled(latest > 50);
     });
 
-    const navLinks = [
-        { name: 'Features', href: '#features' },
-        { name: 'How It Works', href: '#how-it-works' },
-        { name: 'AI Insights', href: '#ai-insights' },
-        { name: 'For Organizations', href: '/for-buyers' },
-        { name: 'For Farmers', href: '#farmers' },
-        { name: 'Blog', href: '/blog' },
-    ];
+    // Light text over the dark loam hero; dark text once the oat bar appears.
+    const linkColor = isScrolled ? 'var(--ee-muted)' : 'rgba(244,241,237,0.78)';
+    const brandColor = isScrolled ? 'var(--ee-text)' : '#F4F1ED';
 
     return (
         <motion.nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'py-4'
-                : 'py-6'
-                }`}
-            style={isScrolled ? {
-                backgroundColor: 'rgba(244, 241, 237, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                boxShadow: 'var(--shadow-ambient)',
-            } : {
-                backgroundColor: 'transparent',
-            }}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-3' : 'py-5'}`}
+            style={
+                isScrolled
+                    ? {
+                          backgroundColor: 'rgba(244, 241, 237, 0.85)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          borderBottom: '1px solid var(--ee-bg-border)',
+                      }
+                    : { backgroundColor: 'transparent' }
+            }
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
         >
             <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-                {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <Image
-                        src="/logo-200.png"
-                        alt="KurimaSense"
-                        width={40}
-                        height={40}
-                        className="rounded-[12px] shadow-lg group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <span
-                        className="text-2xl font-black tracking-tighter"
-                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                    >
+                    <Image src="/logo-200.png" alt="KurimaSense" width={36} height={36} className="rounded-[10px]" />
+                    <span className="text-xl font-bold tracking-tight" style={{ color: brandColor, fontFamily: 'var(--font-heading)' }}>
                         KurimaSense
                     </span>
                 </Link>
 
-                {/* Desktop Nav */}
                 <div className="hidden lg:flex items-center gap-8">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
                             href={link.href}
-                            className="font-medium text-sm uppercase tracking-widest transition-all hover:opacity-100"
-                            style={{
-                                color: 'var(--ee-muted)',
-                                fontFamily: 'var(--font-body)',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ee-text)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ee-muted)')}
+                            className="font-semibold text-[13px] uppercase tracking-widest transition-colors"
+                            style={{ color: linkColor, fontFamily: 'var(--font-body)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = isScrolled ? 'var(--ee-text)' : '#FFFFFF')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = linkColor)}
                         >
                             {link.name}
                         </Link>
                     ))}
                 </div>
 
-                {/* CTA Button */}
-                <div className="hidden lg:flex items-center gap-4">
+                <div className="hidden lg:flex items-center gap-5">
                     <Link
                         href="/auth?mode=login"
-                        className="font-bold text-sm transition-colors"
-                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ee-primary)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ee-text)')}
+                        className="font-semibold text-sm transition-colors"
+                        style={{ color: brandColor, fontFamily: 'var(--font-body)' }}
                     >
-                        Login
+                        Farmer login
                     </Link>
-                    <Link href="/auth">
+                    <a href="https://calendly.com/kurimasense/demo" target="_blank" rel="noopener noreferrer">
                         <button
-                            className="px-6 py-2.5 rounded-full font-bold text-sm hover:scale-105 transition-all"
-                            style={{
-                                backgroundColor: 'var(--ee-primary)',
-                                color: '#FFFFFF',
-                                boxShadow: '0 4px 14px rgba(15, 184, 133, 0.25)',
-                                fontFamily: 'var(--font-body)',
-                            }}
+                            className="px-5 py-2.5 rounded-full font-semibold text-sm transition-transform hover:-translate-y-0.5"
+                            style={{ backgroundColor: 'var(--ee-primary)', color: '#06140E', fontFamily: 'var(--font-body)' }}
                         >
-                            Get Started
+                            Request a briefing
                         </button>
-                    </Link>
+                    </a>
                 </div>
 
-                {/* Mobile Menu Toggle */}
                 <button
                     className="lg:hidden"
-                    style={{ color: 'var(--ee-text)' }}
+                    aria-label="Toggle menu"
+                    style={{ color: brandColor }}
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                     {isMobileMenuOpen ? <X /> : <Menu />}
                 </button>
             </div>
 
-            {/* Mobile Menu */}
             {isMobileMenuOpen && (
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="lg:hidden overflow-hidden"
-                    style={{
-                        backgroundColor: 'var(--ee-bg)',
-                        boxShadow: 'var(--shadow-ambient)',
-                    }}
+                    className="lg:hidden overflow-hidden mt-3"
+                    style={{ backgroundColor: 'var(--ee-bg)', boxShadow: 'var(--shadow-ambient)' }}
                 >
                     <div className="flex flex-col px-4 sm:px-6 py-4 gap-1">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="font-bold text-base py-3 px-2 rounded-xl active:bg-[var(--ee-bg-pressed)] transition-colors"
+                                className="font-semibold text-base py-3 px-2 rounded-xl active:bg-[var(--ee-bg-pressed)] transition-colors"
                                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        <div className="flex flex-col gap-3 mt-2 pt-4" style={{ borderTop: '2px solid var(--ee-bg-pressed)' }}>
+                        <div className="flex flex-col gap-3 mt-2 pt-4" style={{ borderTop: '1px solid var(--ee-bg-border)' }}>
                             <Link
                                 href="/auth?mode=login"
-                                className="font-bold text-lg text-center py-2"
+                                className="font-semibold text-base text-center py-2"
                                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Login
+                                Farmer login
                             </Link>
-                            <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                            <a href="https://calendly.com/kurimasense/demo" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>
                                 <button
-                                    className="w-full px-6 py-3 rounded-full font-bold transition-colors"
-                                    style={{
-                                        backgroundColor: 'var(--ee-primary)',
-                                        color: '#FFFFFF',
-                                        fontFamily: 'var(--font-body)',
-                                    }}
+                                    className="w-full px-6 py-3 rounded-full font-semibold"
+                                    style={{ backgroundColor: 'var(--ee-primary)', color: '#06140E', fontFamily: 'var(--font-body)' }}
                                 >
-                                    Get Started
+                                    Request a briefing
                                 </button>
-                            </Link>
+                            </a>
                         </div>
                     </div>
                 </motion.div>
