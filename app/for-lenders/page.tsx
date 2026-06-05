@@ -74,7 +74,6 @@ export default function ForLendersPage() {
                         headline: "Core",
                         description:
                             "On-demand field-level risk scoring via API, with primary risk factors and confidence indicators.",
-                        priceFrom: "$25,000 setup + $80,000–$150,000 annual platform fee + per-farmer fees",
                         features: [
                             "REST API for loan origination integration",
                             "Default probability per field",
@@ -87,27 +86,26 @@ export default function ForLendersPage() {
                         name: "White-Label Dashboard",
                         headline: "Standard",
                         description:
-                            "Branded interface for your loan officers with field-level drill-down and portfolio analytics.",
-                        priceFrom: "Included with Risk Scoring API",
+                            "A branded interface for your loan officers with field-level drill-down and portfolio analytics, on top of the Risk Scoring API.",
                         features: [
+                            "Everything in Core",
                             "Branded dashboard with your visual identity",
                             "Loan officer field-level drill-down",
-                            "Portfolio risk distribution",
-                            "Concentration analysis",
+                            "Portfolio risk distribution & concentration analysis",
                             "Borrower risk reports (PDF)",
                         ],
                         highlighted: true,
                     },
                     {
-                        name: "Custom Risk Model Tuning",
+                        name: "Custom Risk Models",
                         headline: "Enterprise",
                         description:
-                            "Models tuned to your specific loan products, repayment terms, and regional concentration.",
-                        priceFrom: "Annual engagement, pricing on conversation",
+                            "Default-prediction models tuned to your specific loan products, repayment terms, and regional concentration.",
                         features: [
                             "Everything in Standard",
-                            "Custom model calibration",
-                            "Regional concentration optimization",
+                            "Custom default-prediction model tuning",
+                            "Calibration to your loan products & terms",
+                            "Historical portfolio backtesting",
                             "Quarterly model performance reviews",
                             "Dedicated solution architect",
                         ],

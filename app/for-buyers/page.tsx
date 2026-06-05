@@ -72,46 +72,44 @@ export default function ForBuyersPage() {
                 tiers={[
                     {
                         name: "District Forecast",
-                        headline: "Tier 1",
+                        headline: "Core",
                         description:
-                            "Crop-level yield forecast per district, refreshed weekly. Suitable for early procurement planning.",
-                        priceFrom: "From $40,000 per crop per year",
+                            "Crop-level yield forecasts per district, refreshed weekly through the season. Built for early procurement planning.",
                         features: [
                             "District-level yield forecasts",
-                            "Weekly updates during growing season",
-                            "Confidence intervals on every forecast",
-                            "CSV/Excel export",
+                            "Weekly updates during the growing season",
+                            "Confidence band on every forecast",
+                            "CSV / Excel export",
                             "Email support",
                         ],
                     },
                     {
-                        name: "District + Zone + Briefings",
-                        headline: "Tier 2",
+                        name: "Zone Forecasts + Briefings",
+                        headline: "Standard",
                         description:
-                            "Forecasts broken down to growing zones within districts, plus monthly written briefings with key risks and supply commentary.",
-                        priceFrom: "From $60,000 per crop per year",
+                            "Forecasts broken down to growing zones within districts, plus monthly written briefings on the key risks and supply signals behind the numbers.",
                         features: [
-                            "Everything in Tier 1",
+                            "Everything in Core",
                             "Zone-level forecasts within districts",
-                            "Monthly written briefings",
+                            "Monthly written supply briefings",
                             "API access for system integration",
                             "Anomaly alerts on critical regions",
-                            "Priority email support",
+                            "Priority support",
                         ],
                         highlighted: true,
                     },
                     {
-                        name: "Custom Calibration + Dedicated Success",
-                        headline: "Tier 3",
+                        name: "Custom Yield Models",
+                        headline: "Enterprise",
                         description:
-                            "Tier 2 plus custom variety calibration and a dedicated success manager with quarterly strategic reviews.",
-                        priceFrom: "From $80,000 per crop per year",
+                            "Bespoke calibration and deeper modelling for your specific crops and varieties, backtested against your own records.",
                         features: [
-                            "Everything in Tier 2",
-                            "Custom variety calibration",
-                            "Dedicated success manager",
+                            "Everything in Standard",
+                            "Custom crop & variety calibration",
+                            "Custom yield prediction models",
+                            "Historical forecast backtesting",
                             "Quarterly strategic reviews",
-                            "Custom integration support",
+                            "Dedicated success manager",
                         ],
                     },
                 ]}
@@ -123,7 +121,7 @@ export default function ForBuyersPage() {
                     {
                         title: "Coverage definition",
                         description:
-                            "We map your sourcing geography — districts, wards, or growing zones — to our satellite-monitored field network. Custom areas of interest are no extra cost.",
+                            "We map your sourcing geography — districts, wards, or growing zones — to our satellite-monitored field network. Custom areas of interest are included in the scope.",
                     },
                     {
                         title: "Multi-index satellite analysis",
@@ -154,11 +152,11 @@ export default function ForBuyersPage() {
                     "Live dashboard accessible to your procurement and operations teams",
                     "District- and zone-level forecasts with confidence intervals",
                     "Weekly automated updates throughout the growing season",
-                    "Monthly written briefings (Tier 2 and above)",
+                    "Monthly written briefings (Standard and above)",
                     "Anomaly alerts when critical regions show stress",
                     "CSV/Excel export for integration with your existing tools",
-                    "API access for direct system integration (Tier 2 and above)",
-                    "Quarterly strategic reviews with our team (Tier 3)",
+                    "API access for direct system integration (Standard and above)",
+                    "Quarterly strategic reviews with our team (Enterprise)",
                 ]}
             />
 
@@ -196,12 +194,12 @@ KurimaSense was built in Harare, calibrated on Zimbabwe ground truth, and tested
                     {
                         question: "How does this integrate with our existing systems?",
                         answer:
-                            "Tier 2 and above includes API access, allowing direct integration with your ERP, procurement, or BI platforms.",
+                            "Standard and above includes API access, allowing direct integration with your ERP, procurement, or BI platforms.",
                     },
                     {
-                        question: "What's the contract structure?",
+                        question: "How are engagements structured and priced?",
                         answer:
-                            "Annual contracts with 50% upfront and 50% at six-month review. No long-term lock-in beyond Year 1.",
+                            "Engagements are annual and scoped to your crops, sourcing geography, and the depth of modelling you need. We'll walk through structure and pricing on a short briefing call — book one and we'll tailor it to you.",
                     },
                 ]}
             />
