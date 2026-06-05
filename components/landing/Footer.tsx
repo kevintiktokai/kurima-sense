@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Mail, Globe } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -43,13 +44,13 @@ export default function Footer() {
                         {/* {{PLACEHOLDER: confirm real contact email — hello@kurimasense.com assumed}} */}
                         <div className="flex gap-3">
                             {[
-                                { icon: 'mail', label: 'Email KurimaSense', href: 'mailto:hello@kurimasense.com' },
-                                { icon: 'public', label: 'KurimaSense website', href: '/' },
-                            ].map((social) => (
+                                { Icon: Mail, label: 'Email KurimaSense', href: 'mailto:hello@kurimasense.com' },
+                                { Icon: Globe, label: 'KurimaSense website', href: '/' },
+                            ].map(({ Icon, label, href }) => (
                                 <Link
-                                    key={social.label}
-                                    href={social.href}
-                                    aria-label={social.label}
+                                    key={label}
+                                    href={href}
+                                    aria-label={label}
                                     className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                                     style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                                     onMouseEnter={(e) => {
@@ -59,7 +60,7 @@ export default function Footer() {
                                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
                                     }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#FFFFFF' }}>{social.icon}</span>
+                                    <Icon size={17} style={{ color: '#FFFFFF' }} aria-hidden />
                                 </Link>
                             ))}
                         </div>

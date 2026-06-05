@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Flag } from 'lucide-react';
 
 /*
  * HONEST PROOF SECTION (replaces fabricated single-initial testimonials).
@@ -36,11 +37,11 @@ export default function Testimonials() {
                             fontFamily: 'var(--font-body)',
                         }}
                     >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-primary)' }}>flag</span>
+                        <Flag size={14} style={{ color: 'var(--ee-primary)' }} aria-hidden />
                         Early Access
                     </span>
                     <h2
-                        className="text-3xl md:text-5xl font-black tracking-tight mb-6"
+                        className="text-3xl md:text-5xl font-medium tracking-tight mb-6"
                         style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                     >
                         Now onboarding pilot farms and partners in Zimbabwe

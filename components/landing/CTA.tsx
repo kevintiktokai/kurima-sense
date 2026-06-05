@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Tractor, CalendarDays } from 'lucide-react';
 
 export default function CTA() {
     return (
@@ -29,14 +30,9 @@ export default function CTA() {
                     />
 
                     <div className="relative z-10">
-                        <span
-                            className="material-symbols-outlined mb-6 block"
-                            style={{ fontSize: '48px', color: 'var(--ee-primary)' }}
-                        >
-                            agriculture
-                        </span>
+                        <Tractor size={44} className="mb-6 mx-auto" style={{ color: 'var(--ee-primary)' }} aria-hidden />
                         <h2
-                            className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6"
+                            className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
                             style={{ color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}
                         >
                             See the methodology.{' '}
@@ -73,7 +69,7 @@ export default function CTA() {
                                         fontFamily: 'var(--font-body)',
                                     }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>calendar_month</span>
+                                    <CalendarDays size={19} aria-hidden />
                                     Request a briefing
                                 </motion.button>
                             </a>
