@@ -64,12 +64,10 @@ export default function HeroArtifact() {
     const reduceMotion = useReducedMotion();
     const [week, setWeek] = useState(SEASON_WEEKS - 1);
 
-    // Calm season cycle. Paused entirely under reduced-motion (shows full season).
+    // Calm season cycle. Paused entirely under reduced-motion — the initial
+    // state already shows the full-season view, so we simply skip the interval.
     useEffect(() => {
-        if (reduceMotion) {
-            setWeek(SEASON_WEEKS - 1);
-            return;
-        }
+        if (reduceMotion) return;
         const id = setInterval(() => {
             setWeek((w) => (w + 1) % SEASON_WEEKS);
         }, 2200);
