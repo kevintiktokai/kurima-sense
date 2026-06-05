@@ -49,7 +49,7 @@ export default function ForBuyersPage() {
                     text: "Download Methodology",
                     href: "/methodology/buyers-methodology.pdf",
                 }}
-                footerNote="Trusted by agricultural businesses sourcing from thousands of smallholder fields."
+                footerNote="Early access — now onboarding agricultural buyers and processors sourcing across Zimbabwe."
             />
 
             <ProblemStatement
