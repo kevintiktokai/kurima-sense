@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Navbar from "@/components/landing/Navbar";
+import { WHATSAPP_BRIEFING_URL } from "@/lib/contact";
 import Footer from "@/components/landing/Footer";
 import InstitutionalHero from "@/components/institutional/InstitutionalHero";
 import ProblemStatement from "@/components/institutional/ProblemStatement";
@@ -35,14 +36,14 @@ export const metadata: Metadata = {
 export default function ForLendersPage() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: "var(--ee-bg)" }}>
-            <Navbar />
+            <Navbar variant="solid" />
 
             <InstitutionalHero
                 headline="Unlock Smallholder Lending Without the Default Risk"
                 subheadline="Field-level credit risk scoring for banks, microfinance institutions, and agricultural finance providers serving Zimbabwe and Southern Africa."
                 primaryCTA={{
                     text: "Schedule Technical Demo",
-                    href: "https://calendly.com/kurimasense/demo",
+                    href: WHATSAPP_BRIEFING_URL,
                 }}
                 secondaryCTA={{
                     text: "Download Methodology",
@@ -213,7 +214,7 @@ KurimaSense's risk model is purpose-built for the specific reality of smallholde
                 heading="Schedule a technical demo"
                 body="For your agribusiness head and risk officers. We'll walk through real field-level risk scoring on borrowers from your geography."
                 ctaText="Book a Demo"
-                ctaHref="https://calendly.com/kurimasense/demo"
+                ctaHref={WHATSAPP_BRIEFING_URL}
             />
 
             <Footer />

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { CalendarDays, ArrowRight } from 'lucide-react';
 import HeroArtifact from './HeroArtifact';
+import { WHATSAPP_BRIEFING_URL } from '@/lib/contact';
 
 export default function Hero() {
     const reduceMotion = useReducedMotion();
@@ -67,7 +68,7 @@ export default function Hero() {
                         </motion.p>
 
                         <motion.div {...fade(0.24)} className="flex flex-col sm:flex-row gap-3.5">
-                            <a href="https://calendly.com/kurimasense/demo" target="_blank" rel="noopener noreferrer">
+                            <a href={WHATSAPP_BRIEFING_URL} target="_blank" rel="noopener noreferrer">
                                 <button
                                     className="w-full sm:w-auto px-7 py-3.5 rounded-full font-semibold text-sm md:text-base flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5"
                                     style={{ backgroundColor: 'var(--ee-primary)', color: '#06140E', fontFamily: 'var(--font-body)' }}

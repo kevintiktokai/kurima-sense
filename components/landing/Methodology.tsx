@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Satellite, Sprout, SlidersHorizontal, CalendarDays, FileText, Database, Lock, GitCompareArrows } from 'lucide-react';
+import { WHATSAPP_BRIEFING_URL } from '@/lib/contact';
 
 const steps = [
     {
@@ -122,7 +123,7 @@ export default function Methodology() {
 
                 {/* CTA */}
                 <motion.div {...reveal()} className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <a href="https://calendly.com/kurimasense/demo" target="_blank" rel="noopener noreferrer">
+                    <a href={WHATSAPP_BRIEFING_URL} target="_blank" rel="noopener noreferrer">
                         <button
                             className="w-full sm:w-auto px-7 py-3.5 rounded-full font-semibold text-sm md:text-base flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5"
                             style={{ backgroundColor: 'var(--ee-primary)', color: '#06140E', fontFamily: 'var(--font-body)' }}
@@ -131,7 +132,7 @@ export default function Methodology() {
                             Request a briefing
                         </button>
                     </a>
-                    <a href="/methodology/buyers-methodology.pdf" target="_blank" rel="noopener noreferrer">
+                    <a href="/methodology/methodology-brief.pdf" target="_blank" rel="noopener noreferrer">
                         <button
                             className="w-full sm:w-auto px-7 py-3.5 rounded-full font-semibold text-sm md:text-base flex items-center justify-center gap-2 transition-colors"
                             style={{ color: '#F4F1ED', border: '1px solid var(--ee-loam-line)', fontFamily: 'var(--font-body)' }}

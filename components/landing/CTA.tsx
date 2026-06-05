@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Tractor, CalendarDays } from 'lucide-react';
+import { WHATSAPP_BRIEFING_URL } from '@/lib/contact';
 
 export default function CTA() {
     return (
@@ -57,7 +58,7 @@ export default function CTA() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            <a href="https://calendly.com/kurimasense/demo" target="_blank" rel="noopener noreferrer">
+                            <a href={WHATSAPP_BRIEFING_URL} target="_blank" rel="noopener noreferrer">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}

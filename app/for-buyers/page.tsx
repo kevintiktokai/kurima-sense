@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Navbar from "@/components/landing/Navbar";
+import { WHATSAPP_BRIEFING_URL } from "@/lib/contact";
 import Footer from "@/components/landing/Footer";
 import InstitutionalHero from "@/components/institutional/InstitutionalHero";
 import ProblemStatement from "@/components/institutional/ProblemStatement";
@@ -35,14 +36,14 @@ export const metadata: Metadata = {
 export default function ForBuyersPage() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: "var(--ee-bg)" }}>
-            <Navbar />
+            <Navbar variant="solid" />
 
             <InstitutionalHero
                 headline="Know Your Harvest Before It Happens"
                 subheadline="Pre-harvest yield intelligence for agricultural buyers, processors, and grain marketers operating across Zimbabwe and Southern Africa."
                 primaryCTA={{
                     text: "Schedule a Demo",
-                    href: "https://calendly.com/kurimasense/demo",
+                    href: WHATSAPP_BRIEFING_URL,
                 }}
                 secondaryCTA={{
                     text: "Download Methodology",
@@ -209,7 +210,7 @@ KurimaSense was built in Harare, calibrated on Zimbabwe ground truth, and tested
                 heading="Schedule a 30-minute demo"
                 body="We'll show you a live yield forecast for one of your active sourcing districts."
                 ctaText="Book a Demo"
-                ctaHref="https://calendly.com/kurimasense/demo"
+                ctaHref={WHATSAPP_BRIEFING_URL}
             />
 
             <Footer />

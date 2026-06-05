@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Navbar from "@/components/landing/Navbar";
+import { WHATSAPP_BRIEFING_URL } from "@/lib/contact";
 import Footer from "@/components/landing/Footer";
 import InstitutionalHero from "@/components/institutional/InstitutionalHero";
 import ProblemStatement from "@/components/institutional/ProblemStatement";
@@ -34,14 +35,14 @@ export const metadata: Metadata = {
 export default function ForInsurersPage() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: "var(--ee-bg)" }}>
-            <Navbar />
+            <Navbar variant="solid" />
 
             <InstitutionalHero
                 headline="Insurance That Pays Out Before the Farmer Asks"
                 subheadline="Satellite-backed parametric crop insurance infrastructure for insurers, reinsurers, and donor-funded index insurance programs."
                 primaryCTA={{
                     text: "Schedule Demo",
-                    href: "https://calendly.com/kurimasense/demo",
+                    href: WHATSAPP_BRIEFING_URL,
                 }}
                 secondaryCTA={{
                     text: "Download Methodology",
@@ -175,7 +176,7 @@ export default function ForInsurersPage() {
                 heading="Schedule a conversation"
                 body="Bring your actuarial and product leads — we'll show you index performance for a region of your choosing."
                 ctaText="Book a Conversation"
-                ctaHref="https://calendly.com/kurimasense/demo"
+                ctaHref={WHATSAPP_BRIEFING_URL}
             />
 
             <Footer />

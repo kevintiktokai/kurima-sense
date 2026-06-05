@@ -15,7 +15,7 @@ import Footer from '@/components/landing/Footer';
 export default function LandingPage() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: 'var(--ee-bg)' }}>
-            <Navbar />
+            <Navbar variant="transparent" />
             {/* Option A — institution-led spine:
                 Hero → credibility strip → moat → institutional offerings →
                 methodology/trust → farmer data layer → proof → blog → split CTA */}
