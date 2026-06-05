@@ -17,7 +17,9 @@ const fraunces = Fraunces({
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  // Only the weights the codebase actually uses (verified via grep).
+  // 300 has 1 inline use; 800 has none; 900 is used by 89 font-black classes.
+  weight: ["400", "500", "600", "700", "900"],
   display: "swap",
 });
 
