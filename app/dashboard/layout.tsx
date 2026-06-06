@@ -10,6 +10,7 @@ import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import MarketTicker from '@/components/dashboard/MarketTicker';
 import MobileNav from '@/components/dashboard/MobileNav';
+import { RoleGuard } from '@/components/auth/RoleGuard';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading } = useAuth();
@@ -75,12 +76,17 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <UserProfileProvider>
-            <TutorialProvider>
-                <DashboardDataProvider>
-                    <DashboardContent>{children}</DashboardContent>
-                </DashboardDataProvider>
-            </TutorialProvider>
-        </UserProfileProvider>
+        // Role boundary: consumers (and admins, for now) get the dashboard;
+        // institutional users are redirected to their portfolio shell. Wrapping the
+        // layout only — no consumer page content is modified.
+        <RoleGuard allowedRoles={['consumer', 'admin']} redirectTo="/portfolio/today">
+            <UserProfileProvider>
+                <TutorialProvider>
+                    <DashboardDataProvider>
+                        <DashboardContent>{children}</DashboardContent>
+                    </DashboardDataProvider>
+                </TutorialProvider>
+            </UserProfileProvider>
+        </RoleGuard>
     );
 }
