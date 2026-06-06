@@ -37,9 +37,19 @@ fallback to pre-refactor logic. This is a *removal* pass; lines should net reduc
 - Banner above any item where `contextualized_to_current_conditions === false` or a high-severity `fs.alerts[]` exists.
 - `ActivityLog.tsx`: `/ai/tasks*` is a distinct concern (manual task log) — left as-is.
 
-## Weather — `app/dashboard/weather/page.tsx`
-- Current weather → `fs.weather.current`; water balance → `fs.water_balance`; GDD → `fs.growing_degree_days`.
-- Spray windows / alerts / historical have no aggregator equivalent — kept on `/climate/*` (see Findings).
+## Weather — `app/dashboard/weather/page.tsx`  — **NOT rewired (finding, not fixed)**
+The aggregator's `weather` / `water_balance` / `growing_degree_days` are a strict
+**subset** of what this screen renders, in a different shape. Rewiring to `fs`
+today would *regress* the screen, so it is intentionally left on `/climate/*`:
+- No `hourly` series (the 24h temperature/precip chart), no `weather_code`
+  (every weather icon), no `feels_like`.
+- `growing_degree_days` has no `daily_breakdown` (the cumulative GDD chart).
+- `weather.next_5_days` is 5 days; the screen shows 7.
+- spray windows / alerts / historical have no aggregator field at all.
+
+Extending the aggregator to a superset (hourly, weather_code, GDD breakdown,
+7-day, spray/alerts) is a **backend follow-up**; until then this screen stays on
+the climate API rather than silently dropping data.
 
 ## Dead-code / local interpretation tables to remove
 - `cropThresholds` — only `app/fields/[id]/page.tsx` (production). **Delete.**
