@@ -1,5 +1,19 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Role-based routing
+
+Users are routed by their backend role (`GET /me/role`):
+
+- **consumer / admin** → the existing `/dashboard/*` experience (unchanged).
+- **institutional** → the `/portfolio/*` shell (Today / Fields / Growers / Alerts / Reports).
+
+The single source of truth is the `useUserRole()` hook (`hooks/useUserRole.ts`,
+SWR-cached per session). `RoleGuard` (`components/auth/RoleGuard.tsx`) wraps each
+layout and redirects out-of-role users with `router.replace`, defaulting to the
+consumer view if the role lookup fails. The pure decision lives in
+`components/auth/roleAccess.ts` (`decideAccess`) and is unit-tested in
+`tests/role-routing.test.ts`. See `docs/role_routing_audit.md` for the design.
+
 ## Getting Started
 
 First, run the development server:
