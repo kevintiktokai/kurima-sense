@@ -185,6 +185,11 @@ export const api = {
             throw e;
         }
     },
+    /**
+     * @deprecated Superseded by the Field State Aggregator. Consumer screens read
+     * the KurimaScore trend from `useFieldState(id).indices.trend_30d` instead.
+     * No longer called by any screen; kept only for transitional callers.
+     */
     async getFieldHistory(fieldId: string) {
         try {
             const headers = await getAuthHeaders();
@@ -233,6 +238,13 @@ export const api = {
         }
     },
 
+    /**
+     * @deprecated For field *display* values (projected/potential yield, confidence)
+     * use `useFieldState(id).yield_projection`, which bands confidence and shares one
+     * source of truth. Still used to generate the AI Smart Crop Plan steps
+     * (full_plan / next_actions), which have no aggregator equivalent yet — see
+     * docs/aggregator_cleanup_audit.md, Findings.
+     */
     async generateYieldProjection(fieldId: string) {
         const cacheKey = `yield_${fieldId}`;
         const cached = getCached(cacheKey);

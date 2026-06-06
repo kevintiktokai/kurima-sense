@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/services/api';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
+import { useFieldState } from '@/hooks/useFieldState';
 import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
 import type { MapMode } from './MapComponent';
@@ -131,13 +132,6 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 setPanelOpen(false);
             }
         }
-    };
-
-    // Health status config
-    const healthConfig: Record<string, { color: string; label: string }> = {
-        Excellent: { color: 'var(--ee-primary)', label: 'Healthy' },
-        Good: { color: 'var(--ee-sun)', label: 'Fair' },
-        Critical: { color: '#E05C5C', label: 'Needs Attention' },
     };
 
     // Close panel when entering draw/GPS mode
@@ -301,7 +295,6 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         key={field.id}
                                         field={field}
                                         isSelected={highlightedFieldId === field.id}
-                                        healthConfig={healthConfig}
                                         showDeleteConfirm={showDeleteConfirm}
                                         deletingFieldId={deletingFieldId}
                                         onCardClick={handleFieldCardClick}
@@ -380,7 +373,6 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                             key={field.id}
                                             field={field}
                                             isSelected={highlightedFieldId === field.id}
-                                            healthConfig={healthConfig}
                                             showDeleteConfirm={showDeleteConfirm}
                                             deletingFieldId={deletingFieldId}
                                             onCardClick={handleFieldCardClick}
@@ -704,7 +696,6 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 interface FieldCardProps {
     field: FieldData;
     isSelected: boolean;
-    healthConfig: Record<string, { color: string; label: string }>;
     showDeleteConfirm: string | null;
     deletingFieldId: string | null;
     onCardClick: (field: FieldData) => void;
@@ -717,7 +708,6 @@ interface FieldCardProps {
 const FieldCard: React.FC<FieldCardProps> = ({
     field,
     isSelected,
-    healthConfig,
     showDeleteConfirm,
     deletingFieldId,
     onCardClick,
@@ -726,7 +716,13 @@ const FieldCard: React.FC<FieldCardProps> = ({
     onDeleteCancel,
     onAnalyze,
 }) => {
-    const health = healthConfig[field.healthStatus] || healthConfig.Good;
+    // Health, NDVI and moisture come from the aggregator (single source of truth);
+    // no legacy field.healthStatus / field.ndvi threshold mapping.
+    const { fieldState: fs } = useFieldState(field.id);
+    const ks = fs?.kurima_score;
+    const health = ks ? { color: ks.color, label: ks.label } : { color: 'rgba(255,255,255,0.35)', label: '…' };
+    const ndviText = fs?.indices?.current?.ndvi != null ? fs.indices.current.ndvi.toFixed(2) : '—';
+    const moistureText = fs?.water_balance?.soil_moisture_pct != null ? `${Math.round(fs.water_balance.soil_moisture_pct)}%` : '—';
 
     return (
         <div
@@ -814,11 +810,11 @@ const FieldCard: React.FC<FieldCardProps> = ({
             <div className="flex gap-3 mb-3">
                 <div className="flex-1 rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
                     <p className="text-[9px] font-bold uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>NDVI</p>
-                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{field.ndvi.toFixed(2)}</span>
+                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{ndviText}</span>
                 </div>
                 <div className="flex-1 rounded-lg px-3 py-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
                     <p className="text-[9px] font-bold uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)' }}>Moisture</p>
-                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{field.soilMoisture}%</span>
+                    <span className="text-base font-black text-white" style={{ fontFamily: 'var(--font-heading)' }}>{moistureText}</span>
                 </div>
             </div>
 

@@ -183,6 +183,19 @@ export interface FieldState {
 // Confidence is ALWAYS shown as a band, with the integer pct as secondary detail.
 // This helper is the single place confidence becomes display text — it can never
 // produce "0.6%".
+// KurimaScore band → (label, hex colour). Mirrors classifiers.SCORE_BANDS on the
+// backend so any client computing an aggregate score (e.g. AVG KurimaScore) uses
+// the exact same vocabulary as a single field's detail page.
+export function scoreToLabel(score: number): { label: string; color: string } {
+    const s = Math.max(0, Math.min(100, Math.round(score)))
+    if (s >= 85) return { label: 'Thriving', color: '#2E7D32' }
+    if (s >= 70) return { label: 'Strong', color: '#66BB6A' }
+    if (s >= 55) return { label: 'Adequate', color: '#FBC02D' }
+    if (s >= 40) return { label: 'Stressed', color: '#F57C00' }
+    if (s >= 25) return { label: 'Distressed', color: '#D84315' }
+    return { label: 'Critical', color: '#B71C1C' }
+}
+
 // Convert a legacy 0-1 confidence fraction into a (band, integer pct) pair —
 // the client-side mirror of classifiers.confidence_from_fraction. Use this
 // anywhere a raw fraction would otherwise be rendered as "0.6%".
