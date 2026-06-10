@@ -132,8 +132,10 @@ test('useUserRole hits /me/role and defaults role to null', () => {
     assert.match(USER_ROLE_HOOK, /role:\s*data\?\.role\s*\?\?\s*null/)
 })
 
-test('each portfolio page renders a header + empty-state cards', () => {
-    for (const page of ['today', 'fields', 'growers', 'alerts', 'reports']) {
+test('each placeholder portfolio page renders a header + empty-state cards', () => {
+    // 'today' graduated from placeholder to the real screen in MVP PR 3
+    // (see tests/portfolio-today.test.ts); the rest are still placeholders.
+    for (const page of ['fields', 'growers', 'alerts', 'reports']) {
         const src = readFileSync(`app/portfolio/${page}/page.tsx`, 'utf8')
         assert.match(src, /PortfolioPageHeader/, `${page} has a page header`)
         assert.match(src, /EmptyStateCard/, `${page} has empty-state cards`)
