@@ -14,6 +14,24 @@ consumer view if the role lookup fails. The pure decision lives in
 `components/auth/roleAccess.ts` (`decideAccess`) and is unit-tested in
 `tests/role-routing.test.ts`. See `docs/role_routing_audit.md` for the design.
 
+## Portfolio Today screen
+
+`/portfolio/today` is the institutional attention-allocation surface: portfolio
+pulse (average KurimaScore + score-band distribution bar), an attention banner,
+and a worst-first "Where to focus" priority list grouped by urgency. Single data
+source: `GET /portfolio/aggregate` via `usePortfolioAggregate()`
+(`hooks/usePortfolioAggregate.ts`, SWR — revalidates on focus, 30s dedupe).
+Pure presentation helpers live in `lib/portfolio-utils.ts` and are unit-tested
+in `tests/portfolio-today.test.ts`. The screen renders calmly in three data
+states: all-awaiting (no satellite observations yet), mixed, and fully
+populated.
+
+Tapping a priority row opens the institutional field detail at
+`/portfolio/fields/{id}` — a focused view (grower context, score + band, trend,
+alerts, recommended action) that reuses `useFieldState()` inside the portfolio
+shell. See `docs/portfolio_today_audit.md` for the pre-build audit and why the
+consumer field page was not extracted.
+
 ## Getting Started
 
 First, run the development server:
