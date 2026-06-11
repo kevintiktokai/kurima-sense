@@ -217,7 +217,8 @@ test('hook: SWR options per spec (focus revalidate, 30s dedupe)', () => {
 })
 
 test('priority rows link to the institutional field detail route', () => {
-    assert.match(cardSrc, /\/portfolio\/fields\/\$\{p\.field_id\}/)
+    // Routing now goes through the shared nav-links helper (PR B).
+    assert.match(cardSrc, /routeForField\(p\.field_id, 'portfolio'\)/)
 })
 
 test('client never re-sorts the backend priority order', () => {
@@ -235,6 +236,7 @@ test('no emojis in the new UI', () => {
 
 test('field detail shows grower context and links back to Today', () => {
     assert.match(detailSrc, /grower_name/)
-    assert.match(detailSrc, /\/portfolio\/today/)
+    // Back target now defaults to Today via the shared nav-links helper (PR B).
+    assert.match(detailSrc, /BACK_DEFAULTS\.portfolioField/)
     assert.match(detailSrc, /useFieldState/)
 })

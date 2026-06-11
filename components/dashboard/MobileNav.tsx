@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { isTabActive } from '@/lib/nav-links';
 
 const MobileNav: React.FC = () => {
     const pathname = usePathname();
@@ -16,11 +17,11 @@ const MobileNav: React.FC = () => {
         { id: 'fields', href: '/dashboard/fields', icon: 'grass', label: 'Fields' },
     ];
 
-    const isActive = (path: string) => {
-        if (path === '/dashboard' && pathname === '/dashboard') return true;
-        if (path !== '/dashboard' && pathname?.startsWith(path)) return true;
-        return false;
-    };
+    // Dashboard root matches exactly; every other tab matches itself or a
+    // sub-route (prefix) via the shared helper, so detail pages light up their
+    // parent tab.
+    const isActive = (path: string) =>
+        path === '/dashboard' ? pathname === '/dashboard' : isTabActive(pathname, path);
 
     return (
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pt-2 safe-pb safe-x">

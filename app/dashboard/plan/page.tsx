@@ -6,6 +6,8 @@ import CropPlan from '@/components/dashboard/CropPlan';
 import { ActivityLog } from '@/components/dashboard/ActivityLog';
 import { FieldData } from '@/components/dashboard/types';
 import { PageContainer } from '@/components/layout/PageContainer';
+import Link from 'next/link';
+import { routeForField, withFrom } from '@/lib/nav-links';
 
 export default function PlanPage() {
     const { fields, loading } = useDashboardData();
@@ -136,6 +138,20 @@ export default function PlanPage() {
                     </div>
                 )}
             </div>
+
+            {/* This plan is scoped to the selected field — link through to it.
+                (Plan/activity items carry no per-item field_id; see
+                docs/navigation_audit.md.) */}
+            {selectedField?.id && (
+                <Link
+                    href={withFrom(routeForField(selectedField.id, 'consumer'), 'Plan', '/dashboard/plan')}
+                    className="inline-flex items-center gap-1 mb-4 text-sm font-bold"
+                    style={{ color: 'var(--ee-muted)' }}
+                >
+                    View {selectedField.name || 'field'} detail
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+                </Link>
+            )}
 
             {/* Plan Display */}
             <div

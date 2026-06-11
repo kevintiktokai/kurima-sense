@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '@/services/api';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import { useMultiFieldState } from '@/hooks/useMultiFieldState';
 import { scoreToLabel } from '@/lib/field-state-types';
+import { routeForField, withFrom } from '@/lib/nav-links';
 import { RiskRadar, RiskItem, AIInsightCard, ActionQueue, ActionItem, AIInsight, YieldConfidenceChart, GrowthStageTracker } from '@/components/ai';
 import { DashboardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
@@ -332,13 +334,22 @@ const Overview: React.FC = () => {
                                     <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                                         <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${avgKurimaScore || 0}%`, backgroundColor: avgScoreMeta?.color || 'var(--ee-primary)' }}></div>
                                     </div>
-                                    <p className="text-[10px] mt-1 opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
-                                        {avgKurimaScore == null
-                                            ? 'No data'
-                                            : (avgKurimaScore < 55 && worstField?.kurima_score?.recommended_action)
-                                                ? worstField.kurima_score.recommended_action
+                                    {(avgKurimaScore != null && avgKurimaScore < 55 && worstField?.kurima_score?.recommended_action && worstField.field?.id) ? (
+                                        <Link
+                                            href={withFrom(routeForField(worstField.field.id, 'consumer'), 'Overview', '/dashboard')}
+                                            className="text-[10px] mt-1 opacity-70 hover:opacity-100 transition-opacity inline-flex items-start gap-1"
+                                            style={{ fontFamily: 'var(--font-body)' }}
+                                        >
+                                            {worstField.kurima_score.recommended_action}
+                                            <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 12, marginTop: 1 }}>arrow_forward</span>
+                                        </Link>
+                                    ) : (
+                                        <p className="text-[10px] mt-1 opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
+                                            {avgKurimaScore == null
+                                                ? 'No data'
                                                 : `${avgScoreMeta?.label} across ${fieldStates.length} field${fieldStates.length === 1 ? '' : 's'}`}
-                                    </p>
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
@@ -353,6 +364,14 @@ const Overview: React.FC = () => {
                                     </p>
                                 </div>
                             </div>
+                            <Link
+                                href="/dashboard/fields"
+                                className="mt-5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition-opacity"
+                                style={{ fontFamily: 'var(--font-body)' }}
+                            >
+                                View all fields
+                                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>arrow_forward</span>
+                            </Link>
                         </div>
                         <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[50px] pointer-events-none -mr-8 -mt-8" style={{ backgroundColor: 'var(--ee-primary)', opacity: 0.1 }}></div>
                     </div>

@@ -19,7 +19,7 @@
  */
 
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import {
     Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine,
     ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -27,24 +27,27 @@ import {
 import { useFieldState } from '@/hooks/useFieldState'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import { humanizeCrop, stripDemoPrefix } from '@/lib/portfolio-utils'
+import { parseFrom, routeForGrower, withFrom, BACK_DEFAULTS, type FromContext } from '@/lib/nav-links'
 import { PageContainer } from '@/components/layout/PageContainer'
 
-function BackLink() {
+function BackLink({ back }: { back: FromContext }) {
     return (
         <Link
-            href="/portfolio/today"
+            href={back.href}
             className="inline-flex items-center gap-1.5 text-sm font-bold mb-5 rounded-full"
             style={{ color: 'var(--ee-muted)' }}
         >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
-            Back to Today
+            Back to {back.label}
         </Link>
     )
 }
 
 export default function InstitutionalFieldDetailPage() {
     const params = useParams()
+    const searchParams = useSearchParams()
     const fieldId = params.id as string
+    const back = parseFrom(searchParams, BACK_DEFAULTS.portfolioField)
 
     const { fieldState: fs, isLoading, error, refresh } = useFieldState(fieldId)
     // Grower context from the portfolio aggregate (SWR-cached from the Today
@@ -55,7 +58,7 @@ export default function InstitutionalFieldDetailPage() {
     if (isLoading || (!fs && !error)) {
         return (
             <div className="max-w-[800px] mx-auto" aria-busy="true">
-                <BackLink />
+                <BackLink back={back} />
                 <div className="space-y-4">
                     {[0, 1, 2].map((i) => (
                         <div key={i} className="animate-pulse h-36"
@@ -69,7 +72,7 @@ export default function InstitutionalFieldDetailPage() {
     if (error || !fs) {
         return (
             <div className="max-w-[800px] mx-auto">
-                <BackLink />
+                <BackLink back={back} />
                 <div className="p-8 text-center"
                     style={{ background: 'var(--ee-surface)', borderRadius: '24px', boxShadow: 'var(--shadow-neu)' }}>
                     <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>cloud_off</span>
@@ -110,16 +113,32 @@ export default function InstitutionalFieldDetailPage() {
 
     return (
         <PageContainer variant="wide" className="pb-8">
-            <BackLink />
+            <BackLink back={back} />
 
-            {/* Grower context header — an offtaker thinks in growers, not field IDs */}
+            {/* Grower context header — an offtaker thinks in growers, not field IDs.
+                The grower name links through to the grower's detail page. */}
             <div className="mb-6">
-                <h1
-                    className="text-2xl lg:text-3xl font-black tracking-tight"
-                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                >
-                    {priority?.grower_name || fieldName}
-                </h1>
+                {priority?.grower_id ? (
+                    <Link
+                        href={withFrom(routeForGrower(priority.grower_id), 'Field', `/portfolio/fields/${fieldId}`)}
+                        className="group inline-flex items-center gap-1.5"
+                    >
+                        <h1
+                            className="text-2xl lg:text-3xl font-black tracking-tight group-hover:underline"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                        >
+                            {priority.grower_name || fieldName}
+                        </h1>
+                        <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--ee-muted)' }}>chevron_right</span>
+                    </Link>
+                ) : (
+                    <h1
+                        className="text-2xl lg:text-3xl font-black tracking-tight"
+                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                    >
+                        {priority?.grower_name || fieldName}
+                    </h1>
+                )}
                 <p className="mt-1 font-medium" style={{ color: 'var(--ee-muted)' }}>
                     {priority?.grower_name ? `${fieldName} · ` : ''}{metaLine}
                 </p>

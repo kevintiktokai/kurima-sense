@@ -11,27 +11,31 @@
  */
 
 import { useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useGrower, updateGrower, deleteGrower, refreshGrowerData } from '@/hooks/useGrowers'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import { mergeGrowerStats, sortFields, type GrowerPayload } from '@/lib/portfolio-utils'
+import { parseFrom, routeForGrower, BACK_DEFAULTS, type FromContext } from '@/lib/nav-links'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
 import { GrowerForm } from '@/components/portfolio/GrowerForm'
 import { PageContainer } from '@/components/layout/PageContainer'
 
-function BackLink() {
+function BackLink({ back }: { back: FromContext }) {
     return (
-        <a href="/portfolio/growers" className="inline-flex items-center gap-1.5 text-sm font-bold mb-5 rounded-full" style={{ color: 'var(--ee-muted)' }}>
+        <Link href={back.href} className="inline-flex items-center gap-1.5 text-sm font-bold mb-5 rounded-full" style={{ color: 'var(--ee-muted)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
-            Back to Growers
-        </a>
+            Back to {back.label}
+        </Link>
     )
 }
 
 export default function GrowerDetailPage() {
     const params = useParams()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const growerId = params.id as string
+    const back = parseFrom(searchParams, BACK_DEFAULTS.grower)
 
     const { grower, isLoading, error, refresh } = useGrower(growerId)
     const { data: aggregate } = usePortfolioAggregate()
@@ -74,7 +78,7 @@ export default function GrowerDetailPage() {
     if (isLoading || (!grower && !error)) {
         return (
             <div className="max-w-[800px] mx-auto" aria-busy="true">
-                <BackLink />
+                <BackLink back={back} />
                 <div className="space-y-4">
                     {[0, 1, 2].map((i) => (
                         <div key={i} className="animate-pulse h-28"
@@ -88,7 +92,7 @@ export default function GrowerDetailPage() {
     if (error || !grower) {
         return (
             <div className="max-w-[800px] mx-auto">
-                <BackLink />
+                <BackLink back={back} />
                 <div className="p-8 text-center" style={{ background: 'var(--ee-surface)', borderRadius: '24px', boxShadow: 'var(--shadow-neu)' }}>
                     <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>person_off</span>
                     <p className="font-black text-lg" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
@@ -107,7 +111,7 @@ export default function GrowerDetailPage() {
 
     return (
         <PageContainer variant="reading" className="pb-8">
-            <BackLink />
+            <BackLink back={back} />
 
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-5">
@@ -168,7 +172,14 @@ export default function GrowerDetailPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {fields.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="roster" />)}
+                    {fields.map((p) => (
+                        <FieldRowCard
+                            key={p.field_id}
+                            priority={p}
+                            variant="roster"
+                            from={{ label: grower.name, href: routeForGrower(growerId) }}
+                        />
+                    ))}
                 </div>
             )}
 

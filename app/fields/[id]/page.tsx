@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/services/api';
+import { parseFrom, BACK_DEFAULTS } from '@/lib/nav-links';
 import { FieldData, ScoutingPin, ScoutingCategory, ScoutingSeverity } from '@/components/dashboard/types';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, ReferenceArea } from 'recharts';
 import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
@@ -29,7 +31,10 @@ const SEVERITY_LEVELS: { value: ScoutingSeverity; label: string; color: string }
 export default function FieldInsightsPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const fieldId = params.id as string;
+    // Contextual, deep-link-safe back target (an explicit href, not history-back).
+    const back = parseFrom(searchParams, BACK_DEFAULTS.consumerField);
 
     // Canonical field state from the aggregator — the SINGLE source of truth for
     // this page. Every display value, label and the trend chart read from `fs`.
@@ -217,13 +222,15 @@ export default function FieldInsightsPage() {
             {/* Header / Nav */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
+                    <Link
+                        href={back.href}
+                        title={`Back to ${back.label}`}
+                        aria-label={`Back to ${back.label}`}
                         className="w-12 h-12 neu-surface rounded-full flex items-center justify-center hover:scale-105 transition-transform"
                         style={{ background: 'var(--ee-surface)', color: 'var(--ee-muted)' }}
                     >
                         <span className="material-symbols-outlined">arrow_back</span>
-                    </button>
+                    </Link>
                     <div>
                         <h1
                             className="text-3xl lg:text-4xl font-black tracking-tight"
