@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import {
     filterFields, sortFields, deriveFilterOptions, isFilterActive, debounce,
@@ -24,6 +25,17 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { FieldsControls } from '@/components/portfolio/FieldsControls'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
+
+// MapLibre touches `window` at import time → client-only, no SSR.
+const PortfolioMap = dynamic(() => import('@/components/portfolio/PortfolioMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[60vh] min-h-[420px] rounded-[20px] animate-pulse"
+            style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }} />
+    ),
+})
+
+type FieldsView = 'list' | 'map'
 
 // ─── Shared state cards (same patterns as Today; kept self-contained) ─────────
 
@@ -96,6 +108,8 @@ export default function PortfolioFieldsPage() {
     const [searchInput, setSearchInput] = useState('')
     const [filter, setFilter] = useState<FieldsFilter>(DEFAULT_FIELDS_FILTER)
     const [sort, setSort] = useState<FieldsSort>(DEFAULT_FIELDS_SORT)
+    // View choice lives in component state only (no URL param, no storage).
+    const [view, setView] = useState<FieldsView>('list')
 
     // Debounce the search text into the filter (~250ms) using the shared util.
     const debouncedSetSearch = useMemo(
@@ -127,7 +141,7 @@ export default function PortfolioFieldsPage() {
     const anyActive = isFilterActive(filter)
 
     return (
-        <PageContainer variant="reading">
+        <PageContainer variant={view === 'map' ? 'wide' : 'reading'}>
             {/* Header */}
             <div className="mb-5 lg:mb-6">
                 <h1 className="text-3xl lg:text-4xl font-black tracking-tight"
@@ -166,11 +180,42 @@ export default function PortfolioFieldsPage() {
                         anyActive={anyActive}
                     />
 
-                    <p className="text-xs font-bold px-1" style={{ color: 'var(--ee-muted)' }}>
-                        Showing {visible.length} of {data.summary.total_fields} fields
-                    </p>
+                    <div className="flex items-center justify-between gap-3 px-1">
+                        <p className="text-xs font-bold" style={{ color: 'var(--ee-muted)' }}>
+                            Showing {visible.length} of {data.summary.total_fields} fields
+                        </p>
+                        {/* List | Map segmented toggle — preserves filters across views. */}
+                        <div className="flex p-0.5 rounded-full flex-shrink-0"
+                            style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }}>
+                            {(['list', 'map'] as FieldsView[]).map((v) => (
+                                <button
+                                    key={v}
+                                    onClick={() => setView(v)}
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-colors"
+                                    style={view === v
+                                        ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                        : { background: 'transparent', color: 'var(--ee-muted)' }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                                        {v === 'list' ? 'view_list' : 'map'}
+                                    </span>
+                                    <span className="capitalize">{v}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                    {visible.length === 0 ? (
+                    {view === 'map' ? (
+                        <div className="relative h-[60vh] min-h-[420px] lg:h-[68vh]">
+                            <PortfolioMap priorities={visible} />
+                            {visible.length === 0 && (
+                                <div className="absolute inset-0 flex items-center justify-center rounded-[20px]"
+                                    style={{ background: 'rgba(244,241,237,0.65)' }}>
+                                    <EmptyFilterState onClear={clearAll} />
+                                </div>
+                            )}
+                        </div>
+                    ) : visible.length === 0 ? (
                         <EmptyFilterState onClear={clearAll} />
                     ) : (
                         <div className="space-y-3">
