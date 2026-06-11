@@ -33,7 +33,7 @@ export default function FieldInsightsPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const fieldId = params.id as string;
-    // Contextual, deep-link-safe back target (never bare router.back()).
+    // Contextual, deep-link-safe back target (an explicit href, not history-back).
     const back = parseFrom(searchParams, BACK_DEFAULTS.consumerField);
 
     // Canonical field state from the aggregator — the SINGLE source of truth for
