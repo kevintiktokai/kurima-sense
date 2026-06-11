@@ -5,6 +5,7 @@ import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import CropPlan from '@/components/dashboard/CropPlan';
 import { ActivityLog } from '@/components/dashboard/ActivityLog';
 import { FieldData } from '@/components/dashboard/types';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 export default function PlanPage() {
     const { fields, loading } = useDashboardData();
@@ -57,6 +58,7 @@ export default function PlanPage() {
             className="p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto"
             style={{ background: 'var(--ee-bg)' }}
         >
+            <PageContainer variant="wide">
             <h1
                 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-5 sm:mb-8 tracking-tight"
                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
@@ -160,6 +162,7 @@ export default function PlanPage() {
                     }}
                 />
             </div>
+            </PageContainer>
         </div>
     );
 }

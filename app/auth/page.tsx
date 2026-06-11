@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FullTermsDisclaimer } from '@/components/legal/DisclaimerBanner'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function AuthPage() {
     const [isSignUp, setIsSignUp] = useState(false)
@@ -121,6 +122,7 @@ export default function AuthPage() {
                 <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#2D3A26]/10 rounded-full blur-[100px]" />
             </div>
 
+            <PageContainer variant="reading" className="relative z-10 flex justify-center">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -276,6 +278,7 @@ export default function AuthPage() {
                     <a href="/privacy" className="underline hover:text-[#2D3A26]">Privacy Policy</a>
                 </p>
             </motion.div>
+            </PageContainer>
         </div>
     )
 }
