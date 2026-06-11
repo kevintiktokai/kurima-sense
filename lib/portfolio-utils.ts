@@ -63,6 +63,11 @@ export interface PortfolioPriority {
     days_since_observation: number | null
     planting_date: string | null
     days_since_planting: number | null
+    // Geometry + latest raw indices (Depth Sprint PR C backend) — for the map view.
+    polygon_coordinates?: Array<{ lat: number; lon: number }> | null
+    centroid?: { lat: number; lon: number } | null
+    latest_ndvi?: number | null
+    latest_soil_moisture?: number | null
 }
 
 export interface PortfolioAggregate {
