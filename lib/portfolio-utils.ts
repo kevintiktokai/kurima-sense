@@ -583,3 +583,88 @@ export function buildGrowerPayload(values: GrowerFormValues): GrowerPayload {
     if (notes) payload.notes = notes
     return payload
 }
+
+// ---------------------------------------------------------------------------
+// Alerts — derivation (pure, for /portfolio/alerts)
+// ---------------------------------------------------------------------------
+
+/** A scored field is "stale" once its newest observation is older than this. */
+export const STALE_OBSERVATION_DAYS = 7
+
+export interface DerivedAlerts {
+    /** Field-health alerts: critical then high urgency, score ascending. */
+    health: PortfolioPriority[]
+    /** Fields with no observation yet (null score). */
+    awaiting: PortfolioPriority[]
+    /** Scored fields whose newest observation is stale (or of unknown age). */
+    stale: PortfolioPriority[]
+}
+
+// Order health alerts: critical (0) before high (1), then lowest score first,
+// then larger fields, then field_id — fully deterministic.
+const _HEALTH_URGENCY_RANK: Record<string, number> = { critical: 0, high: 1 }
+
+function _compareHealth(a: PortfolioPriority, b: PortfolioPriority): number {
+    const ra = _HEALTH_URGENCY_RANK[a.urgency] ?? 9
+    const rb = _HEALTH_URGENCY_RANK[b.urgency] ?? 9
+    if (ra !== rb) return ra - rb
+    const sa = a.kurima_score ?? Number.POSITIVE_INFINITY
+    const sb = b.kurima_score ?? Number.POSITIVE_INFINITY
+    if (sa !== sb) return sa - sb
+    if (a.size_hectares !== b.size_hectares) return b.size_hectares - a.size_hectares
+    return a.field_id.localeCompare(b.field_id)
+}
+
+// Deterministic order for the data lists: larger fields first, then field_id.
+function _compareData(a: PortfolioPriority, b: PortfolioPriority): number {
+    if (a.size_hectares !== b.size_hectares) return b.size_hectares - a.size_hectares
+    return a.field_id.localeCompare(b.field_id)
+}
+
+/** True when a *scored* field's newest observation is stale (or of unknown age). */
+export function isStale(p: PortfolioPriority): boolean {
+    if (p.kurima_score == null) return false // null score → awaiting, not stale
+    return p.days_since_observation == null || p.days_since_observation > STALE_OBSERVATION_DAYS
+}
+
+/**
+ * Partition the portfolio into alert buckets. Each field lands in **at most
+ * one** list; health takes precedence over stale (a critical field with old
+ * data is a health alert — its staleness is shown in the row meta, not
+ * duplicated into Data). `awaiting` (null score) and `stale` (scored but old)
+ * are mutually exclusive by definition. Pure — never mutates its input.
+ */
+export function deriveAlerts(priorities: PortfolioPriority[]): DerivedAlerts {
+    const health: PortfolioPriority[] = []
+    const awaiting: PortfolioPriority[] = []
+    const stale: PortfolioPriority[] = []
+
+    for (const p of priorities) {
+        if (p.urgency === 'critical' || p.urgency === 'high') {
+            health.push(p)            // health precedence — never also data
+        } else if (p.kurima_score == null) {
+            awaiting.push(p)
+        } else if (isStale(p)) {
+            stale.push(p)
+        }
+    }
+
+    return {
+        health: [...health].sort(_compareHealth),
+        awaiting: [...awaiting].sort(_compareData),
+        stale: [...stale].sort(_compareData),
+    }
+}
+
+export interface AlertCounts {
+    health: number
+    data: number
+    total: number
+}
+
+/** Counts for the header: health, data (awaiting + stale), and total. */
+export function alertCounts(derived: DerivedAlerts): AlertCounts {
+    const health = derived.health.length
+    const data = derived.awaiting.length + derived.stale.length
+    return { health, data, total: health + data }
+}
