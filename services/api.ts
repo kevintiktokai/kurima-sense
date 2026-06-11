@@ -14,7 +14,7 @@ export const api = {
             if (session?.user) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('full_name, phone_number, role')
+                    .select('full_name, phone_number, role, persona')
                     .eq('id', session.user.id)
                     .single();
 
@@ -23,7 +23,7 @@ export const api = {
                         name: profile.full_name || 'User',
                         email: session.user.email || '',
                         region: 'Zimbabwe',
-                        role: profile.role || 'Farmer',
+                        role: profile.persona || profile.role || 'Farmer',
                         crops: ['Maize']
                     };
                 }

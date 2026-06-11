@@ -9,6 +9,7 @@ export interface UserProfile {
     full_name: string | null
     phone_number: string | null
     role: string | null
+    persona: string | null
     preferred_language: string | null
     whatsapp_notifications: boolean
     has_seen_tutorial: boolean
@@ -85,6 +86,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
                     full_name: data.full_name,
                     phone_number: data.phone_number,
                     role: data.role,
+                    persona: data.persona ?? null,
                     preferred_language: data.preferred_language || 'English',
                     whatsapp_notifications: data.whatsapp_notifications ?? true,
                     has_seen_tutorial: data.has_seen_tutorial ?? false,
@@ -119,6 +121,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             if (updates.full_name !== undefined) safeUpdates.full_name = updates.full_name
             if (updates.phone_number !== undefined) safeUpdates.phone_number = updates.phone_number
             if (updates.role !== undefined) safeUpdates.role = updates.role
+            if (updates.persona !== undefined) safeUpdates.persona = updates.persona
             if (updates.preferred_language !== undefined) safeUpdates.preferred_language = updates.preferred_language
             if (updates.whatsapp_notifications !== undefined) safeUpdates.whatsapp_notifications = updates.whatsapp_notifications
             if (updates.has_seen_tutorial !== undefined) safeUpdates.has_seen_tutorial = updates.has_seen_tutorial
