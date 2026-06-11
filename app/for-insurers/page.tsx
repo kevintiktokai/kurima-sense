@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import Navbar from "@/components/landing/Navbar";
+import { WHATSAPP_BRIEFING_URL } from "@/lib/contact";
 import Footer from "@/components/landing/Footer";
 import InstitutionalHero from "@/components/institutional/InstitutionalHero";
 import ProblemStatement from "@/components/institutional/ProblemStatement";
@@ -34,14 +35,14 @@ export const metadata: Metadata = {
 export default function ForInsurersPage() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: "var(--ee-bg)" }}>
-            <Navbar />
+            <Navbar variant="solid" />
 
             <InstitutionalHero
                 headline="Insurance That Pays Out Before the Farmer Asks"
                 subheadline="Satellite-backed parametric crop insurance infrastructure for insurers, reinsurers, and donor-funded index insurance programs."
                 primaryCTA={{
                     text: "Schedule Demo",
-                    href: "https://calendly.com/kurimasense/demo",
+                    href: WHATSAPP_BRIEFING_URL,
                 }}
                 secondaryCTA={{
                     text: "Download Methodology",
@@ -71,9 +72,8 @@ export default function ForInsurersPage() {
                         headline: "Core",
                         description:
                             "NDVI, NDMI, SAR backscatter, and custom composite indices delivered as time series per insured area or per field.",
-                        priceFrom: "From $30,000 per year per product line",
                         features: [
-                            "Daily indices during growing season",
+                            "Daily indices during the growing season",
                             "Per-area or per-field granularity",
                             "Historical baselines included",
                             "API access",
@@ -84,13 +84,12 @@ export default function ForInsurersPage() {
                         name: "Trigger Verification",
                         headline: "Standard",
                         description:
-                            "Automated trigger verification with documented thresholds, audit trails, and dispute resolution data.",
-                        priceFrom: "Add-on to Index Data Service",
+                            "Automated trigger verification with documented thresholds, audit trails, and dispute-resolution data, on top of the Index Data Service.",
                         features: [
                             "Everything in Core",
                             "Automated trigger verification",
                             "Full audit trail",
-                            "Dispute resolution documentation",
+                            "Dispute-resolution documentation",
                             "Reinsurance-grade reporting",
                         ],
                         highlighted: true,
@@ -99,11 +98,11 @@ export default function ForInsurersPage() {
                         name: "Custom Index Design",
                         headline: "Enterprise",
                         description:
-                            "Engagement to design crop-specific or region-specific composite indices tailored to your products.",
-                        priceFrom: "Project-based, pricing on conversation",
+                            "An engagement to design crop- and region-specific composite indices and loss models tailored to your products.",
                         features: [
                             "Bespoke index design",
-                            "Crop and region-specific calibration",
+                            "Crop & region-specific calibration",
+                            "Custom loss-prediction modelling",
                             "Validation against historical loss data",
                             "Actuarial collaboration",
                             "Ongoing index maintenance",
@@ -175,7 +174,7 @@ export default function ForInsurersPage() {
                 heading="Schedule a conversation"
                 body="Bring your actuarial and product leads — we'll show you index performance for a region of your choosing."
                 ctaText="Book a Conversation"
-                ctaHref="https://calendly.com/kurimasense/demo"
+                ctaHref={WHATSAPP_BRIEFING_URL}
             />
 
             <Footer />

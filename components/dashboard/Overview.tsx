@@ -4,6 +4,8 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '@/services/api';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
+import { useMultiFieldState } from '@/hooks/useMultiFieldState';
+import { scoreToLabel } from '@/lib/field-state-types';
 import { RiskRadar, RiskItem, AIInsightCard, ActionQueue, ActionItem, AIInsight, YieldConfidenceChart, GrowthStageTracker } from '@/components/ai';
 import { DashboardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
@@ -42,6 +44,12 @@ const AICardPlaceholder: React.FC<{ icon: string; label: string }> = ({ icon, la
 const Overview: React.FC = () => {
     const { profile } = useUserProfile();
     const { fields, dashboardStats: stats, loading: dataLoading } = useDashboardData();
+
+    // Portfolio-level KurimaScore from the aggregator (one canonical state per
+    // field), replacing the old client-side mean(field.ndvi). No batch endpoint
+    // yet — useMultiFieldState fans out capped-concurrency calls.
+    const portfolioFieldIds = (fields || []).map((f: any) => f.id).filter(Boolean);
+    const { list: fieldStates } = useMultiFieldState(portfolioFieldIds);
 
     // AI-specific state (loaded progressively, not blocking dashboard shell)
     const [insight, setInsight] = useState<string>("");
@@ -129,15 +137,7 @@ const Overview: React.FC = () => {
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [loadAIData, fields]);
 
-    // Show skeleton only during initial data load (not AI)
-    if (dataLoading) return <DashboardSkeleton />;
-
-    const chartData = stats?.chartData || [];
-    const activeFieldsCount = fields.length;
-    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
-    const primaryField = fields[selectedFieldIndex] || fields[0];
-
-    const handleFieldChange = (index: number) => {
+    const handleFieldChange = useCallback((index: number) => {
         setSelectedFieldIndex(index);
         const field = fields[index];
         if (field) {
@@ -146,9 +146,9 @@ const Overview: React.FC = () => {
                 .then(data => setYieldAnalysis(data))
                 .catch(err => console.error('Yield projection failed', err));
         }
-    };
+    }, [fields]);
 
-    const handleActionComplete = async (actionId: string) => {
+    const handleActionComplete = useCallback(async (actionId: string) => {
         setActions(prev => prev.map(a =>
             a.id === actionId ? { ...a, completed: true } : a
         ));
@@ -161,13 +161,27 @@ const Overview: React.FC = () => {
                 a.id === actionId ? { ...a, completed: false } : a
             ));
         }
-    };
+    }, []);
 
-    const avgNdvi = fields.length
-        ? (fields.reduce((sum: number, f: any) => sum + (f.ndvi || 0), 0) / fields.length).toFixed(2)
-        : "0.00";
-    const avgMoisture = fields.length
-        ? Math.round(fields.reduce((sum: number, f: any) => sum + (f.soilMoisture || 0), 0) / fields.length)
+    // Show skeleton only during initial data load (not AI)
+    if (dataLoading) return <DashboardSkeleton />;
+
+    const activeFieldsCount = fields.length;
+    const totalHectares = fields.reduce((sum: number, f: any) => sum + (f.area || 0), 0);
+    const primaryField = fields[selectedFieldIndex] || fields[0];
+
+    // AVG KurimaScore (0-100) from the aggregator — the single source of truth.
+    const avgKurimaScore = fieldStates.length
+        ? Math.round(fieldStates.reduce((sum, s) => sum + (s.kurima_score?.score || 0), 0) / fieldStates.length)
+        : null;
+    const avgScoreMeta = avgKurimaScore != null ? scoreToLabel(avgKurimaScore) : null;
+    // Worst-performing field drives the recommended action + portfolio risk surface.
+    const worstField = fieldStates.length
+        ? [...fieldStates].sort((a, b) => (a.kurima_score?.score || 0) - (b.kurima_score?.score || 0))[0]
+        : null;
+    const portfolioHighAlerts = fieldStates.flatMap((s) => s.alerts || []).filter((a) => a.severity === 'high');
+    const avgMoisture = fieldStates.length
+        ? Math.round(fieldStates.reduce((sum, s) => sum + (s.water_balance?.soil_moisture_pct || 0), 0) / fieldStates.length)
         : 0;
 
     return (
@@ -312,14 +326,18 @@ const Overview: React.FC = () => {
                             <div className="space-y-5">
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Avg NDVI</span>
-                                        <span className="text-xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-primary)' }}>{avgNdvi}</span>
+                                        <span className="text-xs font-bold opacity-80 uppercase tracking-tighter" style={{ fontFamily: 'var(--font-body)' }}>Avg KurimaScore</span>
+                                        <span className="text-xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: avgScoreMeta?.color || 'var(--ee-primary)' }}>{avgKurimaScore != null ? avgKurimaScore : '—'}</span>
                                     </div>
                                     <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${parseFloat(avgNdvi) * 100}%`, backgroundColor: 'var(--ee-primary)' }}></div>
+                                        <div className="h-full transition-all duration-1000 rounded-full" style={{ width: `${avgKurimaScore || 0}%`, backgroundColor: avgScoreMeta?.color || 'var(--ee-primary)' }}></div>
                                     </div>
                                     <p className="text-[10px] mt-1 opacity-50" style={{ fontFamily: 'var(--font-body)' }}>
-                                        {parseFloat(avgNdvi) >= 0.6 ? 'Healthy vegetation' : parseFloat(avgNdvi) >= 0.4 ? 'Moderate vigour' : parseFloat(avgNdvi) > 0 ? 'Low vigour — check field' : 'No data'}
+                                        {avgKurimaScore == null
+                                            ? 'No data'
+                                            : (avgKurimaScore < 55 && worstField?.kurima_score?.recommended_action)
+                                                ? worstField.kurima_score.recommended_action
+                                                : `${avgScoreMeta?.label} across ${fieldStates.length} field${fieldStates.length === 1 ? '' : 's'}`}
                                     </p>
                                 </div>
                                 <div>
@@ -350,6 +368,15 @@ const Overview: React.FC = () => {
                             title="Risk Radar"
                             onRiskClick={(risk) => console.log('Risk clicked:', risk)}
                         />
+                    ) : portfolioHighAlerts.length > 0 ? (
+                        // Aggregator-sourced portfolio risks (fs.alerts across all fields).
+                        <div className="neu-surface p-6 lg:p-8 h-full min-h-[260px] flex flex-col justify-center">
+                            <span className="material-symbols-outlined mb-2" style={{ fontSize: '36px', color: '#dc2626' }}>warning</span>
+                            <p className="font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--ee-text)' }}>
+                                {portfolioHighAlerts.length} high-severity alert{portfolioHighAlerts.length === 1 ? '' : 's'}
+                            </p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>{portfolioHighAlerts[0].headline}</p>
+                        </div>
                     ) : (
                         <div className="neu-surface p-6 lg:p-8 h-full min-h-[260px] flex flex-col items-center justify-center">
                             <span className="material-symbols-outlined mb-2" style={{ fontSize: '36px', color: 'var(--ee-primary)' }}>verified_user</span>

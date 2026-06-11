@@ -1,11 +1,18 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { api } from '@/services/api'; // Import API service
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { api } from '@/services/api';
 import { useSearchParams } from 'next/navigation';
-import ReactMarkdown from 'react-markdown';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import remarkGfm from 'remark-gfm';
 import { FieldData } from './types';
+
+// Defer react-markdown (~45KB) until the chat page is actually loaded
+const ReactMarkdown = dynamic(() => import('react-markdown'), {
+    ssr: false,
+    loading: () => null,
+});
 
 interface Message {
     role: 'user' | 'ai';
@@ -22,8 +29,9 @@ interface AIAgronomistChatProps {
 }
 
 const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: initialField }) => {
-    // State for fields and selection
-    const [fields, setFields] = useState<FieldData[]>([]);
+    // Field list comes from the shared dashboard provider — no extra fetch
+    const { fields: dashboardFields } = useDashboardData();
+    const fields = dashboardFields as FieldData[];
     const [selectedField, setSelectedField] = useState<FieldData | undefined>(initialField);
     const searchParams = useSearchParams();
 
@@ -35,14 +43,8 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Initial load of fields and chat history
+    // Initial load of chat history only (fields come from the provider)
     useEffect(() => {
-        // Load Fields
-        api.getFields().then(data => {
-            setFields(data);
-        });
-
-        // Load History
         api.getChatHistory().then(history => {
             if (history && history.length > 0) {
                 setMessages(history);
@@ -55,6 +57,9 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
             }
         });
     }, []);
+
+    // Stable remark plugins reference so the dynamic ReactMarkdown doesn't reset on every render
+    const remarkPlugins = useMemo(() => [remarkGfm], []);
 
     // Handle initialMessage from URL (e.g. from "Ask Follow-up" button)
     useEffect(() => {
@@ -309,7 +314,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
 
                 <div className="flex-1 overflow-y-auto p-5 lg:p-10 space-y-6 lg:space-y-8 scroll-smooth">
                     {messages.map((m, i) => (
-                        <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                        <div key={`${m.timestamp}-${m.role}-${i}`} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[85%] lg:max-w-[75%] p-4 lg:p-6 rounded-[1.5rem] lg:rounded-[2.5rem] text-sm lg:text-[15px] leading-relaxed shadow-sm ${m.role === 'user'
                                 ? 'bg-brand-dark text-white rounded-tr-none'
                                 : 'bg-brand-beige text-brand-dark rounded-tl-none border border-slate-100'

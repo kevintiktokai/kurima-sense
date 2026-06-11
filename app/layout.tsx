@@ -1,21 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Nunito } from "next/font/google";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
-import { TutorialProvider } from "@/components/providers/TutorialProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 
+// Editorial serif for headlines (field-journal gravitas) + precise grotesque
+// for body/UI (institutional fintech). Avoids Inter/Roboto defaults.
 const fraunces = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["500", "600", "700", "900"],
+  display: "swap",
 });
 
-const nunito = Nunito({
+const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  // Only the weights the codebase actually uses (verified via grep).
+  // 300 has 1 inline use; 800 has none; 900 is used by 89 font-black classes.
+  weight: ["400", "500", "600", "700", "900"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -91,14 +96,14 @@ export default function RootLayout({
         {/* Preload hint — browser starts downloading immediately but doesn't block render */}
         <link
           rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
           as="style"
           crossOrigin="anonymous"
         />
         {/* Load as print media first (non-blocking), then swap to all via inline script */}
         <link
           id="material-symbols-font"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
           rel="stylesheet"
           media="print"
         />
@@ -109,13 +114,13 @@ export default function RootLayout({
         />
         <noscript>
           <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
             rel="stylesheet"
           />
         </noscript>
       </head>
       <body
-        className={`${fraunces.variable} ${nunito.variable} antialiased`}
+        className={`${fraunces.variable} ${hankenGrotesk.variable} antialiased`}
         style={{ fontFamily: "var(--font-body)" }}
       >
         <ThemeProvider
@@ -125,10 +130,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TutorialProvider>
-              {children}
-              <InstallPrompt />
-            </TutorialProvider>
+            {children}
+            <InstallPrompt />
           </AuthProvider>
         </ThemeProvider>
       </body>

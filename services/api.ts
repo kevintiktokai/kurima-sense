@@ -1,88 +1,10 @@
 'use client'
 
 import { FieldData, UserProfile } from '@/components/dashboard/types';
-import { supabase, authReadyPromise } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { apiCache, getCached, setCache, invalidateCache, getAuthHeaders, CACHE_TTL } from '@/lib/api-cache';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-// Session token cache — avoids calling getSession() on every single fetch
-let _cachedSession: { token: string; expiresAt: number } | null = null;
-
-// Clear the cache whenever the user signs out or the token is refreshed
-if (typeof window !== 'undefined') {
-    supabase.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-            _cachedSession = null;
-        }
-    });
-}
-
-// Simple in-memory cache with TTL
-interface CacheEntry<T> {
-    data: T;
-    timestamp: number;
-    ttl: number;
-}
-
-const apiCache = new Map<string, CacheEntry<unknown>>();
-
-function getCached<T>(key: string): T | null {
-    const entry = apiCache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.timestamp > entry.ttl) {
-        apiCache.delete(key);
-        return null;
-    }
-    return entry.data as T;
-}
-
-function setCache<T>(key: string, data: T, ttlMs: number): void {
-    apiCache.set(key, { data, timestamp: Date.now(), ttl: ttlMs });
-}
-
-// Cache TTLs
-const CACHE_TTL = {
-    DASHBOARD: 5 * 60 * 1000,    // 5 minutes
-    FIELDS: 2 * 60 * 1000,       // 2 minutes
-    MARKET: 10 * 60 * 1000,      // 10 minutes
-    INSIGHTS: 3 * 60 * 1000,     // 3 minutes
-};
-
-// Helper to get auth headers with JWT token
-async function getAuthHeaders(): Promise<HeadersInit> {
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-    };
-
-    // Skip auth on server-side
-    if (typeof window === 'undefined') {
-        return headers;
-    }
-
-    try {
-        await authReadyPromise;
-
-        // Return cached token if it's still valid (with 30 s buffer before expiry)
-        if (_cachedSession && Date.now() < _cachedSession.expiresAt - 30_000) {
-            headers['Authorization'] = `Bearer ${_cachedSession.token}`;
-            return headers;
-        }
-
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session?.access_token) {
-            _cachedSession = {
-                token: session.access_token,
-                expiresAt: (session.expires_at ?? 0) * 1000,
-            };
-            headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-    } catch (e) {
-        console.error('[API] Error getting auth session:', e);
-    }
-
-    return headers;
-}
 
 export const api = {
     async getUser(): Promise<UserProfile> {
@@ -92,7 +14,7 @@ export const api = {
             if (session?.user) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('full_name, phone_number, role')
+                    .select('full_name, phone_number, role, persona')
                     .eq('id', session.user.id)
                     .single();
 
@@ -101,7 +23,7 @@ export const api = {
                         name: profile.full_name || 'User',
                         email: session.user.email || '',
                         region: 'Zimbabwe',
-                        role: profile.role || 'Farmer',
+                        role: profile.persona || profile.role || 'Farmer',
                         crops: ['Maize']
                     };
                 }
@@ -223,6 +145,10 @@ export const api = {
                 console.error("Save Field Failed:", res.status, errorBody);
                 throw new Error(`Failed to save field (${res.status}): ${errorBody || res.statusText}`);
             }
+            // Invalidate stale field/dashboard caches so callers see the new field immediately
+            invalidateCache('fields');
+            invalidateCache('dashboard_init');
+            invalidateCache('dashboard_stats');
             return await res.json();
         } catch (e) {
             console.error("Save field error", e);
@@ -259,6 +185,11 @@ export const api = {
             throw e;
         }
     },
+    /**
+     * @deprecated Superseded by the Field State Aggregator. Consumer screens read
+     * the KurimaScore trend from `useFieldState(id).indices.trend_30d` instead.
+     * No longer called by any screen; kept only for transitional callers.
+     */
     async getFieldHistory(fieldId: string) {
         try {
             const headers = await getAuthHeaders();
@@ -307,7 +238,18 @@ export const api = {
         }
     },
 
+    /**
+     * @deprecated For field *display* values (projected/potential yield, confidence)
+     * use `useFieldState(id).yield_projection`, which bands confidence and shares one
+     * source of truth. Still used to generate the AI Smart Crop Plan steps
+     * (full_plan / next_actions), which have no aggregator equivalent yet — see
+     * docs/aggregator_cleanup_audit.md, Findings.
+     */
     async generateYieldProjection(fieldId: string) {
+        const cacheKey = `yield_${fieldId}`;
+        const cached = getCached(cacheKey);
+        if (cached) return cached;
+
         try {
             const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/yield`, {
@@ -315,11 +257,11 @@ export const api = {
                 headers
             });
             if (!res.ok) throw new Error("Yield gen failed");
-            return await res.json();
+            const data = await res.json();
+            setCache(cacheKey, data, CACHE_TTL.YIELD);
+            return data;
         } catch (e) {
             console.error("Yield Gen Error", e);
-            // Return null to indicate no data available — let the UI handle it
-            // rather than showing fake numbers that could mislead the farmer
             return null;
         }
     },
@@ -356,11 +298,17 @@ export const api = {
 
 
     async getCropVarieties(cropName: string) {
+        const cacheKey = `varieties_${cropName}`;
+        const cached = getCached<any[]>(cacheKey);
+        if (cached) return cached;
+
         try {
             const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/crops/${encodeURIComponent(cropName)}/varieties`, { headers });
             if (!res.ok) return [];
-            return await res.json();
+            const data = await res.json();
+            setCache(cacheKey, data, CACHE_TTL.VARIETIES);
+            return data;
         } catch (e) {
             console.error("Fetch varieties error", e);
             return [];

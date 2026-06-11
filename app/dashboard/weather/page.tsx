@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { climateApi } from '@/services/climate';
-import { api } from '@/services/api';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import type {
     CurrentWeather,
     DailyForecast,
@@ -16,6 +16,7 @@ import { getWeatherIcon, getDayName, formatTime } from '@/lib/climate-types';
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ComposedChart, Line } from "recharts";
 
 export default function WeatherPage() {
+    const { fields } = useDashboardData();
     const [loading, setLoading] = useState(true);
     const [current, setCurrent] = useState<CurrentWeather | null>(null);
     const [daily, setDaily] = useState<DailyForecast[]>([]);
@@ -25,7 +26,6 @@ export default function WeatherPage() {
     const [sprayWindow, setSprayWindow] = useState<SprayWindowResponse | null>(null);
     const [historical, setHistorical] = useState<HistoricalComparison | null>(null);
     const [selectedDay, setSelectedDay] = useState<number>(0);
-    const [fields, setFields] = useState<any[]>([]);
     const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>(undefined);
     // Phase 2 individual loading states
     const [alertsLoading, setAlertsLoading] = useState(true);
@@ -33,26 +33,17 @@ export default function WeatherPage() {
     const [sprayLoading, setSprayLoading] = useState(true);
     const [historicalLoading, setHistoricalLoading] = useState(true);
 
+    // Default the field selector to the first field once they arrive (no extra fetch).
     useEffect(() => {
-        loadFields();
-    }, []);
+        if (fields.length > 0 && selectedFieldId === undefined) {
+            setSelectedFieldId(fields[0].id);
+        }
+    }, [fields, selectedFieldId]);
 
     useEffect(() => {
         loadClimateData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedFieldId]);
-
-    const loadFields = async () => {
-        try {
-            const fieldsData = await api.getFields();
-            setFields(fieldsData);
-            // Default to first field if available
-            if (fieldsData.length > 0) {
-                setSelectedFieldId(fieldsData[0].id);
-            }
-        } catch (e) {
-            console.error("Error loading fields:", e);
-        }
-    };
 
     const loadClimateData = async () => {
         setLoading(true);

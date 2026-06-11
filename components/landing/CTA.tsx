@@ -3,6 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Tractor, CalendarDays } from 'lucide-react';
+import { WHATSAPP_BRIEFING_URL } from '@/lib/contact';
 
 export default function CTA() {
     return (
@@ -29,17 +31,12 @@ export default function CTA() {
                     />
 
                     <div className="relative z-10">
-                        <span
-                            className="material-symbols-outlined mb-6 block"
-                            style={{ fontSize: '48px', color: 'var(--ee-primary)' }}
-                        >
-                            agriculture
-                        </span>
+                        <Tractor size={44} className="mb-6 mx-auto" style={{ color: 'var(--ee-primary)' }} aria-hidden />
                         <h2
-                            className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6"
+                            className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
                             style={{ color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}
                         >
-                            Ready to Farm{' '}
+                            See the methodology.{' '}
                             <span
                                 className="italic"
                                 style={{
@@ -48,18 +45,20 @@ export default function CTA() {
                                     WebkitTextFillColor: 'transparent',
                                 }}
                             >
-                                Smarter?
+                                Then decide.
                             </span>
                         </h2>
                         <p
                             className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
                             style={{ color: 'rgba(255, 255, 255, 0.55)', fontFamily: 'var(--font-body)' }}
                         >
-                            Join thousands of farmers already using KurimaSense to monitor crops, predict yields, and make data-driven decisions. Start for free — no credit card required.
+                            Institutions: request a briefing and we&apos;ll walk you through the data
+                            provenance, confidence scoring, and Zimbabwe calibration behind every
+                            forecast. Farmers: start monitoring your fields today.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            <Link href="/auth">
+                            <a href={WHATSAPP_BRIEFING_URL} target="_blank" rel="noopener noreferrer">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
@@ -71,11 +70,11 @@ export default function CTA() {
                                         fontFamily: 'var(--font-body)',
                                     }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>rocket_launch</span>
-                                    Get Started Free
+                                    <CalendarDays size={19} aria-hidden />
+                                    Request a briefing
                                 </motion.button>
-                            </Link>
-                            <Link href="#features">
+                            </a>
+                            <Link href="/auth">
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
@@ -86,27 +85,16 @@ export default function CTA() {
                                         fontFamily: 'var(--font-body)',
                                     }}
                                 >
-                                    Explore Features
+                                    Start free as a farmer
                                 </motion.button>
                             </Link>
                         </div>
 
                         <p
-                            className="mt-6 sm:mt-8 text-xs sm:text-sm flex flex-wrap items-center justify-center gap-3 sm:gap-4"
+                            className="mt-6 sm:mt-8 text-xs sm:text-sm"
                             style={{ color: 'rgba(255, 255, 255, 0.3)', fontFamily: 'var(--font-body)' }}
                         >
-                            <span className="flex items-center gap-1">
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                                Free forever plan
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                                No credit card
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                                Cancel anytime
-                            </span>
+                            Farmer free tier — no credit card required.
                         </p>
                     </div>
                 </motion.div>

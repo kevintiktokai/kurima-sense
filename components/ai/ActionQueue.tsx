@@ -38,7 +38,7 @@ const typeIcons: Record<ActionItem['type'], string> = {
     general: 'checklist'
 };
 
-export const ActionQueue: React.FC<ActionQueueProps> = ({
+const ActionQueueImpl: React.FC<ActionQueueProps> = ({
     actions,
     title = "Today's Actions",
     onActionComplete
@@ -198,6 +198,8 @@ export const ActionQueue: React.FC<ActionQueueProps> = ({
         </div>
     );
 };
+
+export const ActionQueue = React.memo(ActionQueueImpl);
 
 export type { ActionItem };
 export default ActionQueue;

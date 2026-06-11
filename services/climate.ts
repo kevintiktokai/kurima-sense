@@ -4,7 +4,6 @@
  * Climate API Service for KurimaSense
  * Interfaces with backend climate endpoints
  */
-import { supabase, authReadyPromise } from '@/lib/supabase';
 import type {
     CurrentWeather,
     ForecastResponse,
@@ -14,34 +13,19 @@ import type {
     HistoricalComparison,
     FullClimateData
 } from '@/lib/climate-types';
+import { getAuthHeaders, getCached, setCache, CACHE_TTL } from '@/lib/api-cache';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-// Helper to get auth headers with JWT token
-async function getAuthHeaders(): Promise<HeadersInit> {
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json'
-    };
-
-    if (typeof window === 'undefined') {
-        return headers;
-    }
-
-    try {
-        await authReadyPromise;
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (session?.access_token) {
-            headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-    } catch (e) {
-        console.error('[Climate API] Error getting auth session:', e);
-    }
-
-    return headers;
+// Build query params from options + a stable cache-key suffix
+function buildKey(options: Record<string, any>): string {
+    return Object.entries(options)
+        .filter(([, v]) => v !== undefined && v !== null)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${v}`)
+        .join('&');
 }
 
-// Build query params from options
 function buildQueryParams(options: Record<string, any>): string {
     const params = new URLSearchParams();
     Object.entries(options).forEach(([key, value]) => {
@@ -53,157 +37,52 @@ function buildQueryParams(options: Record<string, any>): string {
     return queryString ? `?${queryString}` : '';
 }
 
-export const climateApi = {
-    /**
-     * Get current weather conditions
-     */
-    async getCurrentWeather(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-    } = {}): Promise<CurrentWeather | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/current${queryParams}`, { headers });
+async function cachedGet<T>(path: string, options: Record<string, any>, cacheKeyPrefix: string, ttlMs: number): Promise<T | null> {
+    const cacheKey = `${cacheKeyPrefix}|${buildKey(options)}`;
+    const cached = getCached<T>(cacheKey);
+    if (cached) return cached;
 
-            if (!res.ok) throw new Error('Failed to fetch current weather');
-            return await res.json();
-        } catch (e) {
-            console.error('Climate current error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get forecast (daily + hourly)
-     */
-    async getForecast(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-        days?: number;
-    } = {}): Promise<ForecastResponse | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/forecast${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch forecast');
-            return await res.json();
-        } catch (e) {
-            console.error('Climate forecast error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get agricultural metrics (GDD, ET, soil moisture)
-     */
-    async getAgriculturalMetrics(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-        base_temp?: number;
-        start_date?: string;
-    } = {}): Promise<AgriculturalMetrics | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/agricultural${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch agricultural metrics');
-            return await res.json();
-        } catch (e) {
-            console.error('Agricultural metrics error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get weather alerts
-     */
-    async getAlerts(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-    } = {}): Promise<AlertsResponse | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/alerts${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch alerts');
-            return await res.json();
-        } catch (e) {
-            console.error('Weather alerts error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get spray window recommendations
-     */
-    async getSprayWindow(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-        hours?: number;
-    } = {}): Promise<SprayWindowResponse | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/spray-window${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch spray window');
-            return await res.json();
-        } catch (e) {
-            console.error('Spray window error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get historical comparison
-     */
-    async getHistoricalComparison(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-    } = {}): Promise<HistoricalComparison | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/historical${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch historical data');
-            return await res.json();
-        } catch (e) {
-            console.error('Historical comparison error:', e);
-            return null;
-        }
-    },
-
-    /**
-     * Get full climate data in a single call
-     */
-    async getFullClimateData(options: {
-        lat?: number;
-        lon?: number;
-        field_id?: string;
-    } = {}): Promise<FullClimateData | null> {
-        try {
-            const headers = await getAuthHeaders();
-            const queryParams = buildQueryParams(options);
-            const res = await fetch(`${API_BASE_URL}/climate/full${queryParams}`, { headers });
-
-            if (!res.ok) throw new Error('Failed to fetch climate data');
-            return await res.json();
-        } catch (e) {
-            console.error('Full climate data error:', e);
-            return null;
-        }
+    try {
+        const headers = await getAuthHeaders();
+        const res = await fetch(`${API_BASE_URL}${path}${buildQueryParams(options)}`, { headers });
+        if (!res.ok) throw new Error(`Failed to fetch ${path}`);
+        const data = await res.json() as T;
+        setCache(cacheKey, data, ttlMs);
+        return data;
+    } catch (e) {
+        console.error(`[Climate] ${path} error:`, e);
+        return null;
     }
+}
+
+export const climateApi = {
+    getCurrentWeather(options: { lat?: number; lon?: number; field_id?: string } = {}): Promise<CurrentWeather | null> {
+        return cachedGet<CurrentWeather>('/climate/current', options, 'climate_current', CACHE_TTL.CLIMATE_CURRENT);
+    },
+
+    getForecast(options: { lat?: number; lon?: number; field_id?: string; days?: number } = {}): Promise<ForecastResponse | null> {
+        return cachedGet<ForecastResponse>('/climate/forecast', options, 'climate_forecast', CACHE_TTL.CLIMATE_FORECAST);
+    },
+
+    getAgriculturalMetrics(options: { lat?: number; lon?: number; field_id?: string; base_temp?: number; start_date?: string } = {}): Promise<AgriculturalMetrics | null> {
+        return cachedGet<AgriculturalMetrics>('/climate/agricultural', options, 'climate_agricultural', CACHE_TTL.CLIMATE_DAILY);
+    },
+
+    getAlerts(options: { lat?: number; lon?: number; field_id?: string } = {}): Promise<AlertsResponse | null> {
+        return cachedGet<AlertsResponse>('/climate/alerts', options, 'climate_alerts', CACHE_TTL.CLIMATE_FORECAST);
+    },
+
+    getSprayWindow(options: { lat?: number; lon?: number; field_id?: string; hours?: number } = {}): Promise<SprayWindowResponse | null> {
+        return cachedGet<SprayWindowResponse>('/climate/spray-window', options, 'climate_spray', CACHE_TTL.CLIMATE_FORECAST);
+    },
+
+    getHistoricalComparison(options: { lat?: number; lon?: number; field_id?: string } = {}): Promise<HistoricalComparison | null> {
+        return cachedGet<HistoricalComparison>('/climate/historical', options, 'climate_historical', CACHE_TTL.CLIMATE_DAILY);
+    },
+
+    getFullClimateData(options: { lat?: number; lon?: number; field_id?: string } = {}): Promise<FullClimateData | null> {
+        return cachedGet<FullClimateData>('/climate/full', options, 'climate_full', CACHE_TTL.CLIMATE_FORECAST);
+    },
 };
 
 export default climateApi;

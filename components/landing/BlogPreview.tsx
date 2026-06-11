@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Newspaper, ArrowRight } from 'lucide-react';
 import { blogPosts } from '@/lib/blog-data';
 
 export default function BlogPreview() {
@@ -31,11 +32,11 @@ export default function BlogPreview() {
                                 fontFamily: 'var(--font-body)',
                             }}
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-primary)' }}>article</span>
+                            <Newspaper size={14} style={{ color: 'var(--ee-primary)' }} aria-hidden />
                             From the Field
                         </span>
                         <h2
-                            className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-4"
+                            className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-4"
                             style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                         >
                             Latest from Our{' '}
@@ -54,7 +55,7 @@ export default function BlogPreview() {
                             className="text-lg md:text-xl max-w-xl"
                             style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                         >
-                            Expert insights, practical tips, and the latest in agricultural technology — updated daily to help you grow better.
+                            Practical agronomy notes, field observations, and how our intelligence works — written by our team to help you grow better.
                         </p>
                     </div>
                     <Link
@@ -63,9 +64,7 @@ export default function BlogPreview() {
                         style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}
                     >
                         View all articles
-                        <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform" style={{ fontSize: '20px' }}>
-                            arrow_forward
-                        </span>
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" aria-hidden />
                     </Link>
                 </motion.div>
 
@@ -86,12 +85,7 @@ export default function BlogPreview() {
                                         style={{ backgroundColor: 'var(--ee-bg-pressed)' }}
                                     >
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <span
-                                                className="material-symbols-outlined"
-                                                style={{ fontSize: '48px', color: 'var(--ee-bg-border)' }}
-                                            >
-                                                {post.icon}
-                                            </span>
+                                            <Newspaper size={44} style={{ color: 'var(--ee-bg-border)' }} aria-hidden />
                                         </div>
                                         <div
                                             className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"

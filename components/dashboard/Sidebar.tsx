@@ -123,10 +123,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                                 {loading ? 'Loading...' : profile?.full_name || 'User'}
                             </p>
                             <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
-                                {profile?.role === 'farmer' ? 'Commercial Farmer' :
-                                    profile?.role === 'smallholder' ? 'Smallholder' :
-                                        profile?.role === 'agronomist' ? 'Agronomist' :
-                                            profile?.role || 'Free Plan'}
+                                {profile?.persona === 'farmer' ? 'Commercial Farmer' :
+                                    profile?.persona === 'smallholder' ? 'Smallholder' :
+                                        profile?.persona === 'agronomist' ? 'Agronomist' :
+                                            profile?.persona === 'hobbyist' ? 'Home/Hobbyist' :
+                                                profile?.role === 'institutional' ? 'Institution' :
+                                                    'Free Plan'}
                             </p>
                         </div>
                     )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -9,6 +9,7 @@ export interface UserProfile {
     full_name: string | null
     phone_number: string | null
     role: string | null
+    persona: string | null
     preferred_language: string | null
     whatsapp_notifications: boolean
     has_seen_tutorial: boolean
@@ -50,7 +51,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     // Track which user ID we last fetched for
     const lastFetchedUserId = useRef<string | null>(null)
 
-    const fetchProfile = async (opts?: { silent?: boolean }) => {
+    const fetchProfile = useCallback(async (opts?: { silent?: boolean }) => {
         if (!user) {
             setProfile(null)
             lastFetchedUserId.current = null
@@ -85,6 +86,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
                     full_name: data.full_name,
                     phone_number: data.phone_number,
                     role: data.role,
+                    persona: data.persona ?? null,
                     preferred_language: data.preferred_language || 'English',
                     whatsapp_notifications: data.whatsapp_notifications ?? true,
                     has_seen_tutorial: data.has_seen_tutorial ?? false,
@@ -102,9 +104,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false)
         }
-    }
+    }, [user])
 
-    const updateProfile = async (updates: Partial<UserProfile>): Promise<boolean> => {
+    const updateProfile = useCallback(async (updates: Partial<UserProfile>): Promise<boolean> => {
         if (!user) return false
 
         try {
@@ -119,6 +121,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             if (updates.full_name !== undefined) safeUpdates.full_name = updates.full_name
             if (updates.phone_number !== undefined) safeUpdates.phone_number = updates.phone_number
             if (updates.role !== undefined) safeUpdates.role = updates.role
+            if (updates.persona !== undefined) safeUpdates.persona = updates.persona
             if (updates.preferred_language !== undefined) safeUpdates.preferred_language = updates.preferred_language
             if (updates.whatsapp_notifications !== undefined) safeUpdates.whatsapp_notifications = updates.whatsapp_notifications
             if (updates.has_seen_tutorial !== undefined) safeUpdates.has_seen_tutorial = updates.has_seen_tutorial
@@ -142,7 +145,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             setError(err?.message || 'Failed to update profile')
             return false
         }
-    }
+    }, [user, fetchProfile])
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on user.id, not user reference
     useEffect(() => {
@@ -150,17 +153,25 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     }, [user?.id])
 
     // Compute effective loading state:
-    // We're loading if auth is loading, OR if we have a user but haven't fetched their profile yet
-    const isEffectivelyLoading = Boolean(authLoading || loading || (user && lastFetchedUserId.current !== user.id))
+    // Loading if auth is loading, OR we have a user but haven't fetched their profile yet.
+    // We compare user.id directly against the fetched ID so re-renders that don't change
+    // the user (e.g. token refresh) don't flicker the loading state.
+    const fetchedForCurrentUser = !user || lastFetchedUserId.current === user.id
+    const isEffectivelyLoading = Boolean(authLoading || (loading && !fetchedForCurrentUser))
 
-    return (
-        <UserProfileContext.Provider value={{
+    const value = useMemo(
+        () => ({
             profile,
             loading: isEffectivelyLoading,
             error,
             refreshProfile: fetchProfile,
-            updateProfile
-        }}>
+            updateProfile,
+        }),
+        [profile, isEffectivelyLoading, error, fetchProfile, updateProfile]
+    )
+
+    return (
+        <UserProfileContext.Provider value={value}>
             {children}
         </UserProfileContext.Provider>
     )

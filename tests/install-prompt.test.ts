@@ -7,7 +7,7 @@ import {
   MIN_VISITS,
   shouldShowInstallPrompt,
   type InstallPromptPolicyInput,
-} from "../lib/install-prompt-policy.ts";
+} from "../lib/install-prompt-policy";
 
 const NOW = new Date("2026-01-15T12:00:00Z").getTime();
 

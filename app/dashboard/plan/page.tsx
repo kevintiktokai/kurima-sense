@@ -1,26 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { api } from '@/services/api';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import CropPlan from '@/components/dashboard/CropPlan';
 import { ActivityLog } from '@/components/dashboard/ActivityLog';
 import { FieldData } from '@/components/dashboard/types';
 
 export default function PlanPage() {
-    const [fields, setFields] = useState<FieldData[]>([]);
+    const { fields, loading } = useDashboardData();
     const [selectedField, setSelectedField] = useState<FieldData | null>(null);
-    const [loading, setLoading] = useState(true);
     const [activityRefresh, setActivityRefresh] = useState(0);
 
     useEffect(() => {
-        api.getFields().then(data => {
-            setFields(data);
-            if (data.length > 0) {
-                setSelectedField(data[0]);
-            }
-            setLoading(false);
-        });
-    }, []);
+        if (fields.length > 0 && !selectedField) {
+            setSelectedField(fields[0] as FieldData);
+        }
+    }, [fields, selectedField]);
 
     // Called when CropPlan's "Add to Tasks" button is pressed
     const handleActionsAdded = () => {

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Mail, Globe } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -39,17 +40,18 @@ export default function Footer() {
                         >
                             Empowering the next generation of African agriculture with AI-powered satellite intelligence, precision monitoring, and data-driven farming advice.
                         </p>
-                        {/* Social Icons */}
+                        {/* Contact links */}
+                        {/* {{PLACEHOLDER: confirm real contact email — hello@kurimasense.com assumed}} */}
                         <div className="flex gap-3">
                             {[
-                                { icon: 'public', label: 'Website' },
-                                { icon: 'smart_toy', label: 'AI Chat' },
-                                { icon: 'mail', label: 'Email' },
-                                { icon: 'groups', label: 'Community' },
-                            ].map((social) => (
-                                <div
-                                    key={social.label}
-                                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                                { Icon: Mail, label: 'Email KurimaSense', href: 'mailto:hello@kurimasense.com' },
+                                { Icon: Globe, label: 'KurimaSense website', href: '/' },
+                            ].map(({ Icon, label, href }) => (
+                                <Link
+                                    key={label}
+                                    href={href}
+                                    aria-label={label}
+                                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                                     style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.backgroundColor = 'var(--ee-primary)';
@@ -58,8 +60,8 @@ export default function Footer() {
                                         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
                                     }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#FFFFFF' }}>{social.icon}</span>
-                                </div>
+                                    <Icon size={17} style={{ color: '#FFFFFF' }} aria-hidden />
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -72,16 +74,20 @@ export default function Footer() {
                             Product
                         </h4>
                         <ul className="space-y-4 text-sm font-medium" style={{ fontFamily: 'var(--font-body)' }}>
-                            {['Features', 'How It Works', 'AI Insights', 'Pricing'].map((item) => (
-                                <li key={item}>
+                            {[
+                                { name: 'The moat', href: '#moat' },
+                                { name: 'Methodology', href: '#methodology' },
+                                { name: 'For Institutions', href: '/for-buyers' },
+                            ].map((item) => (
+                                <li key={item.name}>
                                     <Link
-                                        href={item === 'Features' ? '#features' : item === 'How It Works' ? '#how-it-works' : item === 'AI Insights' ? '#ai-insights' : '#'}
+                                        href={item.href}
                                         className="transition-colors"
                                         style={{ color: 'rgba(255, 255, 255, 0.55)' }}
                                         onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                                         onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)')}
                                     >
-                                        {item}
+                                        {item.name}
                                     </Link>
                                 </li>
                             ))}
@@ -100,7 +106,6 @@ export default function Footer() {
                                 { name: 'Blog', href: '/blog' },
                                 { name: 'For Farmers', href: '#farmers' },
                                 { name: 'For Agronomists', href: '#agronomists' },
-                                { name: 'Community', href: '#' },
                             ].map((item) => (
                                 <li key={item.name}>
                                     <Link

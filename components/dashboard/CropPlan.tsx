@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/services/api';
 import { FieldData } from './types';
+import { confidenceFromFraction, formatConfidence } from '@/lib/field-state-types';
+import { useFieldState } from '@/hooks/useFieldState';
 
 interface CropPlanProps {
     selectedField: FieldData | null;
@@ -32,6 +34,14 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
     const [loading, setLoading] = useState(false);
     const [addingActions, setAddingActions] = useState(false);
     const [actionsAdded, setActionsAdded] = useState(false);
+
+    // Canonical field state — drives confidence (banded), and the cross-screen
+    // "review against current conditions" banner. The AI plan steps themselves
+    // (full_plan / next_actions) still come from the yield endpoint, which has no
+    // aggregator equivalent yet (see aggregator_cleanup_audit.md, Findings).
+    const { fieldState: fs } = useFieldState(selectedField?.id ?? null);
+    const highSeverityAlert = fs?.alerts?.find((a) => a.severity === 'high') ?? null;
+    const hasUncontextualizedItem = (fs?.active_plan_items ?? []).some((p) => p.contextualized_to_current_conditions === false);
 
     useEffect(() => {
         if (selectedField) {
@@ -121,9 +131,26 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                                         <span className="text-slate-500 font-bold text-xs sm:text-base">/ {plan.yield_potential}t pot.</span>
                                     )}
                                 </div>
-                                {plan.confidence_score != null && (
-                                    <p className="text-slate-500 text-[10px] sm:text-xs mt-1">Confidence: {plan.confidence_score}%</p>
-                                )}
+                                {(() => {
+                                    // Confidence is ALWAYS banded (band + integer pct), never a raw
+                                    // fraction. Prefer the aggregator's canonical band; fall back to
+                                    // converting the legacy 0-1 yield confidence when fs isn't loaded.
+                                    const yp = fs?.yield_projection;
+                                    if (yp?.confidence_band) {
+                                        return (
+                                            <p className="text-slate-500 text-[10px] sm:text-xs mt-1">
+                                                Confidence: {formatConfidence(yp.confidence_band, yp.confidence_pct)}
+                                            </p>
+                                        );
+                                    }
+                                    if (plan.confidence_score == null) return null;
+                                    const c = confidenceFromFraction(plan.confidence_score);
+                                    return (
+                                        <p className="text-slate-500 text-[10px] sm:text-xs mt-1">
+                                            Confidence: {formatConfidence(c.band, c.pct)}
+                                        </p>
+                                    );
+                                })()}
                             </div>
                         )}
                     </div>
@@ -204,6 +231,23 @@ const CropPlan: React.FC<CropPlanProps> = ({ selectedField, onActionsAdded }) =>
                     <div>
                         <p className="text-sm font-bold text-amber-900">Current Pest/Disease Alert</p>
                         <p className="text-sm text-amber-700 mt-0.5">{plan.pest_alert}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Cross-screen consistency: if the field has a high-severity alert, or any
+                plan item is no longer contextualized to current conditions, warn that the
+                plan should be reviewed against the live field state. */}
+            {(highSeverityAlert || hasUncontextualizedItem) && (
+                <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-start gap-3">
+                    <span className="text-xl">⚠️</span>
+                    <div>
+                        <p className="text-sm font-bold text-rose-900">Review against current conditions</p>
+                        <p className="text-sm text-rose-700 mt-0.5">
+                            {highSeverityAlert
+                                ? highSeverityAlert.headline
+                                : 'Some plan items were generated against earlier conditions and may need re-checking.'}
+                        </p>
                     </div>
                 </div>
             )}

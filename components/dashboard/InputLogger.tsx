@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/services/api';
-import { FieldData } from './types';
+import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 
 interface InputLoggerProps {
     onClose: () => void;
@@ -10,16 +10,12 @@ interface InputLoggerProps {
 }
 
 const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
-    const [fields, setFields] = useState<FieldData[]>([]);
+    const { fields } = useDashboardData();
     const [selectedField, setSelectedField] = useState('');
     const [inputType, setInputType] = useState('Plants');
     const [quantity, setQuantity] = useState('');
     const [unit, setUnit] = useState('Count');
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        api.getFields().then(setFields);
-    }, []);
 
     const handleSubmit = async () => {
         if (!selectedField || !quantity) return;

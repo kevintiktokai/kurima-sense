@@ -269,7 +269,9 @@ export default function SettingsPage() {
                                 fontFamily: 'var(--font-body)'
                             }}
                         >
-                            {profile?.role || 'Standard User'}
+                            {profile?.role === 'institutional'
+                                ? 'Institution'
+                                : profile?.persona || 'Standard User'}
                         </div>
                     </div>
 

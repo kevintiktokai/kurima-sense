@@ -4,10 +4,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { FieldData, ScoutingPin, ScoutingCategory, ScoutingSeverity } from '@/components/dashboard/types';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, Brush } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, ReferenceArea } from 'recharts';
 import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { useFieldState } from '@/hooks/useFieldState';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -31,16 +30,39 @@ export default function FieldInsightsPage() {
     const router = useRouter();
     const fieldId = params.id as string;
 
-    const [field, setField] = useState<FieldData | null>(null);
-    const [history, setHistory] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [aiInsight, setAiInsight] = useState<string | null>(null);
-    const [insightLoading, setInsightLoading] = useState(true);
-    const [yieldData, setYieldData] = useState<any>(null);
+    // Canonical field state from the aggregator — the SINGLE source of truth for
+    // this page. Every display value, label and the trend chart read from `fs`.
+    // There is no legacy fallback: aggregator OR loading OR explicit error.
+    const { fieldState: fs, isLoading: fsLoading, error: fsError, refresh } = useFieldState(fieldId);
+
     const [analyzing, setAnalyzing] = useState(false);
 
-    // Timeline slider state
-    const [timelineRange, setTimelineRange] = useState<{ start: number; end: number } | null>(null);
+    // A lightweight FieldData-shaped view-model derived from the aggregator's
+    // `fs.field`, used by the header, export and scouting features (which need a
+    // name + polygon). Not a second data source — just a projection of `fs`.
+    const field = useMemo<FieldData | null>(() => {
+        if (!fs?.field) return null;
+        const f = fs.field;
+        const coordinates = (f.polygon_coordinates || []).map((p) => ({ lat: p.lat, lon: p.lon }));
+        const location = coordinates.length
+            ? { lat: coordinates.reduce((s, c) => s + c.lat, 0) / coordinates.length,
+                lon: coordinates.reduce((s, c) => s + c.lon, 0) / coordinates.length }
+            : undefined;
+        return {
+            id: f.id,
+            name: f.name,
+            crop: (f.crop_type || '') as any,
+            area: f.area_ha ?? 0,
+            ndvi: fs.indices?.current?.ndvi ?? 0,
+            soilMoisture: fs.water_balance?.soil_moisture_pct ?? 0,
+            healthStatus: 'Good',
+            lastSatellitePass: fs.meta?.as_of_satellite_pass ?? '',
+            location,
+            coordinates,
+            variety: f.variety_code ?? undefined,
+            plantingDate: fs.season?.planted_date ?? undefined,
+        } as FieldData;
+    }, [fs]);
 
     // Scouting pins state
     const [scoutingPins, setScoutingPins] = useState<ScoutingPin[]>([]);
@@ -57,62 +79,15 @@ export default function FieldInsightsPage() {
 
     useEffect(() => {
         if (!fieldId) return;
-        loadAllData();
         loadScoutingPins();
     }, [fieldId]);
-
-    const loadAllData = async () => {
-        setLoading(true);
-        setInsightLoading(true);
-
-        try {
-            const [fieldsData, historyData] = await Promise.all([
-                api.getFields(),
-                api.getFieldHistory(fieldId),
-            ]);
-
-            const found = fieldsData.find((f: any) => f.id === fieldId);
-            if (found) setField(found);
-            setHistory(historyData || []);
-        } catch (e) {
-            console.error("Phase 1 load error:", e);
-        } finally {
-            setLoading(false);
-        }
-
-        Promise.all([
-            fetchAIInsight(),
-            api.generateYieldProjection(fieldId),
-        ]).then(([_, yieldResult]) => {
-            if (yieldResult) setYieldData(yieldResult);
-        }).catch(() => {});
-    };
-
-    const fetchAIInsight = async () => {
-        try {
-            const { supabase, authReadyPromise } = await import('@/lib/supabase');
-            await authReadyPromise;
-            const { data: { session } } = await supabase.auth.getSession();
-            const headers: any = { 'Content-Type': 'application/json' };
-            if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/insight`, { headers });
-            if (res.ok) {
-                const data = await res.json();
-                setAiInsight(data.insight || null);
-            }
-        } catch (e) {
-            console.error("AI insight error:", e);
-        } finally {
-            setInsightLoading(false);
-        }
-    };
 
     const triggerAnalysis = async () => {
         setAnalyzing(true);
         try {
             await api.analyzeField(fieldId);
-            setTimeout(() => loadAllData(), 3000);
+            // Re-fetch the canonical field state once ingestion has had time to land.
+            setTimeout(() => refresh(), 3000);
         } catch (e) {
             console.error("Analysis trigger error:", e);
         } finally {
@@ -170,90 +145,70 @@ export default function FieldInsightsPage() {
     };
 
     const handleExportCSV = () => {
-        if (!history.length) return;
-        const headers = 'Date,NDVI,Soil Moisture (%),Source\n';
-        const rows = history.map(h =>
-            `${h.date},${h.ndvi},${h.soilMoisture},${h.source || 'unknown'}`
-        ).join('\n');
-        downloadFile(headers + rows, `${field?.name.replace(/\s+/g, '_') || 'field'}_history.csv`, 'text/csv');
+        const trend = fs?.indices?.trend_30d || [];
+        if (!trend.length) return;
+        const headers = 'Date,NDVI,KurimaScore\n';
+        const rows = trend.map(p => `${p.date},${p.ndvi ?? ''},${p.kurima_score ?? ''}`).join('\n');
+        downloadFile(headers + rows, `${field?.name.replace(/\s+/g, '_') || 'field'}_kurimascore.csv`, 'text/csv');
         setShowExportMenu(false);
     };
 
-    // ─── Timeline filtered data ───────────────────────────────────────────────────
-    const filteredHistory = useMemo(() => {
-        if (!timelineRange || !history.length) return history;
-        return history.slice(timelineRange.start, timelineRange.end + 1);
-    }, [history, timelineRange]);
+    // Crop Health Trends chart data — the aggregator's KurimaScore trend (0-100, a
+    // single clearly-labelled unit). Replaces the old dual-axis NDVI(0-1) +
+    // moisture(0-100) plot whose visible axis read as an unlabelled ~0-32 range.
+    const chartData = (fs?.indices?.trend_30d || [])
+        .filter((p) => p.kurima_score !== null && p.kurima_score !== undefined)
+        .map((p) => ({ date: p.date, kurima_score: p.kurima_score, ndvi: p.ndvi }));
 
-    if (loading) {
+    // Explicit loading / error — never render with legacy fallback values.
+    if (fsLoading || (!fs && !fsError)) {
         return (
             <div
                 className="min-h-screen flex items-center justify-center font-bold"
                 style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
             >
                 <span className="material-symbols-outlined mr-2 animate-spin">progress_activity</span>
-                Loading Insights...
+                Loading field state…
             </div>
         );
     }
 
-    if (!field) {
+    if (fsError || !fs || !field) {
         return (
             <div
-                className="min-h-screen flex items-center justify-center font-bold"
+                className="min-h-screen flex flex-col items-center justify-center font-bold gap-2"
                 style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
             >
-                <span className="material-symbols-outlined mr-2">error_outline</span>
-                Field not found
+                <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#dc2626' }}>error_outline</span>
+                {fsError?.message || 'Field state could not be loaded'}
             </div>
         );
     }
 
-    const yieldEfficiency = yieldData?.projected_yield && yieldData?.yield_potential
-        ? Math.min(98, Math.round((yieldData.projected_yield / yieldData.yield_potential) * 100))
+    const projected = fs.yield_projection?.projected_tonnes_per_ha;
+    const potential = fs.yield_projection?.potential_tonnes_per_ha;
+    const yieldEfficiency = (projected != null && potential)
+        ? Math.min(98, Math.round((projected / potential) * 100))
         : null;
 
-    // Crop-specific threshold definitions
-    const cropThresholds: Record<string, { ndvi: { excellent: number; good: number; moderate: number }; moisture: { adequate: number; low: number; critical: number } }> = {
-        'Maize': { ndvi: { excellent: 0.7, good: 0.5, moderate: 0.35 }, moisture: { adequate: 50, low: 30, critical: 20 } },
-        'Wheat': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 45, low: 25, critical: 15 } },
-        'Sorghum': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 35, low: 20, critical: 10 } },
-        'Finger Millet': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 30, low: 18, critical: 10 } },
-        'Pearl Millet': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 30, low: 18, critical: 10 } },
-        'Tobacco': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 30, critical: 20 } },
-        'Cotton': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Sunflower': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 35, low: 20, critical: 12 } },
-        'Paprika': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 45, low: 30, critical: 18 } },
-        'Sesame': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
-        'Tea': { ndvi: { excellent: 0.7, good: 0.55, moderate: 0.4 }, moisture: { adequate: 55, low: 40, critical: 30 } },
-        'Soybeans': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Soybean': { ndvi: { excellent: 0.65, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Groundnuts': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 35, low: 20, critical: 12 } },
-        'Sugar Beans': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Cowpeas': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
-        'Bambara Nuts': { ndvi: { excellent: 0.5, good: 0.35, moderate: 0.2 }, moisture: { adequate: 25, low: 15, critical: 8 } },
-        'Peas': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 28, critical: 15 } },
-        'Green Beans': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 30, critical: 18 } },
-        'Potato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
-        'Sweet Potato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Cassava': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 30, low: 18, critical: 10 } },
-        'Tomato': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
-        'Onion': { ndvi: { excellent: 0.45, good: 0.3, moderate: 0.2 }, moisture: { adequate: 50, low: 30, critical: 18 } },
-        'Cabbage': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 55, low: 35, critical: 22 } },
-        'Butternut': { ndvi: { excellent: 0.6, good: 0.4, moderate: 0.25 }, moisture: { adequate: 40, low: 25, critical: 15 } },
-        'Green Pepper': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 50, low: 32, critical: 20 } },
-        'Garlic': { ndvi: { excellent: 0.45, good: 0.3, moderate: 0.2 }, moisture: { adequate: 45, low: 28, critical: 15 } },
-        'Strawberries': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 55, low: 35, critical: 22 } },
-        'Blueberries': { ndvi: { excellent: 0.55, good: 0.35, moderate: 0.2 }, moisture: { adequate: 50, low: 32, critical: 20 } },
-        'Snow Peas': { ndvi: { excellent: 0.55, good: 0.4, moderate: 0.25 }, moisture: { adequate: 45, low: 28, critical: 15 } },
+    // All NDVI/moisture interpretation comes from the aggregator (classifiers.py
+    // on the backend). No crop-threshold table lives in the frontend any more.
+    const MOISTURE_COLORS: Record<string, string> = {
+        adequate: 'var(--ee-primary)', moderate: 'var(--ee-sun)', low: '#dc2626', dry: '#dc2626',
     };
-    const ct = cropThresholds[field.crop] || { ndvi: { excellent: 0.6, good: 0.45, moderate: 0.3 }, moisture: { adequate: 40, low: 25, critical: 15 } };
-    const getNdviLabel = (v: number) => v >= ct.ndvi.excellent ? 'Excellent' : v >= ct.ndvi.good ? 'Good' : v >= ct.ndvi.moderate ? 'Moderate' : 'Critical';
-    const getNdviColor = (v: number) => v >= ct.ndvi.good ? 'var(--ee-primary)' : v >= ct.ndvi.moderate ? 'var(--ee-sun)' : '#dc2626';
-    const getMoistureLabel = (v: number) => v >= ct.moisture.adequate ? 'Adequate' : v >= ct.moisture.low ? 'Moderate' : v >= ct.moisture.critical ? 'Low' : 'Critical';
-    const getMoistureColor = (v: number) => v >= ct.moisture.low ? 'var(--ee-primary)' : v >= ct.moisture.critical ? 'var(--ee-sun)' : '#dc2626';
+    const getNdviLabel = () => fs.indices?.current?.ndvi_label ?? null;
+    const getNdviColor = () => fs.indices?.current?.ndvi_color ?? 'var(--ee-muted)';
+    const getMoistureLabel = () => {
+        const label = fs.water_balance?.soil_moisture_label;
+        return label ? label.charAt(0).toUpperCase() + label.slice(1) : null;
+    };
+    const getMoistureColor = () => MOISTURE_COLORS[fs.water_balance?.soil_moisture_label || ''] || 'var(--ee-muted)';
 
-    const displayInsight = aiInsight || field.latestInsight || null;
+    // Agronomist insight reads ONLY from the aggregator's KurimaScore block, which
+    // runs in the field's own scope — so it never shows "Field not found".
+    const displayInsight = fs.kurima_score
+        ? [fs.kurima_score.primary_driver, fs.kurima_score.likely_cause, fs.kurima_score.recommended_action].filter(Boolean).join(' ')
+        : null;
 
     return (
         <div className="min-h-screen p-6 lg:p-8" style={{ background: 'var(--ee-bg)', fontFamily: 'var(--font-body)' }}>
@@ -312,7 +267,7 @@ export default function FieldInsightsPage() {
                                         <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#3B82F6' }}>public</span>
                                         Google Earth (.kml)
                                     </button>
-                                    {history.length > 0 && (
+                                    {(fs?.indices?.trend_30d?.length ?? 0) > 0 && (
                                         <button
                                             onClick={handleExportCSV}
                                             className="w-full px-4 py-3 text-left text-sm font-bold flex items-center gap-2 hover:bg-black/5 transition-colors"
@@ -352,20 +307,24 @@ export default function FieldInsightsPage() {
                             </h2>
                             <p className="text-sm font-bold mt-1" style={{ color: 'var(--ee-muted)' }}>
                                 <span className="material-symbols-outlined text-sm mr-1 align-middle" style={{ color: 'var(--ee-water)' }}>satellite_alt</span>
-                                Last satellite pass: {field.lastSatellitePass}
+                                Last satellite pass: {fs.meta?.as_of_satellite_pass || '—'}
                             </p>
                         </div>
+                        {/* Single health badge from the aggregator's KurimaScore.
+                            Replaces the old `field.healthStatus` badge that could read
+                            "EXCELLENT" while the NDVI below it read "Critical". */}
                         <div
                             className="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider"
                             style={{
-                                background: field.healthStatus === 'Excellent' ? 'rgba(15, 184, 133, 0.1)' : field.healthStatus === 'Good' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(220, 38, 38, 0.08)',
-                                color: field.healthStatus === 'Excellent' ? 'var(--ee-primary)' : field.healthStatus === 'Good' ? 'var(--ee-sun)' : '#dc2626'
+                                background: fs?.kurima_score ? `${fs.kurima_score.color}1A` : 'rgba(139,157,143,0.12)',
+                                color: fs?.kurima_score?.color || 'var(--ee-muted)',
                             }}
+                            title={`KurimaScore ${fs.kurima_score.score}/100`}
                         >
                             <span className="material-symbols-outlined text-xs mr-1 align-middle">
-                                {field.healthStatus === 'Excellent' ? 'eco' : field.healthStatus === 'Good' ? 'spa' : 'warning'}
+                                {fs.kurima_score.score >= 70 ? 'eco' : fs.kurima_score.score >= 55 ? 'spa' : 'warning'}
                             </span>
-                            {field.healthStatus} Health
+                            {`${fs.kurima_score.label} • ${fs.kurima_score.score}/100`}
                         </div>
                     </div>
 
@@ -377,10 +336,10 @@ export default function FieldInsightsPage() {
                                 NDVI
                             </p>
                             <div className="text-3xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
-                                {field.ndvi?.toFixed(2) ?? '—'}
+                                {fs.indices?.current?.ndvi != null ? fs.indices.current.ndvi.toFixed(2) : '—'}
                             </div>
-                            <div className="text-[10px] font-bold mt-1" style={{ color: getNdviColor(field.ndvi ?? 0) }}>
-                                {getNdviLabel(field.ndvi ?? 0)}
+                            <div className="text-[10px] font-bold mt-1" style={{ color: getNdviColor() }}>
+                                {getNdviLabel() ?? '—'}
                             </div>
                         </div>
 
@@ -391,10 +350,10 @@ export default function FieldInsightsPage() {
                                 Moisture
                             </p>
                             <div className="text-3xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
-                                {field.soilMoisture ?? 0}%
+                                {fs.water_balance?.soil_moisture_pct != null ? `${Math.round(fs.water_balance.soil_moisture_pct)}%` : '—'}
                             </div>
-                            <div className="text-[10px] font-bold mt-1" style={{ color: getMoistureColor(field.soilMoisture ?? 0) }}>
-                                {getMoistureLabel(field.soilMoisture ?? 0)}
+                            <div className="text-[10px] font-bold mt-1" style={{ color: getMoistureColor() }}>
+                                {getMoistureLabel() ?? '—'}
                             </div>
                         </div>
 
@@ -409,9 +368,9 @@ export default function FieldInsightsPage() {
                                     <span className="text-lg" style={{ color: 'var(--ee-muted)' }}>Pending</span>
                                 )}
                             </div>
-                            {yieldData?.projected_yield && (
+                            {projected != null && (
                                 <div className="text-[10px] font-bold mt-1" style={{ color: 'var(--ee-muted)' }}>
-                                    {yieldData.projected_yield.toFixed(1)}t / {yieldData.yield_potential?.toFixed(1)}t potential
+                                    {projected.toFixed(1)}t / {potential != null ? `${potential.toFixed(1)}t` : '—'} potential
                                 </div>
                             )}
                         </div>
@@ -423,16 +382,13 @@ export default function FieldInsightsPage() {
                                 Planted
                             </p>
                             <div className="text-3xl font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
-                                {(() => {
-                                    const pd = field.plantingDate || (field as any).planting_date;
-                                    if (!pd) return <span className="text-lg" style={{ color: 'var(--ee-muted)' }}>Not set</span>;
-                                    const days = Math.floor((Date.now() - new Date(pd).getTime()) / 86400000);
-                                    return `${days}d`;
-                                })()}
+                                {fs.season?.days_since_planted != null
+                                    ? `${fs.season.days_since_planted}d`
+                                    : <span className="text-lg" style={{ color: 'var(--ee-muted)' }}>Not set</span>}
                             </div>
                             <div className="text-[10px] font-bold mt-1" style={{ color: 'var(--ee-muted)' }}>
-                                {field.plantingDate || (field as any).planting_date
-                                    ? new Date(field.plantingDate || (field as any).planting_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                                {fs.season?.planted_date
+                                    ? new Date(fs.season.planted_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
                                     : 'Set planting date'}
                             </div>
                         </div>
@@ -449,16 +405,9 @@ export default function FieldInsightsPage() {
                             <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--ee-primary)' }}>psychology</span>
                             Agronomist Insight
                         </h2>
-                        {insightLoading ? (
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px', color: 'var(--ee-primary)' }}>progress_activity</span>
-                                <p className="font-medium" style={{ opacity: 0.6 }}>Generating analysis...</p>
-                            </div>
-                        ) : (
-                            <p className="font-medium leading-relaxed text-base" style={{ opacity: 0.85, fontFamily: 'var(--font-body)' }}>
-                                {displayInsight || "Run a satellite analysis to receive AI-powered agronomist recommendations for this field."}
-                            </p>
-                        )}
+                        <p className="font-medium leading-relaxed text-base" style={{ opacity: 0.85, fontFamily: 'var(--font-body)' }}>
+                            {displayInsight || "Run a satellite analysis to receive AI-powered agronomist recommendations for this field."}
+                        </p>
                     </div>
                     <div className="flex flex-col gap-3 justify-center relative z-10">
                         <button
@@ -474,7 +423,7 @@ export default function FieldInsightsPage() {
                             Ask Follow-up
                         </button>
                         <button
-                            onClick={fetchAIInsight}
+                            onClick={() => refresh()}
                             className="px-5 py-3 rounded-[16px] font-bold uppercase text-xs tracking-widest hover:scale-105 transition-transform whitespace-nowrap"
                             style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-body)' }}
                         >
@@ -492,39 +441,23 @@ export default function FieldInsightsPage() {
                             Crop Health Trends
                         </h2>
                         <div className="flex items-center gap-3">
-                            {timelineRange && (
-                                <button
-                                    onClick={() => setTimelineRange(null)}
-                                    className="text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/5 transition-colors"
-                                    style={{ color: 'var(--ee-muted)' }}
-                                >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
-                                    Reset zoom
-                                </button>
-                            )}
-                            {history.length > 0 && history[0]?.source && (
-                                <p className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style={{
-                                    color: 'var(--ee-muted)',
-                                    background: 'var(--ee-bg)',
-                                }}>
-                                    {history.some(h => h.source === 'satellite') ? 'Satellite + Climate Model' : 'Climate Model Estimate'}
-                                </p>
-                            )}
+                            <p className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full" style={{
+                                color: 'var(--ee-muted)',
+                                background: 'var(--ee-bg)',
+                            }}>
+                                KurimaScore (0–100)
+                            </p>
                         </div>
                     </div>
-                    {history.length > 0 ? (
+                    {chartData.length > 0 ? (
                         <div className="w-full">
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={filteredHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
-                                            <linearGradient id="colorNdvi" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.15} />
+                                            <linearGradient id="colorKurima" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.25} />
                                                 <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
-                                            </linearGradient>
-                                            <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#5C9EAD" stopOpacity={0.15} />
-                                                <stop offset="95%" stopColor="#5C9EAD" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E4DF" />
@@ -539,10 +472,20 @@ export default function FieldInsightsPage() {
                                                 return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
                                             }}
                                         />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} />
-                                        {/* NDVI threshold reference lines */}
-                                        <ReferenceLine y={ct.ndvi.good} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} />
-                                        <ReferenceLine y={ct.ndvi.moderate} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.3} />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }}
+                                            domain={[0, 100]}
+                                            label={{ value: 'KurimaScore (0–100)', angle: -90, position: 'insideLeft', style: { fill: '#8B9D8F', fontSize: 10, fontWeight: 700 } }}
+                                        />
+                                        {/* Score bands as background regions: Strong/Adequate/Stressed */}
+                                        <ReferenceArea y1={70} y2={100} fill="#0fb885" fillOpacity={0.06} />
+                                        <ReferenceArea y1={55} y2={70} fill="#EAB308" fillOpacity={0.06} />
+                                        <ReferenceArea y1={0} y2={55} fill="#dc2626" fillOpacity={0.05} />
+                                        <ReferenceLine y={70} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Strong', position: 'right', fontSize: 9, fill: '#0fb885' }} />
+                                        <ReferenceLine y={55} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Adequate', position: 'right', fontSize: 9, fill: '#EAB308' }} />
+                                        <ReferenceLine y={40} stroke="#dc2626" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Stressed', position: 'right', fontSize: 9, fill: '#dc2626' }} />
                                         <Tooltip
                                             contentStyle={{
                                                 borderRadius: '16px',
@@ -555,50 +498,10 @@ export default function FieldInsightsPage() {
                                             cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }}
                                             labelFormatter={(val) => new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         />
-                                        <Area type="monotone" dataKey="ndvi" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorNdvi)" name="NDVI" />
-                                        <Area type="monotone" dataKey="soilMoisture" stroke="#5C9EAD" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" name="Moisture (%)" />
+                                        <Area type="monotone" dataKey="kurima_score" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorKurima)" name="KurimaScore" connectNulls />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
-
-                            {/* Timeline Brush / Slider */}
-                            {history.length > 5 && (
-                                <div className="h-12 mt-2">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={history} margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
-                                            <defs>
-                                                <linearGradient id="brushGrad" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#0fb885" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <Area type="monotone" dataKey="ndvi" stroke="#0fb885" strokeWidth={1} fill="url(#brushGrad)" />
-                                            <Brush
-                                                dataKey="date"
-                                                height={28}
-                                                stroke="var(--ee-primary)"
-                                                fill="var(--ee-bg)"
-                                                tickFormatter={(val) => {
-                                                    const d = new Date(val);
-                                                    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                                                }}
-                                                onChange={(range: any) => {
-                                                    if (range && range.startIndex !== undefined) {
-                                                        setTimelineRange({ start: range.startIndex, end: range.endIndex });
-                                                    }
-                                                }}
-                                            />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Timeline hint */}
-                            {history.length > 5 && !timelineRange && (
-                                <p className="text-[10px] text-center mt-1 font-bold" style={{ color: 'var(--ee-muted)' }}>
-                                    Drag the handles above to zoom into a specific time period
-                                </p>
-                            )}
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-64">

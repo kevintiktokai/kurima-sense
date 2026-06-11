@@ -100,8 +100,20 @@
   --ee-water-light: #E6F2F5;
 
   /* Typography */
-  --font-heading: 'Fraunces', serif;
-  --font-body: 'Nunito', sans-serif;
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+
+  /* ── Institutional depth palette (Phase 3 redesign) ──
+     Dominant dark loam base for institution-credible sections, warm earth
+     neutrals for body, brand green as a single signal accent (not a wash). */
+  --ee-loam: #0E1A14;          /* deep forest-black — institutional base */
+  --ee-loam-soft: #16271E;     /* lifted panel sitting on loam */
+  --ee-loam-line: rgba(255, 255, 255, 0.09);
+  --ee-loam-muted: rgba(233, 228, 219, 0.62);
+  --ee-clay: #C8A98A;          /* warm sand / clay neutral */
+  --ee-soil: #6B5847;          /* deep soil brown */
+  --ee-oat-deep: #E9E4DB;      /* deeper oat for layering */
+  --ee-green-bright: #2DD4A7;  /* green accent legible on loam */
 
   /* Radii */
   --radius-ee-sm: 8px;
@@ -239,6 +251,69 @@
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
+/* ── Redesign texture & surface utilities ──────────────────────────── */
+
+/* Fine film grain — atmosphere, not decoration. Sits as an overlay. */
+@utility bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Topographic contour motif — on-theme for fields / satellite terrain. */
+@utility bg-contour {
+  background-image: url("/contour-lines.svg");
+  background-size: 900px auto;
+  background-repeat: repeat;
+}
+
+/* Loam panel — data card on the dark institutional base. */
+@utility loam-panel {
+  background-color: var(--ee-loam-soft);
+  border: 1px solid var(--ee-loam-line);
+  border-radius: var(--radius-ee-md);
+}
+
+/* Editorial surface card — flat, precise, institution-credible.
+   (Lower-key alternative to the neumorphic neu-surface.) */
+@utility edit-card {
+  background-color: var(--ee-surface);
+  border: 1px solid var(--ee-bg-border);
+  border-radius: var(--radius-ee-md);
+}
+
+/* Hairline divider used across institutional sections. */
+@utility rule-line {
+  border-top: 1px solid var(--ee-bg-border);
+}
+
+@layer base {
+  /* Staggered page-load + scroll reveal helper (calm, not busy). */
+  @keyframes ks-fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Accessible focus ring across the redesign. */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--ee-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Respect reduced-motion: kill non-essential animation/transition. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -259,6 +334,28 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+  }
+
+  /* Defensive base for Material Symbols (dashboard/blog/fields).
+     Guarantees the ligature font-family + liga feature even if Google's
+     served helper class is unavailable. font-display:block (set on the
+     font request) keeps icons invisible-then-rendered instead of flashing
+     the raw ligature name as text. The landing route uses lucide-react SVGs
+     and does not depend on this. */
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: 'liga';
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Hide scrollbars for horizontal scroll containers */

@@ -60,10 +60,20 @@ export default function AuthPage() {
                     .eq('id', data.user.id)
                     .single()
 
-                if (profile?.full_name) {
-                    router.push('/dashboard')
-                } else {
+                if (!profile?.full_name) {
                     router.push('/onboarding')
+                } else {
+                    // Route by role from the canonical backend endpoint. Institutional
+                    // users go to the portfolio shell; consumer/admin (and any fetch
+                    // failure → null) fall back to the dashboard so we never lock a
+                    // user out if the role lookup fails.
+                    const { fetchUserRoleOnce } = await import('@/hooks/useUserRole')
+                    const roleCtx = await fetchUserRoleOnce()
+                    if (roleCtx?.role === 'institutional') {
+                        router.push('/portfolio/today')
+                    } else {
+                        router.push('/dashboard')
+                    }
                 }
             }
         } catch (err: any) {

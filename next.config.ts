@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 
-// Trigger Vercel Build
-
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
@@ -30,6 +28,24 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+    ],
+  },
+  experimental: {
+    // Tree-shake the named-imports so only the icons/components actually
+    // referenced end up in the client bundle. Big win for lucide-react,
+    // recharts and the radix packages.
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-tooltip',
+      'framer-motion',
     ],
   },
 };

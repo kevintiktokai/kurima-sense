@@ -1,14 +1,16 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { UserProfileProvider, useUserProfile } from '@/components/providers/UserProfileProvider';
 import { DashboardDataProvider } from '@/components/providers/DashboardDataProvider';
+import { TutorialProvider } from '@/components/providers/TutorialProvider';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import MarketTicker from '@/components/dashboard/MarketTicker';
 import MobileNav from '@/components/dashboard/MobileNav';
+import { RoleGuard } from '@/components/auth/RoleGuard';
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading } = useAuth();
@@ -21,14 +23,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         }
     }, [user, authLoading, router]);
 
-    // Redirect to onboarding if no profile
+    // Redirect to onboarding if no profile (only after we've confirmed it doesn't exist)
     useEffect(() => {
         if (!authLoading && !profileLoading && user && !profile) {
             router.push('/onboarding');
         }
     }, [user, profile, authLoading, profileLoading, router]);
 
-    if (authLoading || profileLoading) {
+    // Only block on auth — let the dashboard shell paint while the profile is still loading.
+    // Profile-dependent UI (Sidebar name, Header greeting) should render skeletons internally.
+    if (authLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--ee-bg)' }}>
                 <div className="text-center">
@@ -42,7 +46,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         );
     }
 
-    if (!user || !profile) {
+    if (!user) {
         return null;
     }
 
@@ -72,10 +76,17 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <UserProfileProvider>
-            <DashboardDataProvider>
-                <DashboardContent>{children}</DashboardContent>
-            </DashboardDataProvider>
-        </UserProfileProvider>
+        // Role boundary: consumers (and admins, for now) get the dashboard;
+        // institutional users are redirected to their portfolio shell. Wrapping the
+        // layout only — no consumer page content is modified.
+        <RoleGuard allowedRoles={['consumer', 'admin']} redirectTo="/portfolio/today">
+            <UserProfileProvider>
+                <TutorialProvider>
+                    <DashboardDataProvider>
+                        <DashboardContent>{children}</DashboardContent>
+                    </DashboardDataProvider>
+                </TutorialProvider>
+            </UserProfileProvider>
+        </RoleGuard>
     );
 }

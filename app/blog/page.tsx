@@ -107,7 +107,7 @@ export default function BlogPage() {
                             className="text-lg md:text-xl max-w-2xl mx-auto"
                             style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                         >
-                            Expert agricultural advice, technology insights, and practical farming tips — updated daily to help you grow better.
+                            Practical agronomy advice, technology insights, and field notes from our team to help you grow better.
                         </p>
                     </motion.div>
                 </div>

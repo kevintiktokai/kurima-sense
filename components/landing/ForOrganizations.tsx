@@ -2,139 +2,88 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { LineChart, Landmark, ShieldHalf, ArrowRight } from 'lucide-react';
 
 const cards = [
     {
-        eyebrow: 'AGRICULTURAL BUYERS',
+        eyebrow: 'Agricultural buyers',
         heading: 'Pre-harvest yield forecasts',
         description:
-            'District-level yield intelligence for contract pricing, procurement planning, and logistics.',
+            'Growing-zone yield intelligence for contract pricing, procurement planning, and logistics — with confidence bands you can build a position on.',
         href: '/for-buyers',
-        icon: 'business',
+        icon: LineChart,
     },
     {
-        eyebrow: 'LENDERS',
+        eyebrow: 'Lenders',
         heading: 'Field-level risk scoring',
         description:
-            'Default probability scoring for smallholder agricultural lending, backed by satellite history and ground truth.',
+            'Default-probability scoring for smallholder agricultural lending, backed by satellite history and ground truth, explainable down to the input.',
         href: '/for-lenders',
-        icon: 'account_balance',
+        icon: Landmark,
     },
     {
-        eyebrow: 'INSURERS',
-        heading: 'Parametric crop insurance',
+        eyebrow: 'Insurers',
+        heading: 'Parametric insurance triggers',
         description:
-            'Index-based crop insurance triggers and verification for automated payouts and reduced basis risk.',
+            'Index-based crop insurance triggers and independent verification for automated payouts and reduced basis risk.',
         href: '/for-insurers',
-        icon: 'security',
+        icon: ShieldHalf,
     },
 ];
 
 export default function ForOrganizations() {
+    const reduceMotion = useReducedMotion();
     return (
-        <section
-            className="py-16 md:py-24"
-            id="for-organizations"
-            style={{ backgroundColor: 'var(--ee-bg)' }}
-        >
+        <section className="py-20 md:py-28" id="for-organizations" style={{ backgroundColor: 'var(--ee-bg-dim)' }}>
             <div className="container mx-auto px-4 sm:px-6">
-                <div className="text-center mb-12 md:mb-16">
-                    <span
-                        className="inline-flex items-center gap-2 py-2 px-5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-6"
-                        style={{
-                            backgroundColor: 'var(--ee-bg-pressed)',
-                            color: 'var(--ee-text)',
-                            fontFamily: 'var(--font-body)',
-                        }}
-                    >
-                        <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: '16px', color: 'var(--ee-primary)' }}
-                        >
-                            account_tree
+                <div className="md:flex md:items-end md:justify-between gap-10 mb-14 md:mb-16">
+                    <div className="max-w-2xl">
+                        <span className="block text-xs font-bold uppercase tracking-[0.22em] mb-5" style={{ color: 'var(--ee-primary)' }}>
+                            What we provide institutions
                         </span>
-                        For Organizations
-                    </span>
-                    <h2
-                        className="text-3xl md:text-5xl font-black mb-4 tracking-tight"
-                        style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                    >
-                        Agricultural intelligence at scale
-                    </h2>
-                    <p
-                        className="text-lg md:text-xl max-w-2xl mx-auto"
-                        style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                    >
-                        Beyond individual farmers, KurimaSense provides portfolio-level yield
-                        forecasting, risk scoring, and crop monitoring for agricultural buyers,
-                        lenders, and insurers across Southern Africa.
+                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight leading-[1.05]" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                            Portfolio-grade agricultural intelligence
+                        </h2>
+                    </div>
+                    <p className="mt-5 md:mt-0 md:max-w-sm text-base leading-relaxed" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                        Three deliverables, one calibrated engine and the same explainable confidence
+                        scoring underneath each — across Southern Africa.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
                     {cards.map((card, index) => (
                         <motion.div
                             key={card.eyebrow}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 26 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: '-50px' }}
-                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            transition={{ duration: 0.55, delay: index * 0.1 }}
                         >
                             <Link
                                 href={card.href}
-                                className="group block h-full rounded-[24px] p-6 md:p-8 transition-transform duration-300 hover:-translate-y-1"
-                                style={{
-                                    backgroundColor: 'var(--ee-surface)',
-                                    boxShadow: 'var(--shadow-ambient)',
-                                }}
+                                className="group flex h-full flex-col rounded-2xl p-7 md:p-8 transition-all duration-300 hover:-translate-y-1"
+                                style={{ backgroundColor: 'var(--ee-surface)', border: '1px solid var(--ee-bg-border)' }}
                             >
                                 <div
-                                    className="w-14 h-14 rounded-[16px] flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110"
-                                    style={{
-                                        backgroundColor: 'rgba(15, 184, 133, 0.12)',
-                                    }}
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-7 transition-transform duration-300 group-hover:scale-105"
+                                    style={{ backgroundColor: 'rgba(15,184,133,0.10)' }}
                                 >
-                                    <span
-                                        className="material-symbols-outlined"
-                                        style={{ fontSize: '28px', color: 'var(--ee-primary)' }}
-                                    >
-                                        {card.icon}
-                                    </span>
+                                    <card.icon size={24} style={{ color: 'var(--ee-primary)' }} aria-hidden />
                                 </div>
-
-                                <span
-                                    className="block text-[10px] md:text-xs font-bold uppercase tracking-widest mb-3"
-                                    style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}
-                                >
+                                <span className="block text-[11px] font-bold uppercase tracking-widest mb-2.5" style={{ color: 'var(--ee-primary)' }}>
                                     {card.eyebrow}
                                 </span>
-
-                                <h3
-                                    className="text-xl md:text-2xl font-black mb-3 leading-tight"
-                                    style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
-                                >
+                                <h3 className="text-xl md:text-2xl font-semibold mb-3 leading-snug" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
                                     {card.heading}
                                 </h3>
-
-                                <p
-                                    className="text-sm md:text-base mb-6 leading-relaxed"
-                                    style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
-                                >
+                                <p className="text-sm md:text-base mb-7 leading-relaxed flex-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                                     {card.description}
                                 </p>
-
-                                <span
-                                    className="inline-flex items-center gap-2 font-bold text-sm md:text-base transition-colors"
-                                    style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}
-                                >
-                                    Learn more
-                                    <span
-                                        className="material-symbols-outlined transition-transform group-hover:translate-x-1"
-                                        style={{ fontSize: '18px' }}
-                                    >
-                                        arrow_forward
-                                    </span>
+                                <span className="inline-flex items-center gap-2 font-semibold text-sm" style={{ color: 'var(--ee-primary)', fontFamily: 'var(--font-body)' }}>
+                                    Explore
+                                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden />
                                 </span>
                             </Link>
                         </motion.div>
