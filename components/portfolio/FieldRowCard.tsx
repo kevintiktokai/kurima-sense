@@ -21,7 +21,7 @@ const AWAITING_ACCENT = 'var(--ee-bg-pressed)'
 
 export type FieldRowVariant = 'priority' | 'roster'
 
-export function FieldRowCard({ priority, variant = 'priority' }: { priority: PortfolioPriority; variant?: FieldRowVariant }) {
+export function FieldRowCard({ priority, variant = 'priority', metaSuffix }: { priority: PortfolioPriority; variant?: FieldRowVariant; metaSuffix?: string }) {
     const p = priority
     const awaiting = p.urgency === 'awaiting_data' || p.kurima_score == null
     const accent = awaiting ? AWAITING_ACCENT : (p.kurima_color || 'var(--ee-muted)')
@@ -31,6 +31,7 @@ export function FieldRowCard({ priority, variant = 'priority' }: { priority: Por
         humanizeCrop(p.crop_type),
         variant === 'roster' ? p.variety : null,
         p.size_hectares ? `${p.size_hectares} ha` : null,
+        metaSuffix,
     ].filter(Boolean).join(' · ')
 
     const footerParts: string[] = []
