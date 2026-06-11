@@ -207,7 +207,7 @@ test('criticalFieldCount counts only critical-urgency rows', () => {
 const hookSrc = readFileSync('hooks/usePortfolioAggregate.ts', 'utf8')
 const pageSrc = readFileSync('app/portfolio/today/page.tsx', 'utf8')
 const listSrc = readFileSync('components/portfolio/PriorityList.tsx', 'utf8')
-const cardSrc = readFileSync('components/portfolio/PriorityCard.tsx', 'utf8')
+const cardSrc = readFileSync('components/portfolio/FieldRowCard.tsx', 'utf8')
 const detailSrc = readFileSync('app/portfolio/fields/[id]/page.tsx', 'utf8')
 
 test('hook: SWR options per spec (focus revalidate, 30s dedupe)', () => {

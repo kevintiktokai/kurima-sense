@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import { groupPriorities, type PortfolioPriority, type Urgency } from '@/lib/portfolio-utils'
-import { PriorityCard } from '@/components/portfolio/PriorityCard'
+import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
 
 export interface PriorityListProps {
     priorities: PortfolioPriority[]
@@ -41,7 +41,7 @@ export function PriorityList({ priorities, expandAwaiting = false }: PriorityLis
 
                         {isExpanded ? (
                             <div className="space-y-3">
-                                {group.items.map((p) => <PriorityCard key={p.field_id} priority={p} />)}
+                                {group.items.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="priority" />)}
                                 {group.collapsedByDefault && !defaultExpanded && (
                                     <button
                                         onClick={() => setExpanded((e) => ({ ...e, [group.urgency]: false }))}

@@ -273,3 +273,176 @@ export async function fetchPortfolioAggregate(
         })),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Fields roster — filter / sort / search (pure, for /portfolio/fields)
+// ---------------------------------------------------------------------------
+
+/** Pseudo-band used by the Health filter for null-score (awaiting) rows. */
+export const AWAITING_BAND = 'awaiting'
+
+export interface FieldsFilter {
+    /** Matches grower_name OR field_name, case-insensitive, trimmed. */
+    search: string
+    /** Selected districts; empty = all. */
+    districts: string[]
+    /** Selected crop_type values; empty = all. */
+    crops: string[]
+    /** Selected kurima_label values, plus AWAITING_BAND; empty = all. */
+    bands: string[]
+}
+
+export type FieldsSort =
+    | 'score_asc'   // worst first (default)
+    | 'score_desc'  // best first
+    | 'size_desc'   // largest first
+    | 'grower_az'
+    | 'district_az'
+
+export const DEFAULT_FIELDS_FILTER: FieldsFilter = { search: '', districts: [], crops: [], bands: [] }
+export const DEFAULT_FIELDS_SORT: FieldsSort = 'score_asc'
+
+/** The band key a row belongs to for the Health filter (its label, or AWAITING_BAND). */
+function bandOf(p: PortfolioPriority): string {
+    return p.kurima_score == null ? AWAITING_BAND : (p.kurima_label || AWAITING_BAND)
+}
+
+/**
+ * Filter the roster. Search matches grower OR field name (case-insensitive,
+ * trimmed); district/crop/band are multi-select (empty = all); all active
+ * dimensions AND together.
+ */
+export function filterFields(priorities: PortfolioPriority[], filter: FieldsFilter): PortfolioPriority[] {
+    const q = filter.search.trim().toLowerCase()
+    return priorities.filter((p) => {
+        if (q) {
+            const hay = `${p.grower_name || ''} ${p.field_name || ''}`.toLowerCase()
+            if (!hay.includes(q)) return false
+        }
+        if (filter.districts.length && !filter.districts.includes(p.district || '')) return false
+        if (filter.crops.length && !filter.crops.includes(p.crop_type)) return false
+        if (filter.bands.length && !filter.bands.includes(bandOf(p))) return false
+        return true
+    })
+}
+
+// Score comparators put awaiting (null) rows LAST in BOTH directions; ties break
+// by size desc then field_id, so the order is always deterministic.
+function compareKnownScore(a: PortfolioPriority, b: PortfolioPriority, dir: 'asc' | 'desc'): number {
+    const sa = a.kurima_score as number
+    const sb = b.kurima_score as number
+    if (sa !== sb) return dir === 'asc' ? sa - sb : sb - sa
+    if (a.size_hectares !== b.size_hectares) return b.size_hectares - a.size_hectares
+    return a.field_id.localeCompare(b.field_id)
+}
+
+function awaitingLast(a: PortfolioPriority, b: PortfolioPriority, both: () => number): number {
+    const aw = a.kurima_score == null
+    const bw = b.kurima_score == null
+    if (aw && bw) {
+        if (a.size_hectares !== b.size_hectares) return b.size_hectares - a.size_hectares
+        return a.field_id.localeCompare(b.field_id)
+    }
+    if (aw) return 1
+    if (bw) return -1
+    return both()
+}
+
+/**
+ * Sort a (already filtered) roster. Returns a new array; never mutates input.
+ * Null scores always sort last for both score directions.
+ */
+export function sortFields(priorities: PortfolioPriority[], sort: FieldsSort): PortfolioPriority[] {
+    const rows = [...priorities]
+    switch (sort) {
+        case 'score_asc':
+            return rows.sort((a, b) => awaitingLast(a, b, () => compareKnownScore(a, b, 'asc')))
+        case 'score_desc':
+            return rows.sort((a, b) => awaitingLast(a, b, () => compareKnownScore(a, b, 'desc')))
+        case 'size_desc':
+            return rows.sort((a, b) =>
+                b.size_hectares - a.size_hectares || a.field_id.localeCompare(b.field_id))
+        case 'grower_az':
+            return rows.sort((a, b) => {
+                const ga = a.grower_name, gb = b.grower_name
+                if (ga && gb && ga !== gb) return ga.localeCompare(gb)
+                if (ga && !gb) return -1          // null grower names last
+                if (!ga && gb) return 1
+                return (a.field_name || '').localeCompare(b.field_name || '')
+            })
+        case 'district_az':
+            return rows.sort((a, b) => {
+                const da = a.district, db = b.district
+                if (da && db && da !== db) return da.localeCompare(db)
+                if (da && !db) return -1          // null districts last
+                if (!da && db) return 1
+                return (a.field_name || '').localeCompare(b.field_name || '')
+            })
+        default:
+            return rows
+    }
+}
+
+export interface FieldsFilterOptions {
+    districts: string[]
+    crops: string[]
+    bands: string[]
+}
+
+/**
+ * Distinct, sorted filter values actually present in the payload, so a chip is
+ * never offered for a dimension with no matching fields. Bands list real
+ * kurima_labels first (worst→best by score) and appends AWAITING_BAND if any
+ * row is awaiting.
+ */
+export function deriveFilterOptions(priorities: PortfolioPriority[]): FieldsFilterOptions {
+    const districts = new Set<string>()
+    const crops = new Set<string>()
+    // label → representative score, so bands sort by severity not alphabetically
+    const bandScore = new Map<string, number>()
+    let hasAwaiting = false
+
+    for (const p of priorities) {
+        if (p.district) districts.add(p.district)
+        if (p.crop_type) crops.add(p.crop_type)
+        if (p.kurima_score == null) hasAwaiting = true
+        else if (p.kurima_label) bandScore.set(p.kurima_label, p.kurima_score)
+    }
+
+    const bands = [...bandScore.entries()].sort((a, b) => a[1] - b[1]).map(([label]) => label)
+    if (hasAwaiting) bands.push(AWAITING_BAND)
+
+    return {
+        districts: [...districts].sort((a, b) => a.localeCompare(b)),
+        crops: [...crops].sort((a, b) => a.localeCompare(b)),
+        bands,
+    }
+}
+
+/** True when any filter dimension is active (drives the "Clear all" affordance). */
+export function isFilterActive(filter: FieldsFilter): boolean {
+    return filter.search.trim() !== '' ||
+        filter.districts.length > 0 || filter.crops.length > 0 || filter.bands.length > 0
+}
+
+// ---------------------------------------------------------------------------
+// Debounce (used for the search input)
+// ---------------------------------------------------------------------------
+
+/**
+ * Trailing-edge debounce. Returns a wrapped function that delays calling `fn`
+ * until `wait` ms after the last invocation, plus a `cancel()` to drop a
+ * pending call (e.g. on unmount).
+ */
+export function debounce<A extends unknown[]>(
+    fn: (...args: A) => void,
+    wait: number,
+): ((...args: A) => void) & { cancel: () => void } {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const wrapped = (...args: A) => {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => { timer = null; fn(...args) }, wait)
+    }
+    wrapped.cancel = () => { if (timer) { clearTimeout(timer); timer = null } }
+    return wrapped
+}

@@ -1,10 +1,17 @@
 'use client'
 
 /**
- * PriorityCard — one tappable row of the "Where to focus" list. Links to the
- * institutional field detail at /portfolio/fields/{id}. The urgency accent
+ * FieldRowCard — the shared tappable field row used by both portfolio lists.
+ * Links to the institutional field detail at /portfolio/fields/{id}. The accent
  * bar and the score chip are the only saturated colour; the band colour comes
  * straight from the API payload (`kurima_color`).
+ *
+ * variant:
+ *  - 'priority' (Today / "Where to focus"): meta `district · crop · ha`, then
+ *    primary_concern, recommended_action (arrow), and the days footer. This is
+ *    the exact row Today rendered before extraction — pixel-identical.
+ *  - 'roster' (Fields): meta `district · crop · variety · ha`, then
+ *    primary_concern only (no action, no footer — a roster, not an action list).
  */
 
 import Link from 'next/link'
@@ -12,7 +19,9 @@ import { humanizeCrop, type PortfolioPriority } from '@/lib/portfolio-utils'
 
 const AWAITING_ACCENT = 'var(--ee-bg-pressed)'
 
-export function PriorityCard({ priority }: { priority: PortfolioPriority }) {
+export type FieldRowVariant = 'priority' | 'roster'
+
+export function FieldRowCard({ priority, variant = 'priority' }: { priority: PortfolioPriority; variant?: FieldRowVariant }) {
     const p = priority
     const awaiting = p.urgency === 'awaiting_data' || p.kurima_score == null
     const accent = awaiting ? AWAITING_ACCENT : (p.kurima_color || 'var(--ee-muted)')
@@ -20,12 +29,15 @@ export function PriorityCard({ priority }: { priority: PortfolioPriority }) {
     const metaLine = [
         p.district,
         humanizeCrop(p.crop_type),
+        variant === 'roster' ? p.variety : null,
         p.size_hectares ? `${p.size_hectares} ha` : null,
     ].filter(Boolean).join(' · ')
 
     const footerParts: string[] = []
-    if (p.days_since_planting != null) footerParts.push(`Day ${p.days_since_planting} since planting`)
-    if (p.days_since_observation != null) footerParts.push(`observed ${p.days_since_observation}d ago`)
+    if (variant === 'priority') {
+        if (p.days_since_planting != null) footerParts.push(`Day ${p.days_since_planting} since planting`)
+        if (p.days_since_observation != null) footerParts.push(`observed ${p.days_since_observation}d ago`)
+    }
 
     return (
         <Link
@@ -34,7 +46,7 @@ export function PriorityCard({ priority }: { priority: PortfolioPriority }) {
             style={{ background: 'var(--ee-surface)', borderRadius: '20px', boxShadow: 'var(--shadow-neu)' }}
         >
             <div className="flex">
-                {/* Urgency accent bar */}
+                {/* Accent bar */}
                 <div className="w-1.5 rounded-l-[20px] flex-shrink-0" style={{ background: accent }} aria-hidden="true" />
 
                 <div className="flex-1 min-w-0 p-4 lg:p-5">
@@ -75,12 +87,15 @@ export function PriorityCard({ priority }: { priority: PortfolioPriority }) {
                     <p className="text-sm mt-2.5 leading-snug" style={{ color: 'var(--ee-text)' }}>
                         {p.primary_concern}
                     </p>
-                    <p className="text-sm font-bold mt-1 flex items-start gap-1 leading-snug" style={{ color: 'var(--ee-text)' }}>
-                        <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 16, color: 'var(--ee-primary)', marginTop: 1 }}>
-                            arrow_forward
-                        </span>
-                        {p.recommended_action}
-                    </p>
+
+                    {variant === 'priority' && (
+                        <p className="text-sm font-bold mt-1 flex items-start gap-1 leading-snug" style={{ color: 'var(--ee-text)' }}>
+                            <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 16, color: 'var(--ee-primary)', marginTop: 1 }}>
+                                arrow_forward
+                            </span>
+                            {p.recommended_action}
+                        </p>
+                    )}
 
                     {footerParts.length > 0 && (
                         <p className="text-[11px] font-bold mt-2" style={{ color: 'var(--ee-muted)' }}>
@@ -93,4 +108,4 @@ export function PriorityCard({ priority }: { priority: PortfolioPriority }) {
     )
 }
 
-export default PriorityCard
+export default FieldRowCard
