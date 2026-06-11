@@ -19,6 +19,7 @@ import {
     selectScreenState,
 } from '@/lib/portfolio-utils'
 import { scoreToLabel } from '@/lib/field-state-types'
+import { PageContainer } from '@/components/layout/PageContainer'
 import { PortfolioPulse } from '@/components/portfolio/PortfolioPulse'
 import { PriorityList } from '@/components/portfolio/PriorityList'
 
@@ -162,7 +163,7 @@ export default function PortfolioTodayPage() {
         : false
 
     return (
-        <div className="max-w-[800px] mx-auto">
+        <PageContainer variant="reading">
             {/* Header */}
             <div className="mb-6 lg:mb-8">
                 <h1
@@ -228,6 +229,6 @@ export default function PortfolioTodayPage() {
                     </p>
                 </div>
             )}
-        </div>
+        </PageContainer>
     )
 }

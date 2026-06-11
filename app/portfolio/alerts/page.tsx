@@ -16,6 +16,7 @@ import {
     deriveAlerts, alertCounts, isStale, selectScreenState, STALE_OBSERVATION_DAYS,
     type PortfolioPriority,
 } from '@/lib/portfolio-utils'
+import { PageContainer } from '@/components/layout/PageContainer'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
 
 // ─── State cards (shared patterns) ───────────────────────────────────────────
@@ -102,7 +103,7 @@ export default function PortfolioAlertsPage() {
     const total = data?.summary.total_fields ?? 0
 
     return (
-        <div className="max-w-[800px] mx-auto">
+        <PageContainer variant="reading">
             {/* Header */}
             <div className="mb-6 lg:mb-8">
                 <h1 className="text-3xl lg:text-4xl font-black tracking-tight"
@@ -194,6 +195,6 @@ export default function PortfolioAlertsPage() {
                     </p>
                 </div>
             )}
-        </div>
+        </PageContainer>
     )
 }

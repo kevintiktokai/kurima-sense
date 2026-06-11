@@ -11,9 +11,10 @@ export function PortfolioMobileNav() {
 
     return (
         <nav
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-2"
+            className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] safe-x"
             style={{ background: 'var(--ee-surface)', boxShadow: '0 -4px 24px rgba(47,47,44,0.08)' }}
         >
+          <div className="max-w-md mx-auto flex items-center justify-around px-2">
             {PORTFOLIO_NAV_ITEMS.map((item) => {
                 const active = isPortfolioNavActive(item.href, pathname)
                 return (
@@ -33,6 +34,7 @@ export function PortfolioMobileNav() {
                     </Link>
                 )
             })}
+          </div>
         </nav>
     )
 }
