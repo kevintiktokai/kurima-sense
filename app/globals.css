@@ -251,6 +251,18 @@
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
+/* ── Safe-area utilities (PWA in landscape; notch sits on the side) ──────
+   Horizontal insets are 0 in portrait / on non-notched devices, so they never
+   change mobile portrait rendering. Used by PageContainer + the bottom navs. */
+@utility safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+@utility safe-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 /* ── Redesign texture & surface utilities ──────────────────────────── */
 
 /* Fine film grain — atmosphere, not decoration. Sits as an overlay. */
