@@ -446,3 +446,140 @@ export function debounce<A extends unknown[]>(
     wrapped.cancel = () => { if (timer) { clearTimeout(timer); timer = null } }
     return wrapped
 }
+
+// ---------------------------------------------------------------------------
+// Growers — type, stats merge, search, sort (pure, for /portfolio/growers)
+// ---------------------------------------------------------------------------
+
+/** Mirrors the backend Grower schema (`kurimasense-backend/schemas.py`). */
+export interface Grower {
+    id: string
+    tenant_id: string
+    name: string
+    phone?: string | null
+    email?: string | null
+    coordinates?: unknown
+    claimed_by_user_id?: string | null
+    created_by_user_id?: string | null
+    notes?: string | null
+    created_at: string
+    updated_at: string
+}
+
+/** A grower joined with stats derived from the aggregate's priority rows. */
+export interface GrowerWithStats extends Grower {
+    field_count: number
+    total_hectares: number
+    /** Min KurimaScore across the grower's scored fields; null if none scored. */
+    worst_score: number | null
+    worst_label: string | null
+    worst_color: string | null
+    /** True when any of the grower's fields has no satellite data yet. */
+    has_awaiting: boolean
+}
+
+/**
+ * Join growers with the aggregate's priority rows to derive per-grower stats:
+ * field_count, total_hectares, and the worst (lowest) KurimaScore across their
+ * scored fields. Growers with zero fields get count 0 and null score stats.
+ * Pure — never mutates its inputs.
+ */
+export function mergeGrowerStats(growers: Grower[], priorities: PortfolioPriority[]): GrowerWithStats[] {
+    const byGrower = new Map<string, PortfolioPriority[]>()
+    for (const p of priorities) {
+        if (!p.grower_id) continue
+        const list = byGrower.get(p.grower_id)
+        if (list) list.push(p)
+        else byGrower.set(p.grower_id, [p])
+    }
+
+    return growers.map((g) => {
+        const fields = byGrower.get(g.id) ?? []
+        const total_hectares = Math.round(fields.reduce((s, f) => s + (f.size_hectares || 0), 0) * 10) / 10
+        const scored = fields.filter((f) => f.kurima_score != null).map((f) => f.kurima_score as number)
+        const worst_score = scored.length ? Math.min(...scored) : null
+        const band = worst_score != null ? scoreToLabel(worst_score) : null
+        return {
+            ...g,
+            field_count: fields.length,
+            total_hectares,
+            worst_score,
+            worst_label: band?.label ?? null,
+            worst_color: band?.color ?? null,
+            has_awaiting: fields.some((f) => f.kurima_score == null),
+        }
+    })
+}
+
+/** Filter growers by name (case-insensitive, trimmed). Empty query = all. */
+export function searchGrowers<T extends { name: string }>(growers: T[], query: string): T[] {
+    const q = query.trim().toLowerCase()
+    if (!q) return growers
+    return growers.filter((g) => (g.name || '').toLowerCase().includes(q))
+}
+
+/**
+ * Default roster order: most at-risk grower first (worst_score ascending),
+ * growers with no scored fields last, ties broken by field_count desc then
+ * name A–Z. Returns a new array; never mutates input.
+ */
+export function sortGrowersDefault(growers: GrowerWithStats[]): GrowerWithStats[] {
+    return [...growers].sort((a, b) => {
+        const aw = a.worst_score == null
+        const bw = b.worst_score == null
+        if (!aw && !bw && a.worst_score !== b.worst_score) {
+            return (a.worst_score as number) - (b.worst_score as number)
+        }
+        if (aw !== bw) return aw ? 1 : -1            // null-stats growers last
+        if (a.field_count !== b.field_count) return b.field_count - a.field_count
+        return a.name.localeCompare(b.name)
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Grower form — validation + payload shaping (pure)
+// ---------------------------------------------------------------------------
+
+export interface GrowerFormValues {
+    name: string
+    phone: string
+    email: string
+    notes: string
+}
+
+export interface GrowerPayload {
+    name: string
+    phone?: string
+    email?: string
+    notes?: string
+}
+
+/** Minimal email shape check — only meaningful when the user typed something. */
+export function isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}
+
+export interface GrowerFormValidation {
+    valid: boolean
+    errors: { name?: string; email?: string }
+}
+
+/** Name required (trimmed, non-empty); email checked only when non-empty. */
+export function validateGrowerForm(values: GrowerFormValues): GrowerFormValidation {
+    const errors: { name?: string; email?: string } = {}
+    if (!values.name.trim()) errors.name = 'Name is required'
+    if (values.email.trim() && !isValidEmail(values.email)) errors.email = 'Enter a valid email'
+    return { valid: Object.keys(errors).length === 0, errors }
+}
+
+/** Trim, and drop empty optional fields so the API never stores blank strings. */
+export function buildGrowerPayload(values: GrowerFormValues): GrowerPayload {
+    const payload: GrowerPayload = { name: values.name.trim() }
+    const phone = values.phone.trim()
+    const email = values.email.trim()
+    const notes = values.notes.trim()
+    if (phone) payload.phone = phone
+    if (email) payload.email = email
+    if (notes) payload.notes = notes
+    return payload
+}
