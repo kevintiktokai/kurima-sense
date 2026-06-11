@@ -16,15 +16,17 @@
 
 import Link from 'next/link'
 import { humanizeCrop, type PortfolioPriority } from '@/lib/portfolio-utils'
+import { routeForField, withFrom, type FromContext } from '@/lib/nav-links'
 
 const AWAITING_ACCENT = 'var(--ee-bg-pressed)'
 
 export type FieldRowVariant = 'priority' | 'roster'
 
-export function FieldRowCard({ priority, variant = 'priority', metaSuffix }: { priority: PortfolioPriority; variant?: FieldRowVariant; metaSuffix?: string }) {
+export function FieldRowCard({ priority, variant = 'priority', metaSuffix, from }: { priority: PortfolioPriority; variant?: FieldRowVariant; metaSuffix?: string; from?: FromContext }) {
     const p = priority
     const awaiting = p.urgency === 'awaiting_data' || p.kurima_score == null
     const accent = awaiting ? AWAITING_ACCENT : (p.kurima_color || 'var(--ee-muted)')
+    const href = withFrom(routeForField(p.field_id, 'portfolio'), from?.label, from?.href)
 
     const metaLine = [
         p.district,
@@ -42,7 +44,7 @@ export function FieldRowCard({ priority, variant = 'priority', metaSuffix }: { p
 
     return (
         <Link
-            href={`/portfolio/fields/${p.field_id}`}
+            href={href}
             className="block transition-transform hover:scale-[1.01]"
             style={{ background: 'var(--ee-surface)', borderRadius: '20px', boxShadow: 'var(--shadow-neu)' }}
         >

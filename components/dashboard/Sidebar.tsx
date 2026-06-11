@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { isTabActive } from '@/lib/nav-links';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useTutorial } from '@/components/providers/TutorialProvider';
 
@@ -27,11 +28,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         { id: 'settings', href: '/dashboard/settings', icon: 'settings', label: 'Settings' },
     ];
 
-    const isActive = (path: string) => {
-        if (path === '/dashboard' && pathname === '/dashboard') return true;
-        if (path !== '/dashboard' && pathname?.startsWith(path)) return true;
-        return false;
-    };
+    // Dashboard root matches exactly; every other tab matches itself or a
+    // sub-route (prefix) via the shared helper.
+    const isActive = (path: string) =>
+        path === '/dashboard' ? pathname === '/dashboard' : isTabActive(pathname, path);
 
     return (
         <aside

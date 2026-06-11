@@ -175,7 +175,7 @@ export default function PortfolioFieldsPage() {
                     ) : (
                         <div className="space-y-3">
                             {visible.map((p) => (
-                                <FieldRowCard key={p.field_id} priority={p} variant="roster" />
+                                <FieldRowCard key={p.field_id} priority={p} variant="roster" from={{ label: 'Fields', href: '/portfolio/fields' }} />
                             ))}
                         </div>
                     )}

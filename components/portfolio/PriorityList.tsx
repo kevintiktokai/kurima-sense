@@ -11,14 +11,17 @@
 import { useState } from 'react'
 import { groupPriorities, type PortfolioPriority, type Urgency } from '@/lib/portfolio-utils'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
+import type { FromContext } from '@/lib/nav-links'
 
 export interface PriorityListProps {
     priorities: PortfolioPriority[]
     /** All-awaiting screen state: expand the awaiting group by default. */
     expandAwaiting?: boolean
+    /** Contextual back label passed to each row's field link. */
+    from?: FromContext
 }
 
-export function PriorityList({ priorities, expandAwaiting = false }: PriorityListProps) {
+export function PriorityList({ priorities, expandAwaiting = false, from }: PriorityListProps) {
     const groups = groupPriorities(priorities)
     const [expanded, setExpanded] = useState<Partial<Record<Urgency, boolean>>>({})
 
@@ -41,7 +44,7 @@ export function PriorityList({ priorities, expandAwaiting = false }: PriorityLis
 
                         {isExpanded ? (
                             <div className="space-y-3">
-                                {group.items.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="priority" />)}
+                                {group.items.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="priority" from={from} />)}
                                 {group.collapsedByDefault && !defaultExpanded && (
                                     <button
                                         onClick={() => setExpanded((e) => ({ ...e, [group.urgency]: false }))}

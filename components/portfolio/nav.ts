@@ -1,6 +1,8 @@
 // Institutional portfolio navigation — the 5 tabs. Shared by the desktop sidebar
 // and the mobile bottom nav (and asserted by tests) so they never drift.
 
+import { isTabActive } from '@/lib/nav-links'
+
 export interface PortfolioNavItem {
     id: string
     href: string
@@ -16,9 +18,11 @@ export const PORTFOLIO_NAV_ITEMS: PortfolioNavItem[] = [
     { id: 'reports', href: '/portfolio/reports', icon: 'assessment', label: 'Reports' },
 ]
 
-/** Active-route test mirroring the consumer nav's `startsWith` logic. */
+/** Active-route test: exact or sub-route prefix (so detail pages light up their
+ * parent tab), via the shared isTabActive helper, plus the `/portfolio` → Today
+ * root alias. */
 export function isPortfolioNavActive(href: string, pathname: string | null | undefined): boolean {
     if (!pathname) return false
     if (href === '/portfolio/today' && pathname === '/portfolio') return true
-    return pathname === href || pathname.startsWith(href + '/') || pathname === href
+    return isTabActive(pathname, href)
 }

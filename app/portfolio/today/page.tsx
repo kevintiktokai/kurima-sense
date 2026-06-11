@@ -220,7 +220,7 @@ export default function PortfolioTodayPage() {
                         >
                             Where to focus
                         </h2>
-                        <PriorityList priorities={data.priorities} expandAwaiting={state === 'awaiting'} />
+                        <PriorityList priorities={data.priorities} expandAwaiting={state === 'awaiting'} from={{ label: 'Today', href: '/portfolio/today' }} />
                     </div>
 
                     {/* Footer note */}

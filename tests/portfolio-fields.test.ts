@@ -189,7 +189,8 @@ const controlsSrc = readFileSync('components/portfolio/FieldsControls.tsx', 'utf
 const cardSrc = readFileSync('components/portfolio/FieldRowCard.tsx', 'utf8')
 
 test('field rows link to the detail route', () => {
-    assert.match(cardSrc, /\/portfolio\/fields\/\$\{p\.field_id\}/)
+    // Routing now goes through the shared nav-links helper (PR B).
+    assert.match(cardSrc, /routeForField\(p\.field_id, 'portfolio'\)/)
 })
 
 test('page applies order only through sortFields (no ad-hoc .sort in the page)', () => {

@@ -18,6 +18,10 @@ import {
 } from '@/lib/portfolio-utils'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
+import type { FromContext } from '@/lib/nav-links'
+
+// Contextual back label for every field link on this screen.
+const ALERTS_FROM: FromContext = { label: 'Alerts', href: '/portfolio/alerts' }
 
 // ─── State cards (shared patterns) ───────────────────────────────────────────
 
@@ -75,7 +79,7 @@ function DataSubgroup({
                 <span className="text-xs font-bold" style={{ color: 'var(--ee-muted)' }}>{rows.length}</span>
             </div>
             <div className="space-y-3">
-                {shown.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="roster" metaSuffix={suffixFor(p)} />)}
+                {shown.map((p) => <FieldRowCard key={p.field_id} priority={p} variant="roster" metaSuffix={suffixFor(p)} from={ALERTS_FROM} />)}
                 {hidden > 0 && (
                     <button
                         onClick={() => setExpanded(true)}
@@ -161,6 +165,7 @@ export default function PortfolioAlertsPage() {
                                         priority={p}
                                         variant="priority"
                                         metaSuffix={isStale(p) ? `last observed ${p.days_since_observation ?? '?'}d ago` : undefined}
+                                        from={ALERTS_FROM}
                                     />
                                 ))}
                             </div>
