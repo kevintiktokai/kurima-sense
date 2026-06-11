@@ -393,3 +393,13 @@
     -webkit-line-clamp: 2;
   }
 }
+
+/* MapLibre popup — match the app's surface tokens, not the GL defaults. */
+.portfolio-popup .maplibregl-popup-content {
+  background: var(--ee-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-neu);
+  padding: 14px 16px;
+}
+.portfolio-popup .maplibregl-popup-tip { border-top-color: var(--ee-surface); border-bottom-color: var(--ee-surface); }
+.portfolio-popup .maplibregl-popup-close-button { color: var(--ee-muted); font-size: 18px; padding: 2px 6px; }
