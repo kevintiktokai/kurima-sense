@@ -17,6 +17,7 @@ import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import { mergeGrowerStats, sortFields, type GrowerPayload } from '@/lib/portfolio-utils'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
 import { GrowerForm } from '@/components/portfolio/GrowerForm'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 function BackLink() {
     return (
@@ -105,7 +106,7 @@ export default function GrowerDetailPage() {
     }
 
     return (
-        <div className="max-w-[800px] mx-auto pb-8">
+        <PageContainer variant="reading" className="pb-8">
             <BackLink />
 
             {/* Header */}
@@ -217,6 +218,6 @@ export default function GrowerDetailPage() {
                     </div>
                 </div>
             )}
-        </div>
+        </PageContainer>
     )
 }

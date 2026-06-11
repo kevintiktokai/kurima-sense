@@ -21,6 +21,7 @@ import {
     DEFAULT_FIELDS_FILTER, DEFAULT_FIELDS_SORT,
     type FieldsFilter, type FieldsSort,
 } from '@/lib/portfolio-utils'
+import { PageContainer } from '@/components/layout/PageContainer'
 import { FieldsControls } from '@/components/portfolio/FieldsControls'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
 
@@ -126,7 +127,7 @@ export default function PortfolioFieldsPage() {
     const anyActive = isFilterActive(filter)
 
     return (
-        <div className="max-w-[800px] mx-auto">
+        <PageContainer variant="reading">
             {/* Header */}
             <div className="mb-5 lg:mb-6">
                 <h1 className="text-3xl lg:text-4xl font-black tracking-tight"
@@ -180,6 +181,6 @@ export default function PortfolioFieldsPage() {
                     )}
                 </div>
             )}
-        </div>
+        </PageContainer>
     )
 }

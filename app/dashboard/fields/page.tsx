@@ -1,5 +1,10 @@
 import FieldManagement from "@/components/dashboard/FieldManagement";
+import { PageContainer } from '@/components/layout/PageContainer';
 
 export default function FieldsPage() {
-    return <FieldManagement />;
+    return (
+        <PageContainer variant="wide">
+            <FieldManagement />
+        </PageContainer>
+    );
 }

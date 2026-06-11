@@ -14,6 +14,7 @@ import type {
 } from '@/lib/climate-types';
 import { getWeatherIcon, getDayName, formatTime } from '@/lib/climate-types';
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ComposedChart, Line } from "recharts";
+import { PageContainer } from '@/components/layout/PageContainer';
 
 export default function WeatherPage() {
     const { fields } = useDashboardData();
@@ -116,6 +117,7 @@ export default function WeatherPage() {
     const gddData = agricultural?.growing_degree_days?.daily_breakdown || [];
 
     return (
+        <PageContainer variant="wide">
         <div className="grid grid-cols-12 gap-3 sm:gap-4 lg:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
 
             {/* Field Selector */}
@@ -672,5 +674,6 @@ export default function WeatherPage() {
                 </div>
             )}
         </div>
+        </PageContainer>
     );
 }

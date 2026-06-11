@@ -16,6 +16,7 @@ import {
     mergeGrowerStats, searchGrowers, sortGrowersDefault, debounce,
     type GrowerPayload,
 } from '@/lib/portfolio-utils'
+import { PageContainer } from '@/components/layout/PageContainer'
 import { GrowerCard } from '@/components/portfolio/GrowerCard'
 import { GrowerForm } from '@/components/portfolio/GrowerForm'
 
@@ -71,7 +72,7 @@ export default function PortfolioGrowersPage() {
     }
 
     return (
-        <div className="max-w-[800px] mx-auto">
+        <PageContainer variant="reading">
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-5 lg:mb-6">
                 <div>
@@ -152,6 +153,6 @@ export default function PortfolioGrowersPage() {
             )}
 
             {showForm && <GrowerForm onSubmit={handleCreate} onClose={() => setShowForm(false)} />}
-        </div>
+        </PageContainer>
     )
 }

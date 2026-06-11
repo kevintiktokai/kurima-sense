@@ -7,6 +7,7 @@ import { FieldData, ScoutingPin, ScoutingCategory, ScoutingSeverity } from '@/co
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine, ReferenceArea } from 'recharts';
 import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
 import { useFieldState } from '@/hooks/useFieldState';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -212,6 +213,7 @@ export default function FieldInsightsPage() {
 
     return (
         <div className="min-h-screen p-6 lg:p-8" style={{ background: 'var(--ee-bg)', fontFamily: 'var(--font-body)' }}>
+          <PageContainer variant="wide">
             {/* Header / Nav */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
@@ -729,6 +731,7 @@ export default function FieldInsightsPage() {
                     </div>
                 </div>
             )}
+          </PageContainer>
         </div>
     );
 }

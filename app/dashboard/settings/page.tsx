@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useUserProfile } from '@/components/providers/UserProfileProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { requestInstallPrompt } from '@/components/InstallPrompt'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function SettingsPage() {
     const { profile, loading, updateProfile } = useUserProfile()
@@ -81,6 +82,7 @@ export default function SettingsPage() {
     }
 
     return (
+        <PageContainer variant="reading">
         <div
             id="settings-container"
             className="neu-surface p-5 sm:p-8 lg:p-14 max-w-2xl mx-auto animate-in fade-in zoom-in duration-500"
@@ -358,5 +360,6 @@ export default function SettingsPage() {
                 </div>
             </div>
         </div>
+        </PageContainer>
     )
 }

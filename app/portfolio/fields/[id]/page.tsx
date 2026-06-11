@@ -27,6 +27,7 @@ import {
 import { useFieldState } from '@/hooks/useFieldState'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import { humanizeCrop, stripDemoPrefix } from '@/lib/portfolio-utils'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 function BackLink() {
     return (
@@ -108,7 +109,7 @@ export default function InstitutionalFieldDetailPage() {
     ].filter(Boolean).join(' · ')
 
     return (
-        <div className="max-w-[800px] mx-auto pb-8">
+        <PageContainer variant="wide" className="pb-8">
             <BackLink />
 
             {/* Grower context header — an offtaker thinks in growers, not field IDs */}
@@ -124,7 +125,8 @@ export default function InstitutionalFieldDetailPage() {
                 </p>
             </div>
 
-            <div className="space-y-5">
+            <div className="lg:grid lg:grid-cols-[1.6fr_1fr] lg:gap-5 lg:items-start">
+              <div className="space-y-5">
                 {/* Score card */}
                 <div className="p-6 lg:p-8"
                     style={{ background: 'var(--ee-surface)', borderRadius: '24px', boxShadow: 'var(--shadow-neu)' }}>
@@ -257,7 +259,9 @@ export default function InstitutionalFieldDetailPage() {
                         </div>
                     </div>
                 )}
+              </div>
 
+              <div className="space-y-5 mt-5 lg:mt-0">
                 {/* Concerns + recommended action */}
                 {!awaiting && (ks.primary_driver || ks.recommended_action || fs.alerts.length > 0) && (
                     <div className="p-6 lg:p-8"
@@ -305,7 +309,8 @@ export default function InstitutionalFieldDetailPage() {
                         )}
                     </div>
                 )}
+              </div>
             </div>
-        </div>
+        </PageContainer>
     )
 }

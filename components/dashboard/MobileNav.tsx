@@ -23,7 +23,7 @@ const MobileNav: React.FC = () => {
     };
 
     return (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pt-2 safe-pb safe-x">
             <div
                 className="max-w-md mx-auto rounded-[24px] flex items-center justify-around p-2"
                 style={{

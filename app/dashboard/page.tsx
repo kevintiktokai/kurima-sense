@@ -1,5 +1,10 @@
 import Overview from '@/components/dashboard/Overview';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 export default function DashboardPage() {
-    return <Overview />;
+    return (
+        <PageContainer variant="wide">
+            <Overview />
+        </PageContainer>
+    );
 }

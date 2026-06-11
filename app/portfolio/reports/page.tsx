@@ -1,9 +1,10 @@
 import { PortfolioPageHeader } from '@/components/portfolio/PortfolioPageHeader'
 import { EmptyStateCard } from '@/components/portfolio/EmptyStateCard'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function PortfolioReportsPage() {
     return (
-        <>
+        <PageContainer variant="reading">
             <PortfolioPageHeader title="Reports" subtitle="Portfolio-level reporting and exports" />
             <div className="grid gap-6">
                 <EmptyStateCard
@@ -22,6 +23,6 @@ export default function PortfolioReportsPage() {
                     icon="eco"
                 />
             </div>
-        </>
+        </PageContainer>
     )
 }
