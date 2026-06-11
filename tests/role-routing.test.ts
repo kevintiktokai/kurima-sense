@@ -133,10 +133,10 @@ test('useUserRole hits /me/role and defaults role to null', () => {
 })
 
 test('each placeholder portfolio page renders a header + empty-state cards', () => {
-    // 'today' (MVP PR 3) and 'fields' (MVP PR 5) graduated from placeholder to
-    // real screens (see tests/portfolio-today.test.ts, portfolio-fields.test.ts);
-    // the rest are still placeholders.
-    for (const page of ['growers', 'alerts', 'reports']) {
+    // 'today' (PR 3), 'fields' (PR 5) and 'growers' (PR 6) graduated from
+    // placeholder to real screens (see their dedicated test files); Alerts and
+    // Reports remain placeholders.
+    for (const page of ['alerts', 'reports']) {
         const src = readFileSync(`app/portfolio/${page}/page.tsx`, 'utf8')
         assert.match(src, /PortfolioPageHeader/, `${page} has a page header`)
         assert.match(src, /EmptyStateCard/, `${page} has empty-state cards`)
