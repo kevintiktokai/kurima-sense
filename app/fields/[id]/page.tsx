@@ -10,6 +10,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
 import { useFieldState } from '@/hooks/useFieldState';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -521,6 +522,11 @@ export default function FieldInsightsPage() {
                             </p>
                         </div>
                     )}
+                </div>
+
+                {/* Season accumulations (additive; self-contained data hook) */}
+                <div className="lg:col-span-12 space-y-5">
+                    <SeasonAccumulationCharts fieldId={fieldId} surface="consumer" />
                 </div>
 
                 {/* Row 4: Scouting Observations (full width) */}
