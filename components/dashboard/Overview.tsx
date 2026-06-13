@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { useUserProfile } from '@/components/providers/UserProfileProvider';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
@@ -44,6 +45,7 @@ const AICardPlaceholder: React.FC<{ icon: string; label: string }> = ({ icon, la
 );
 
 const Overview: React.FC = () => {
+    const router = useRouter();
     const { profile } = useUserProfile();
     const { fields, dashboardStats: stats, loading: dataLoading } = useDashboardData();
 
@@ -209,15 +211,33 @@ const Overview: React.FC = () => {
                             ? `${activeFieldsCount} active field${activeFieldsCount > 1 ? 's' : ''} monitored across ${totalHectares.toFixed(1)} ha.`
                             : 'Add your first field to get started with precision farming.'}
                     </p>
+                    {/* Stat tiles double as quick links into the Fields screen — clicking the
+                        "active fields / total area" summary drills into the fields it counts. */}
                     <div className="flex flex-wrap gap-3 sm:gap-5 lg:gap-6 mt-5 sm:mt-8 lg:mt-10">
-                        <div className="px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
-                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Active Fields</p>
+                        <Link
+                            href="/dashboard/fields"
+                            aria-label="View all fields"
+                            className="group px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px] transition-all duration-200 hover:shadow-[var(--shadow-neu)] active:scale-[0.98]"
+                            style={{ backgroundColor: 'var(--ee-bg)' }}
+                        >
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                Active Fields
+                                <span className="material-symbols-outlined opacity-0 group-hover:opacity-60 transition-opacity" style={{ fontSize: '12px' }}>arrow_forward</span>
+                            </p>
                             <p className="text-xl sm:text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{activeFieldsCount}</p>
-                        </div>
-                        <div className="px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px]" style={{ backgroundColor: 'var(--ee-bg)' }}>
-                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>Total Area</p>
+                        </Link>
+                        <Link
+                            href="/dashboard/fields"
+                            aria-label="View all fields"
+                            className="group px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-[12px] lg:rounded-[16px] flex-1 min-w-[110px] sm:min-w-[140px] transition-all duration-200 hover:shadow-[var(--shadow-neu)] active:scale-[0.98]"
+                            style={{ backgroundColor: 'var(--ee-bg)' }}
+                        >
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
+                                Total Area
+                                <span className="material-symbols-outlined opacity-0 group-hover:opacity-60 transition-opacity" style={{ fontSize: '12px' }}>arrow_forward</span>
+                            </p>
                             <p className="text-xl sm:text-2xl lg:text-3xl" style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--ee-text)' }}>{totalHectares.toFixed(1)} ha</p>
-                        </div>
+                        </Link>
                     </div>
                 </div>
                 <div className="absolute top-0 right-0 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mt-16 sm:-mt-24 lg:-mt-32" style={{
@@ -291,31 +311,57 @@ const Overview: React.FC = () => {
                     )}
                 </div>
 
-                {/* Weather + Growth Stage Stack (Right 4) */}
+                {/* Weather + Growth Stage Stack (Right 4) — each card links into its full screen:
+                    weather → Climatology, growth stage → My Plan. */}
                 <div id="weather-widget" className="col-span-12 lg:col-span-4 flex flex-col gap-5 lg:gap-6">
-                    <WeatherWidget
-                        lat={(primaryField?.coordinates?.[0] as any)?.[1] ?? (primaryField?.coordinates?.[0] as any)?.lat ?? -17.8292}
-                        lon={(primaryField?.coordinates?.[0] as any)?.[0] ?? (primaryField?.coordinates?.[0] as any)?.lon ?? 31.0522}
-                    />
-                    <GrowthStageTracker
-                        currentStage={
-                            typeof yieldAnalysis?.current_stage === 'string'
-                                ? yieldAnalysis.current_stage.split(' ')[0]
-                                : undefined
-                        }
-                        daysToHarvest={yieldAnalysis?.days_to_harvest}
-                        plantingDate={primaryField?.plantingDate || primaryField?.planting_date}
-                        cropType={primaryField?.crop || (primaryField as any)?.crop_type || 'Maize'}
-                    />
+                    <Link
+                        href="/dashboard/weather"
+                        aria-label="Open Climatology"
+                        className="block transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                        <WeatherWidget
+                            lat={(primaryField?.coordinates?.[0] as any)?.[1] ?? (primaryField?.coordinates?.[0] as any)?.lat ?? -17.8292}
+                            lon={(primaryField?.coordinates?.[0] as any)?.[0] ?? (primaryField?.coordinates?.[0] as any)?.lon ?? 31.0522}
+                        />
+                    </Link>
+                    <Link
+                        href="/dashboard/plan"
+                        aria-label="Open My Plan"
+                        className="block transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                        <GrowthStageTracker
+                            currentStage={
+                                typeof yieldAnalysis?.current_stage === 'string'
+                                    ? yieldAnalysis.current_stage.split(' ')[0]
+                                    : undefined
+                            }
+                            daysToHarvest={yieldAnalysis?.days_to_harvest}
+                            plantingDate={primaryField?.plantingDate || primaryField?.planting_date}
+                            cropType={primaryField?.crop || (primaryField as any)?.crop_type || 'Maize'}
+                        />
+                    </Link>
                 </div>
             </div>
 
             {/* Bottom Row: Crop Health + Risk Radar + AI Insight */}
             <div className="col-span-12 grid grid-cols-12 gap-5 lg:gap-8">
 
-                {/* Crop Health Card — always visible (uses shared field data, no AI needed) */}
+                {/* Crop Health Card — always visible (uses shared field data, no AI needed).
+                    The whole card drills into the Fields screen; inner links to a specific
+                    field stop propagation so they keep their own, more specific destination. */}
                 <div className="col-span-12 md:col-span-4">
-                    <div className="p-5 sm:p-6 lg:p-8 rounded-[20px] lg:rounded-[24px] text-white relative overflow-hidden h-full min-h-[220px] lg:min-h-[260px]" style={{
+                    <div
+                        role="link"
+                        tabIndex={0}
+                        aria-label="View all fields"
+                        onClick={() => router.push('/dashboard/fields')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                router.push('/dashboard/fields');
+                            }
+                        }}
+                        className="p-5 sm:p-6 lg:p-8 rounded-[20px] lg:rounded-[24px] text-white relative overflow-hidden h-full min-h-[220px] lg:min-h-[260px] cursor-pointer transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0" style={{
                         backgroundColor: 'var(--ee-text)',
                         boxShadow: 'var(--shadow-ambient)',
                     }}>
@@ -337,6 +383,7 @@ const Overview: React.FC = () => {
                                     {(avgKurimaScore != null && avgKurimaScore < 55 && worstField?.kurima_score?.recommended_action && worstField.field?.id) ? (
                                         <Link
                                             href={withFrom(routeForField(worstField.field.id, 'consumer'), 'Overview', '/dashboard')}
+                                            onClick={(e) => e.stopPropagation()}
                                             className="text-[10px] mt-1 opacity-70 hover:opacity-100 transition-opacity inline-flex items-start gap-1"
                                             style={{ fontFamily: 'var(--font-body)' }}
                                         >
@@ -366,6 +413,7 @@ const Overview: React.FC = () => {
                             </div>
                             <Link
                                 href="/dashboard/fields"
+                                onClick={(e) => e.stopPropagation()}
                                 className="mt-5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition-opacity"
                                 style={{ fontFamily: 'var(--font-body)' }}
                             >

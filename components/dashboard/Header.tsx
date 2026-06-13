@@ -50,7 +50,10 @@ const Header: React.FC = () => {
                 <h2 className="text-[10px] sm:text-sm font-semibold uppercase tracking-widest mb-0.5 sm:mb-1" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                     Africa · Farmer
                 </h2>
-                <h1 className="text-2xl sm:text-3xl lg:text-5xl font-semibold tracking-tight truncate" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)', fontWeight: 600 }}>
+                {/* leading-tight + pb-1 give the heading font's descenders (e.g. the "g" in
+                    "Agro-Feed") room inside the overflow-hidden truncate box, which otherwise
+                    clips them on tight line-height sizes like text-5xl. */}
+                <h1 className="text-2xl sm:text-3xl lg:text-5xl font-semibold tracking-tight truncate leading-tight pb-1" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)', fontWeight: 600 }}>
                     {getHeaderTitle()}
                 </h1>
             </div>
