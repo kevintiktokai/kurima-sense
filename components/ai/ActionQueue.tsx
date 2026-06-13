@@ -59,7 +59,7 @@ const ActionQueueImpl: React.FC<ActionQueueProps> = ({
                         <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)', fontSize: '20px' }}>checklist</span>
                     </div>
                     <div className="min-w-0">
-                        <h3 className="text-base sm:text-lg truncate" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
+                        <h3 className="text-base sm:text-lg leading-tight" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{title}</h3>
                         <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}>
                             {pendingActions.length} pending
                         </p>
@@ -108,8 +108,10 @@ const ActionQueueImpl: React.FC<ActionQueueProps> = ({
 
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-                                        <h4 className="text-xs sm:text-sm truncate max-w-[70%]" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{action.title}</h4>
+                                    <div className="flex items-start gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                                        {/* No truncation: in the narrow dashboard column (iPad landscape) the
+                                            title must stay fully readable, wrapping rather than clipping to "Harv…". */}
+                                        <h4 className="text-xs sm:text-sm leading-snug break-words min-w-0" style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, color: 'var(--ee-text)' }}>{action.title}</h4>
                                         <span
                                             className="text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full uppercase flex-shrink-0"
                                             style={{ backgroundColor: config.badgeBg, color: config.badgeColor, fontFamily: 'var(--font-body)' }}
