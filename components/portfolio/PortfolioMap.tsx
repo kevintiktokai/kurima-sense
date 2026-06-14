@@ -110,7 +110,16 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         map.addControl(new maplibregl.AttributionControl({ compact: true }))
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
+        // Blank-canvas guard: the map is mounted via the List→Map toggle into a
+        // viewport-sized container, so its size may not be settled at init.
+        // A ResizeObserver keeps the GL canvas matched to the container (the
+        // first callback fires once the real size is known → tiles + polygons
+        // draw); also covers the toggle becoming visible and window resizes.
+        const ro = new ResizeObserver(() => map.resize())
+        ro.observe(containerRef.current)
+
         map.on('load', () => {
+            map.resize() // ensure the canvas matches the now-laid-out container
             const { poly, cent } = buildData(priorities, layer)
             map.addSource('fields-poly', { type: 'geojson', data: poly as never })
             map.addSource('fields-cent', { type: 'geojson', data: cent as never })
@@ -152,7 +161,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             if (b) map.fitBounds(b as [[number, number], [number, number]], { padding: 48, maxZoom: 14, duration: 0 })
         })
 
-        return () => { map.remove(); mapRef.current = null; loadedRef.current = false }
+        return () => { ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
