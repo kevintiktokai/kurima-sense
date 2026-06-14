@@ -215,3 +215,14 @@ test('no emojis in the map UI', () => {
     const emoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u
     assert.ok(!emoji.test(mapSrc), 'map must not contain emojis')
 })
+
+test('map resizes the GL canvas to its container (blank-canvas guard)', () => {
+    // The map mounts via the List→Map toggle into a viewport-sized container,
+    // so the GL canvas must be resized once the container is laid out, else it
+    // renders blank. A ResizeObserver + map.resize() keep canvas == container.
+    assert.match(mapSrc, /new ResizeObserver\(\s*\(\)\s*=>\s*map\.resize\(\)\s*\)/)
+    assert.match(mapSrc, /\.observe\(containerRef\.current\)/)
+    assert.match(mapSrc, /map\.resize\(\)/)
+    // and the observer is torn down with the map
+    assert.match(mapSrc, /ro\.disconnect\(\)/)
+})
