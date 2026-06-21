@@ -82,6 +82,11 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
     const mapRef = useRef<maplibregl.Map | null>(null)
     const loadedRef = useRef(false)
     const [layer, setLayer] = useState<MapLayer>('score')
+    // True once an Esri tile request fails. A key that is present but rejected
+    // (expired, over-quota, referrer-restricted, or missing the Basemaps scope)
+    // makes ibasemaps answer with an error body instead of imagery — MapLibre
+    // can't decode it and leaves a silent grey canvas. We surface it instead.
+    const [imageryFailed, setImageryFailed] = useState(false)
 
     const bounds = useMemo(() => portfolioBounds(priorities), [priorities])
 
@@ -109,6 +114,18 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         mapRef.current = map
         map.addControl(new maplibregl.AttributionControl({ compact: true }))
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+
+        // Tile diagnostics: an Esri source error means the imagery (not our
+        // overlays) failed to load — almost always an ArcGIS key/permission
+        // problem. Flag it so the user sees *why* the map is grey; clear the
+        // flag the moment a real tile decodes, so a transient blip self-heals.
+        map.on('error', (e) => {
+            if ((e as { sourceId?: string }).sourceId === 'esri') setImageryFailed(true)
+        })
+        map.on('data', (e) => {
+            const d = e as { sourceId?: string; tile?: unknown }
+            if (d.sourceId === 'esri' && d.tile) setImageryFailed(false)
+        })
 
         // Blank-canvas guard: the map is mounted via the List→Map toggle into a
         // viewport-sized container, so its size may not be settled at init.
@@ -191,6 +208,22 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
     return (
         <div className="relative w-full h-full min-h-[420px] rounded-[20px] overflow-hidden" style={{ boxShadow: 'var(--shadow-neu)' }}>
             <div ref={containerRef} className="absolute inset-0" />
+
+            {/* Imagery-failed notice — the key is set but the tiles were
+                rejected, so the canvas would otherwise be a silent grey box. */}
+            {imageryFailed && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center p-8 text-center"
+                    style={{ background: 'var(--ee-surface)' }}>
+                    <div className="max-w-sm">
+                        <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>wrong_location</span>
+                        <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Satellite imagery didn&apos;t load</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
+                            The ArcGIS key was rejected. Check that it&apos;s valid, in quota, allowed for this
+                            domain, and has the Basemaps scope.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Layer switcher (top-right) */}
             <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 p-1 rounded-full"
