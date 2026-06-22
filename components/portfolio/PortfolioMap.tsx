@@ -32,6 +32,10 @@ import type { PortfolioPriority } from '@/lib/portfolio-utils'
 const ESRI_WORLD_IMAGERY = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 const ESRI_ATTRIBUTION = 'Imagery © Esri, Maxar, Earthstar Geographics'
 const ZOOM_SPLIT = 12 // markers below, polygons at/above
+// Mashonaland-centred fallback so the basemap is always framed over Zimbabwe
+// (never blank ocean) when the portfolio has no usable geometry to fit.
+const ZW_FALLBACK_CENTER: [number, number] = [31.0, -17.0]
+const ZW_FALLBACK_ZOOM = 7
 
 function esc(s: string): string {
     return String(s ?? '').replace(/[&<>"']/g, (c) => (
@@ -113,7 +117,8 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
 
     // Init once.
     useEffect(() => {
-        if (!containerRef.current || mapRef.current) return
+        const container = containerRef.current
+        if (!container || mapRef.current) return
 
         // Fail fast and loud if the browser can't do WebGL at all.
         const probe = webglProbe()
@@ -124,116 +129,140 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             return
         }
 
-        let map: maplibregl.Map
-        try {
-            map = new maplibregl.Map({
-                container: containerRef.current,
-                attributionControl: false,
-                style: {
-                    version: 8,
-                    sources: {
-                        esri: {
-                            type: 'raster',
-                            tiles: [ESRI_WORLD_IMAGERY],
-                            tileSize: 256,
-                            attribution: ESRI_ATTRIBUTION,
+        // The map mounts behind the List|Map toggle, so on activation its
+        // container can still be 0×0 for a frame — constructing MapLibre then
+        // leaves a permanently blank canvas. Gate construction on a real size.
+        const sized = () => container.clientWidth > 0 && container.clientHeight > 0
+
+        const initMap = () => {
+            if (mapRef.current) return
+
+            let map: maplibregl.Map
+            try {
+                map = new maplibregl.Map({
+                    container,
+                    attributionControl: false,
+                    style: {
+                        version: 8,
+                        sources: {
+                            esri: {
+                                type: 'raster',
+                                tiles: [ESRI_WORLD_IMAGERY],
+                                tileSize: 256,
+                                attribution: ESRI_ATTRIBUTION,
+                            },
                         },
+                        layers: [{ id: 'esri', type: 'raster', source: 'esri' }],
                     },
-                    layers: [{ id: 'esri', type: 'raster', source: 'esri' }],
-                },
-                center: [31.05, -17.5], // Mashonaland fallback before fitBounds
-                zoom: 6,
-                // iOS/Safari hardening. MapLibre defaults to a 'high-performance'
-                // WebGL context; on a battery-constrained iPad with several tabs
-                // open, iOS refuses or immediately discards such a context, leaving
-                // a blank canvas. 'default' lets iOS pick a context it will actually
-                // keep, and a smaller tile cache eases the texture-memory pressure
-                // that makes iOS evict the GL context in the first place.
-                canvasContextAttributes: {
-                    antialias: false,
-                    powerPreference: 'default',
-                    failIfMajorPerformanceCaveat: false,
-                },
-                maxTileCacheSize: 48,
+                    center: ZW_FALLBACK_CENTER, // Mashonaland fallback before fitBounds
+                    zoom: 6,
+                    // iOS/Safari hardening. MapLibre defaults to a 'high-performance'
+                    // WebGL context; on a battery-constrained iPad with several tabs
+                    // open, iOS refuses or immediately discards such a context, leaving
+                    // a blank canvas. 'default' lets iOS pick a context it will actually
+                    // keep, and a smaller tile cache eases the texture-memory pressure
+                    // that makes iOS evict the GL context in the first place.
+                    canvasContextAttributes: {
+                        antialias: false,
+                        powerPreference: 'default',
+                        failIfMajorPerformanceCaveat: false,
+                    },
+                    maxTileCacheSize: 48,
+                })
+            } catch (err) {
+                // Constructing the map throws when WebGL can't be acquired. Don't let
+                // it bubble (that would blank the whole page) — show a clear notice.
+                console.error('[PortfolioMap] could not start MapLibre (WebGL):', err)
+                setDetail(`map init threw: ${String((err as Error)?.message || err)} · probe: ${probe.detail}`)
+                setMapError('webgl')
+                return
+            }
+            mapRef.current = map
+            map.addControl(new maplibregl.AttributionControl({ compact: true }))
+            map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+
+            // Imagery failures are non-fatal (there is no key to misconfigure): log
+            // them for diagnosis but keep the map mounted so the polygons still draw
+            // over the plain container background instead of showing nothing.
+            map.on('error', (e) => {
+                const err = (e as { error?: { status?: number; message?: string } }).error
+                console.error('[PortfolioMap] map error:', err ?? e)
             })
-        } catch (err) {
-            // Constructing the map throws when WebGL can't be acquired. Don't let
-            // it bubble (that would blank the whole page) — show a clear notice.
-            console.error('[PortfolioMap] could not start MapLibre (WebGL):', err)
-            setDetail(`map init threw: ${String((err as Error)?.message || err)} · probe: ${probe.detail}`)
-            setMapError('webgl')
-            return
+            // Lost GL context (tab/memory pressure) — the canvas goes blank.
+            // MapLibre auto-rebuilds the style on restore, so we just flip the
+            // notice: show it while lost, clear it (and repaint) once iOS hands the
+            // context back — e.g. after the user closes some tabs.
+            map.on('webglcontextlost', () => { setDetail('WebGL context lost'); setMapError('webgl') })
+            map.on('webglcontextrestored', () => { setMapError(null); setDetail(''); map.resize(); map.triggerRepaint() })
+
+            map.on('load', () => {
+                map.resize() // ensure the canvas matches the now-laid-out container
+                const { poly, cent } = buildData(priorities, layer)
+                map.addSource('fields-poly', { type: 'geojson', data: poly as never })
+                map.addSource('fields-cent', { type: 'geojson', data: cent as never })
+
+                // Polygons at high zoom.
+                map.addLayer({
+                    id: 'fields-fill', type: 'fill', source: 'fields-poly', minzoom: ZOOM_SPLIT,
+                    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.55 },
+                })
+                map.addLayer({
+                    id: 'fields-outline', type: 'line', source: 'fields-poly', minzoom: ZOOM_SPLIT,
+                    paint: { 'line-color': ['get', 'color'], 'line-width': 1.5 },
+                })
+                // Centroid markers at low zoom.
+                map.addLayer({
+                    id: 'fields-markers', type: 'circle', source: 'fields-cent', maxzoom: ZOOM_SPLIT,
+                    paint: {
+                        'circle-radius': 6, 'circle-color': ['get', 'color'],
+                        'circle-stroke-width': 1.5, 'circle-stroke-color': '#FFFFFF',
+                    },
+                })
+
+                const openPopup = (e: maplibregl.MapLayerMouseEvent) => {
+                    const f = e.features?.[0]
+                    if (!f) return
+                    new maplibregl.Popup({ closeButton: true, maxWidth: '280px', className: 'portfolio-popup' })
+                        .setLngLat(e.lngLat)
+                        .setHTML(popupHTML(f.properties as Record<string, unknown>))
+                        .addTo(map)
+                }
+                for (const id of ['fields-fill', 'fields-markers']) {
+                    map.on('click', id, openPopup)
+                    map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer' })
+                    map.on('mouseleave', id, () => { map.getCanvas().style.cursor = '' })
+                }
+
+                loadedRef.current = true
+                // Frame the portfolio once the style is loaded; with no usable
+                // geometry, fall back to a Zimbabwe-centred view (never blank ocean).
+                const b = portfolioBounds(priorities)
+                if (b) map.fitBounds(b as [[number, number], [number, number]], { padding: 48, maxZoom: 14, duration: 0 })
+                else map.jumpTo({ center: ZW_FALLBACK_CENTER, zoom: ZW_FALLBACK_ZOOM })
+            })
+
+            // The Map view just became active and the container is laid out —
+            // match the GL canvas to it immediately so the first paint isn't blank.
+            map.resize()
         }
-        mapRef.current = map
-        map.addControl(new maplibregl.AttributionControl({ compact: true }))
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-        // Imagery failures are non-fatal (there is no key to misconfigure): log
-        // them for diagnosis but keep the map mounted so the polygons still draw
-        // over the plain container background instead of showing nothing.
-        map.on('error', (e) => {
-            const err = (e as { error?: { status?: number; message?: string } }).error
-            console.error('[PortfolioMap] map error:', err ?? e)
-        })
-        // Lost GL context (tab/memory pressure) — the canvas goes blank.
-        // MapLibre auto-rebuilds the style on restore, so we just flip the
-        // notice: show it while lost, clear it (and repaint) once iOS hands the
-        // context back — e.g. after the user closes some tabs.
-        map.on('webglcontextlost', () => { setDetail('WebGL context lost'); setMapError('webgl') })
-        map.on('webglcontextrestored', () => { setMapError(null); setDetail(''); map.resize(); map.triggerRepaint() })
-
-        // Blank-canvas guard: the map is mounted via the List→Map toggle into a
-        // viewport-sized container, so its size may not be settled at init.
-        // A ResizeObserver keeps the GL canvas matched to the container (the
-        // first callback fires once the real size is known → tiles + polygons
-        // draw); also covers the toggle becoming visible and window resizes.
-        const ro = new ResizeObserver(() => map.resize())
-        ro.observe(containerRef.current)
-
-        map.on('load', () => {
-            map.resize() // ensure the canvas matches the now-laid-out container
-            const { poly, cent } = buildData(priorities, layer)
-            map.addSource('fields-poly', { type: 'geojson', data: poly as never })
-            map.addSource('fields-cent', { type: 'geojson', data: cent as never })
-
-            // Polygons at high zoom.
-            map.addLayer({
-                id: 'fields-fill', type: 'fill', source: 'fields-poly', minzoom: ZOOM_SPLIT,
-                paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.55 },
-            })
-            map.addLayer({
-                id: 'fields-outline', type: 'line', source: 'fields-poly', minzoom: ZOOM_SPLIT,
-                paint: { 'line-color': ['get', 'color'], 'line-width': 1.5 },
-            })
-            // Centroid markers at low zoom.
-            map.addLayer({
-                id: 'fields-markers', type: 'circle', source: 'fields-cent', maxzoom: ZOOM_SPLIT,
-                paint: {
-                    'circle-radius': 6, 'circle-color': ['get', 'color'],
-                    'circle-stroke-width': 1.5, 'circle-stroke-color': '#FFFFFF',
-                },
-            })
-
-            const openPopup = (e: maplibregl.MapLayerMouseEvent) => {
-                const f = e.features?.[0]
-                if (!f) return
-                new maplibregl.Popup({ closeButton: true, maxWidth: '280px', className: 'portfolio-popup' })
-                    .setLngLat(e.lngLat)
-                    .setHTML(popupHTML(f.properties as Record<string, unknown>))
-                    .addTo(map)
+        // The ResizeObserver does double duty: it triggers the deferred init on
+        // the first nonzero measurement (the toggle becoming visible / layout
+        // settling) and thereafter keeps the GL canvas matched to the container
+        // on every size change (window resizes, view re-activation).
+        const ro = new ResizeObserver(() => {
+            if (!mapRef.current) {
+                if (sized()) initMap()
+            } else {
+                mapRef.current.resize()
             }
-            for (const id of ['fields-fill', 'fields-markers']) {
-                map.on('click', id, openPopup)
-                map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer' })
-                map.on('mouseleave', id, () => { map.getCanvas().style.cursor = '' })
-            }
-
-            loadedRef.current = true
-            const b = portfolioBounds(priorities)
-            if (b) map.fitBounds(b as [[number, number], [number, number]], { padding: 48, maxZoom: 14, duration: 0 })
         })
+        ro.observe(container)
 
-        return () => { ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
+        // If the container is already laid out at mount, init synchronously.
+        if (sized()) initMap()
+
+        return () => { ro.disconnect(); mapRef.current?.remove(); mapRef.current = null; loadedRef.current = false }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
