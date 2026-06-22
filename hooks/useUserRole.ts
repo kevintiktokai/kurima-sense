@@ -40,16 +40,25 @@ export interface UseUserRoleResult {
     user: UserRoleContext | null
     isLoading: boolean
     error: Error | undefined
+    /** Force a re-fetch of /me/role (used by the guard's retry affordance). */
+    refresh: () => void
 }
 
 export function useUserRole(): UseUserRoleResult {
-    const { data, error, isLoading } = useSWR<UserRoleContext>(
+    const { data, error, isLoading, mutate } = useSWR<UserRoleContext>(
         `${API_BASE_URL}/me/role`,
         fetcher,
         {
             revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-            shouldRetryOnError: false,
+            // The role decides which *app* the user sees, so a transient failure
+            // must self-heal rather than strand them. Retry on error and re-fetch
+            // when connectivity returns; keep the last good role across a failed
+            // revalidation so a blip never blanks a known-good role mid-session.
+            revalidateOnReconnect: true,
+            shouldRetryOnError: true,
+            errorRetryCount: 4,
+            errorRetryInterval: 2000,
+            keepPreviousData: true,
             // Role rarely changes within a session — cache aggressively so the
             // many components that read it share one network call.
             dedupingInterval: 60000,
@@ -63,17 +72,26 @@ export function useUserRole(): UseUserRoleResult {
         user: data ?? null,
         isLoading,
         error: error as Error | undefined,
+        refresh: () => { void mutate() },
     }
 }
 
 /**
  * Fetch the role once (used by the login redirect, before the SWR cache exists).
- * Returns null on any failure so the caller can fall back to the consumer view.
+ *
+ * This is the moment we choose which *app* an institutional user lands in, so a
+ * single transient failure here would wrongly drop them onto the consumer
+ * dashboard. Retry a few times with a short backoff before giving up. Only after
+ * exhausting retries do we return null, and even then RoleGuard self-corrects
+ * once the resilient `useUserRole` resolves the role on the next surface.
  */
-export async function fetchUserRoleOnce(): Promise<UserRoleContext | null> {
-    try {
-        return await fetcher(`${API_BASE_URL}/me/role`)
-    } catch {
-        return null
+export async function fetchUserRoleOnce(attempts = 3): Promise<UserRoleContext | null> {
+    for (let i = 0; i < attempts; i++) {
+        try {
+            return await fetcher(`${API_BASE_URL}/me/role`)
+        } catch {
+            if (i < attempts - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)))
+        }
     }
+    return null
 }
