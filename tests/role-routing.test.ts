@@ -66,16 +66,41 @@ test('role still loading shows loading', () => {
     assert.deepEqual(d, { kind: 'loading' })
 })
 
-test('role-fetch failure defaults to consumer (never locked out)', () => {
+test('role-fetch failure never locks a consumer out of their dashboard', () => {
     // On a consumer route → allowed even though the lookup errored.
     assert.deepEqual(
         decideAccess({ ...base, roleError: true, role: null, allowedRoles: ['consumer', 'admin'], redirectTo: '/portfolio/today' }),
         { kind: 'allow' }
     )
-    // On an institutional route → redirected to the consumer side, not stuck.
+})
+
+test('REGRESSION: a role-fetch failure must NOT demote an institutional user to the consumer dashboard', () => {
+    // The bug: an errored/unknown role was coerced to `consumer`, so on
+    // /portfolio the guard redirected the user to /dashboard — making the
+    // institutional dashboard "look like the consumer dashboard". An UNKNOWN
+    // role must never trigger a cross-surface redirect; it yields a recoverable
+    // error state that the background retry resolves, holding the surface.
     assert.deepEqual(
         decideAccess({ ...base, roleError: true, role: null, allowedRoles: ['institutional'], redirectTo: '/dashboard' }),
+        { kind: 'error' }
+    )
+    // Same when the role is simply null (not yet known) but loading has settled.
+    assert.deepEqual(
+        decideAccess({ ...base, role: null, allowedRoles: ['institutional'], redirectTo: '/dashboard' }),
+        { kind: 'error' }
+    )
+})
+
+test('only a CONFIRMED disallowed role triggers a cross-surface redirect', () => {
+    // Confirmed consumer on an institutional route → redirect (legitimate).
+    assert.deepEqual(
+        decideAccess({ ...base, role: 'consumer', allowedRoles: ['institutional'], redirectTo: '/dashboard' }),
         { kind: 'redirect', to: '/dashboard' }
+    )
+    // Confirmed institutional on a consumer route → redirect (legitimate).
+    assert.deepEqual(
+        decideAccess({ ...base, role: 'institutional', allowedRoles: ['consumer', 'admin'], redirectTo: '/portfolio/today' }),
+        { kind: 'redirect', to: '/portfolio/today' }
     )
 })
 
@@ -130,6 +155,22 @@ test('login routes institutional users to the portfolio', () => {
 test('useUserRole hits /me/role and defaults role to null', () => {
     assert.match(USER_ROLE_HOOK, /\/me\/role/)
     assert.match(USER_ROLE_HOOK, /role:\s*data\?\.role\s*\?\?\s*null/)
+})
+
+test('useUserRole resolves resiliently so a transient failure self-heals', () => {
+    // Guards against reintroducing the brittleness that demoted institutional
+    // users on a single /me/role blip: the role lookup must retry on error and
+    // re-fetch on reconnect, not give up after the first failure.
+    assert.match(USER_ROLE_HOOK, /shouldRetryOnError:\s*true/)
+    assert.match(USER_ROLE_HOOK, /revalidateOnReconnect:\s*true/)
+    assert.ok(!/shouldRetryOnError:\s*false/.test(USER_ROLE_HOOK), 'role lookup must not disable retries')
+})
+
+test('fetchUserRoleOnce retries before falling back at login', () => {
+    // The login redirect chooses which app an institutional user lands in, so a
+    // single failure must not silently route them to the consumer dashboard.
+    assert.match(USER_ROLE_HOOK, /export async function fetchUserRoleOnce\(attempts/)
+    assert.match(USER_ROLE_HOOK, /for\s*\(let i = 0; i < attempts/)
 })
 
 test('each placeholder portfolio page renders a header + empty-state cards', () => {
