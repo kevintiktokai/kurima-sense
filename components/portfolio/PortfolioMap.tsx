@@ -114,6 +114,18 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
                 },
                 center: [31.05, -17.5], // Mashonaland fallback before fitBounds
                 zoom: 6,
+                // iOS/Safari hardening. MapLibre defaults to a 'high-performance'
+                // WebGL context; on a battery-constrained iPad with several tabs
+                // open, iOS refuses or immediately discards such a context, leaving
+                // a blank canvas. 'default' lets iOS pick a context it will actually
+                // keep, and a smaller tile cache eases the texture-memory pressure
+                // that makes iOS evict the GL context in the first place.
+                canvasContextAttributes: {
+                    antialias: false,
+                    powerPreference: 'default',
+                    failIfMajorPerformanceCaveat: false,
+                },
+                maxTileCacheSize: 48,
             })
         } catch (err) {
             // Constructing the map throws when WebGL can't be acquired. Don't let
@@ -142,7 +154,11 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             if (sourceId === 'esri') setMapError('imagery')
         })
         // Lost GL context (tab/memory pressure) — the canvas goes blank.
+        // MapLibre auto-rebuilds the style on restore, so we just flip the
+        // notice: show it while lost, clear it (and repaint) once iOS hands the
+        // context back — e.g. after the user closes some tabs.
         map.on('webglcontextlost', () => setMapError('webgl'))
+        map.on('webglcontextrestored', () => { setMapError(null); map.resize(); map.triggerRepaint() })
         // A real Esri tile decoded → healthy; clear any watchdog/transient flag.
         map.on('data', (e) => {
             const d = e as { sourceId?: string; tile?: unknown }
