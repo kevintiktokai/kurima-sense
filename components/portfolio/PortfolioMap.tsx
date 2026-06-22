@@ -14,7 +14,7 @@
  * Never crashes: a missing imagery key renders a calm notice instead of a map.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import {
@@ -82,49 +82,75 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
     const mapRef = useRef<maplibregl.Map | null>(null)
     const loadedRef = useRef(false)
     const [layer, setLayer] = useState<MapLayer>('score')
-    // True once an Esri tile request fails. A key that is present but rejected
-    // (expired, over-quota, referrer-restricted, or missing the Basemaps scope)
-    // makes ibasemaps answer with an error body instead of imagery — MapLibre
-    // can't decode it and leaves a silent grey canvas. We surface it instead.
-    const [imageryFailed, setImageryFailed] = useState(false)
-
-    const bounds = useMemo(() => portfolioBounds(priorities), [priorities])
+    // Why the canvas is blank, if it is. `null` = healthy (or still loading).
+    //  - 'imagery': the map started but Esri tiles never painted — a rejected
+    //    ArcGIS key (expired / over-quota / referrer-restricted / missing the
+    //    Basemaps scope), a blocked request, or a dead-slow network.
+    //  - 'webgl': the map could not start at all — WebGL unavailable or
+    //    exhausted (common on devices with many open tabs / in-app browsers).
+    // Either way we show a real explanation instead of a silent grey square.
+    const [mapError, setMapError] = useState<null | 'imagery' | 'webgl'>(null)
 
     // Init once.
     useEffect(() => {
         if (!ARCGIS_KEY || !containerRef.current || mapRef.current) return
-        const map = new maplibregl.Map({
-            container: containerRef.current,
-            attributionControl: false,
-            style: {
-                version: 8,
-                sources: {
-                    esri: {
-                        type: 'raster',
-                        tiles: [`https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=${ARCGIS_KEY}`],
-                        tileSize: 256,
-                        attribution: 'Powered by Esri — Esri, Maxar, Earthstar Geographics',
+
+        let map: maplibregl.Map
+        try {
+            map = new maplibregl.Map({
+                container: containerRef.current,
+                attributionControl: false,
+                style: {
+                    version: 8,
+                    sources: {
+                        esri: {
+                            type: 'raster',
+                            tiles: [`https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=${ARCGIS_KEY}`],
+                            tileSize: 256,
+                            attribution: 'Powered by Esri — Esri, Maxar, Earthstar Geographics',
+                        },
                     },
+                    layers: [{ id: 'esri', type: 'raster', source: 'esri' }],
                 },
-                layers: [{ id: 'esri', type: 'raster', source: 'esri' }],
-            },
-            center: [31.05, -17.5], // Mashonaland fallback before fitBounds
-            zoom: 6,
-        })
+                center: [31.05, -17.5], // Mashonaland fallback before fitBounds
+                zoom: 6,
+            })
+        } catch (err) {
+            // Constructing the map throws when WebGL can't be acquired. Don't let
+            // it bubble (that would blank the whole page) — show a clear notice.
+            console.error('[PortfolioMap] could not start MapLibre (WebGL):', err)
+            setMapError('webgl')
+            return
+        }
         mapRef.current = map
         map.addControl(new maplibregl.AttributionControl({ compact: true }))
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-        // Tile diagnostics: an Esri source error means the imagery (not our
-        // overlays) failed to load — almost always an ArcGIS key/permission
-        // problem. Flag it so the user sees *why* the map is grey; clear the
-        // flag the moment a real tile decodes, so a transient blip self-heals.
+        // Imagery watchdog: if no Esri tile has painted within the grace period,
+        // the basemap silently failed (a rejected key answers 200-with-error-body,
+        // which fires no HTTP error, or the GL context was lost after init). Flag
+        // it so the blank canvas explains itself. A successful tile clears it.
+        let firstTilePainted = false
+        const watchdog = setTimeout(() => {
+            if (!firstTilePainted) setMapError((e) => e ?? 'imagery')
+        }, 10000)
+
+        // Esri source error → imagery failed (rejected key / blocked / network).
         map.on('error', (e) => {
-            if ((e as { sourceId?: string }).sourceId === 'esri') setImageryFailed(true)
+            const sourceId = (e as { sourceId?: string }).sourceId
+            console.error('[PortfolioMap] map error:', (e as { error?: unknown }).error ?? e)
+            if (sourceId === 'esri') setMapError('imagery')
         })
+        // Lost GL context (tab/memory pressure) — the canvas goes blank.
+        map.on('webglcontextlost', () => setMapError('webgl'))
+        // A real Esri tile decoded → healthy; clear any watchdog/transient flag.
         map.on('data', (e) => {
             const d = e as { sourceId?: string; tile?: unknown }
-            if (d.sourceId === 'esri' && d.tile) setImageryFailed(false)
+            if (d.sourceId === 'esri' && d.tile) {
+                firstTilePainted = true
+                clearTimeout(watchdog)
+                setMapError(null)
+            }
         })
 
         // Blank-canvas guard: the map is mounted via the List→Map toggle into a
@@ -178,7 +204,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             if (b) map.fitBounds(b as [[number, number], [number, number]], { padding: 48, maxZoom: 14, duration: 0 })
         })
 
-        return () => { ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
+        return () => { clearTimeout(watchdog); ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -209,18 +235,32 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         <div className="relative w-full h-full min-h-[420px] rounded-[20px] overflow-hidden" style={{ boxShadow: 'var(--shadow-neu)' }}>
             <div ref={containerRef} className="absolute inset-0" />
 
-            {/* Imagery-failed notice — the key is set but the tiles were
-                rejected, so the canvas would otherwise be a silent grey box. */}
-            {imageryFailed && (
+            {/* Blank-canvas notice — explain *why* instead of a silent grey box. */}
+            {mapError && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center p-8 text-center"
                     style={{ background: 'var(--ee-surface)' }}>
                     <div className="max-w-sm">
-                        <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>wrong_location</span>
-                        <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Satellite imagery didn&apos;t load</p>
-                        <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
-                            The ArcGIS key was rejected. Check that it&apos;s valid, in quota, allowed for this
-                            domain, and has the Basemaps scope.
-                        </p>
+                        <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>
+                            {mapError === 'webgl' ? 'desktop_access_disabled' : 'wrong_location'}
+                        </span>
+                        {mapError === 'webgl' ? (
+                            <>
+                                <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>The map couldn&apos;t start</p>
+                                <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
+                                    Your browser couldn&apos;t open the map view (WebGL). Try closing other tabs and
+                                    reloading, or open the site in Safari or Chrome directly.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Satellite imagery didn&apos;t load</p>
+                                <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
+                                    The ArcGIS imagery didn&apos;t come through. Usually the key needs the Basemaps
+                                    scope and your domain in its referrers (and to be in quota); on a device with
+                                    many tabs open it can also be a browser graphics limit. Try reloading.
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
