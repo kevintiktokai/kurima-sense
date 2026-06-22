@@ -72,6 +72,20 @@ function popupHTML(props: Record<string, unknown>): string {
       </div>`
 }
 
+// One-shot probe: can this browser give us a WebGL context at all? Lockdown
+// Mode, disabled WebGL, or a fully exhausted context pool all fail here, and
+// the result is shown on-screen so a single screenshot reveals the cause.
+function webglProbe(): { ok: boolean; detail: string } {
+    try {
+        const c = document.createElement('canvas')
+        if (c.getContext('webgl2')) return { ok: true, detail: 'webgl2 ok' }
+        if (c.getContext('webgl') || c.getContext('experimental-webgl')) return { ok: true, detail: 'webgl1 only' }
+        return { ok: false, detail: 'no WebGL context (Lockdown Mode / WebGL disabled?)' }
+    } catch (e) {
+        return { ok: false, detail: `WebGL probe threw: ${String((e as Error)?.message || e)}` }
+    }
+}
+
 export interface PortfolioMapProps {
     /** Already-filtered, already-sorted priorities (same array the list shows). */
     priorities: PortfolioPriority[]
@@ -90,10 +104,22 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
     //    exhausted (common on devices with many open tabs / in-app browsers).
     // Either way we show a real explanation instead of a silent grey square.
     const [mapError, setMapError] = useState<null | 'imagery' | 'webgl'>(null)
+    // Human-readable technical cause, shown under the notice so a screenshot is
+    // enough to diagnose (console access is impractical on iPad Safari).
+    const [detail, setDetail] = useState<string>('')
 
     // Init once.
     useEffect(() => {
         if (!ARCGIS_KEY || !containerRef.current || mapRef.current) return
+
+        // Fail fast and loud if the browser can't do WebGL at all.
+        const probe = webglProbe()
+        if (!probe.ok) {
+            console.error('[PortfolioMap] WebGL unavailable:', probe.detail)
+            setDetail(probe.detail)
+            setMapError('webgl')
+            return
+        }
 
         let map: maplibregl.Map
         try {
@@ -131,6 +157,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             // Constructing the map throws when WebGL can't be acquired. Don't let
             // it bubble (that would blank the whole page) — show a clear notice.
             console.error('[PortfolioMap] could not start MapLibre (WebGL):', err)
+            setDetail(`map init threw: ${String((err as Error)?.message || err)} · probe: ${probe.detail}`)
             setMapError('webgl')
             return
         }
@@ -144,21 +171,28 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         // it so the blank canvas explains itself. A successful tile clears it.
         let firstTilePainted = false
         const watchdog = setTimeout(() => {
-            if (!firstTilePainted) setMapError((e) => e ?? 'imagery')
+            if (!firstTilePainted) {
+                setDetail((d) => d || 'no imagery tile painted within 10s (key rejected / blocked / offline?)')
+                setMapError((e) => e ?? 'imagery')
+            }
         }, 10000)
 
         // Esri source error → imagery failed (rejected key / blocked / network).
         map.on('error', (e) => {
+            const err = (e as { error?: { status?: number; message?: string } }).error
             const sourceId = (e as { sourceId?: string }).sourceId
-            console.error('[PortfolioMap] map error:', (e as { error?: unknown }).error ?? e)
-            if (sourceId === 'esri') setMapError('imagery')
+            console.error('[PortfolioMap] map error:', err ?? e)
+            if (sourceId === 'esri') {
+                setDetail(`tile error${err?.status ? ` HTTP ${err.status}` : ''}: ${err?.message || 'failed to load Esri tile'}`)
+                setMapError('imagery')
+            }
         })
         // Lost GL context (tab/memory pressure) — the canvas goes blank.
         // MapLibre auto-rebuilds the style on restore, so we just flip the
         // notice: show it while lost, clear it (and repaint) once iOS hands the
         // context back — e.g. after the user closes some tabs.
-        map.on('webglcontextlost', () => setMapError('webgl'))
-        map.on('webglcontextrestored', () => { setMapError(null); map.resize(); map.triggerRepaint() })
+        map.on('webglcontextlost', () => { setDetail('WebGL context lost'); setMapError('webgl') })
+        map.on('webglcontextrestored', () => { setMapError(null); setDetail(''); map.resize(); map.triggerRepaint() })
         // A real Esri tile decoded → healthy; clear any watchdog/transient flag.
         map.on('data', (e) => {
             const d = e as { sourceId?: string; tile?: unknown }
@@ -166,6 +200,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
                 firstTilePainted = true
                 clearTimeout(watchdog)
                 setMapError(null)
+                setDetail('')
             }
         })
 
@@ -276,6 +311,12 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
                                     many tabs open it can also be a browser graphics limit. Try reloading.
                                 </p>
                             </>
+                        )}
+                        {detail && (
+                            <p className="mt-3 px-2 py-1 rounded text-[10px] leading-snug font-mono break-words"
+                                style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)' }}>
+                                {detail}
+                            </p>
                         )}
                     </div>
                 </div>
