@@ -3,15 +3,17 @@
 /**
  * PortfolioMap — satellite map of the contracted portfolio (Depth Sprint PR C).
  *
- * MapLibre GL over Esri World Imagery (keyed raster tiles). Field polygons +
- * centroid markers coloured by a switchable data layer (Score / NDVI / Moisture
- * / Crop), tappable through to field detail. Client-only; the page imports it
- * with `dynamic(..., { ssr: false })` because MapLibre touches `window` at
- * import time. Colours come from the pure `lib/map-utils` helpers — this file
- * holds only the imperative GL wiring + the React overlays (layer switcher,
- * legend).
+ * MapLibre GL over keyless Esri World Imagery raster tiles (no API key). Field
+ * polygons + centroid markers coloured by a switchable data layer (Score / NDVI
+ * / Moisture / Crop), tappable through to field detail. Client-only; the page
+ * imports it with `dynamic(..., { ssr: false })` because MapLibre touches
+ * `window` at import time. Colours come from the pure `lib/map-utils` helpers —
+ * this file holds only the imperative GL wiring + the React overlays (layer
+ * switcher, legend).
  *
- * Never crashes: a missing imagery key renders a calm notice instead of a map.
+ * Never crashes: if the basemap imagery fails to load the map still renders the
+ * field polygons over a plain background; if WebGL is unavailable it shows a
+ * calm notice instead of a silent grey square.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -25,7 +27,10 @@ import {
 import { routeForField, withFrom } from '@/lib/nav-links'
 import type { PortfolioPriority } from '@/lib/portfolio-utils'
 
-const ARCGIS_KEY = process.env.NEXT_PUBLIC_ARCGIS_API_KEY
+// Keyless Esri World Imagery basemap — no token, no NEXT_PUBLIC_ARCGIS_API_KEY.
+// Attribution is required by the keyless terms and shown via AttributionControl.
+const ESRI_WORLD_IMAGERY = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+const ESRI_ATTRIBUTION = 'Imagery © Esri, Maxar, Earthstar Geographics'
 const ZOOM_SPLIT = 12 // markers below, polygons at/above
 
 function esc(s: string): string {
@@ -97,20 +102,18 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
     const loadedRef = useRef(false)
     const [layer, setLayer] = useState<MapLayer>('score')
     // Why the canvas is blank, if it is. `null` = healthy (or still loading).
-    //  - 'imagery': the map started but Esri tiles never painted — a rejected
-    //    ArcGIS key (expired / over-quota / referrer-restricted / missing the
-    //    Basemaps scope), a blocked request, or a dead-slow network.
-    //  - 'webgl': the map could not start at all — WebGL unavailable or
-    //    exhausted (common on devices with many open tabs / in-app browsers).
-    // Either way we show a real explanation instead of a silent grey square.
-    const [mapError, setMapError] = useState<null | 'imagery' | 'webgl'>(null)
+    // Only 'webgl' is fatal now: the map could not start at all (WebGL
+    // unavailable or exhausted — common on devices with many open tabs / in-app
+    // browsers). Basemap-imagery failures are NON-fatal (no key to misconfigure):
+    // the map still mounts and draws polygons over the plain container background.
+    const [mapError, setMapError] = useState<null | 'webgl'>(null)
     // Human-readable technical cause, shown under the notice so a screenshot is
     // enough to diagnose (console access is impractical on iPad Safari).
     const [detail, setDetail] = useState<string>('')
 
     // Init once.
     useEffect(() => {
-        if (!ARCGIS_KEY || !containerRef.current || mapRef.current) return
+        if (!containerRef.current || mapRef.current) return
 
         // Fail fast and loud if the browser can't do WebGL at all.
         const probe = webglProbe()
@@ -131,9 +134,9 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
                     sources: {
                         esri: {
                             type: 'raster',
-                            tiles: [`https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=${ARCGIS_KEY}`],
+                            tiles: [ESRI_WORLD_IMAGERY],
                             tileSize: 256,
-                            attribution: 'Powered by Esri — Esri, Maxar, Earthstar Geographics',
+                            attribution: ESRI_ATTRIBUTION,
                         },
                     },
                     layers: [{ id: 'esri', type: 'raster', source: 'esri' }],
@@ -165,27 +168,12 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         map.addControl(new maplibregl.AttributionControl({ compact: true }))
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
-        // Imagery watchdog: if no Esri tile has painted within the grace period,
-        // the basemap silently failed (a rejected key answers 200-with-error-body,
-        // which fires no HTTP error, or the GL context was lost after init). Flag
-        // it so the blank canvas explains itself. A successful tile clears it.
-        let firstTilePainted = false
-        const watchdog = setTimeout(() => {
-            if (!firstTilePainted) {
-                setDetail((d) => d || 'no imagery tile painted within 10s (key rejected / blocked / offline?)')
-                setMapError((e) => e ?? 'imagery')
-            }
-        }, 10000)
-
-        // Esri source error → imagery failed (rejected key / blocked / network).
+        // Imagery failures are non-fatal (there is no key to misconfigure): log
+        // them for diagnosis but keep the map mounted so the polygons still draw
+        // over the plain container background instead of showing nothing.
         map.on('error', (e) => {
             const err = (e as { error?: { status?: number; message?: string } }).error
-            const sourceId = (e as { sourceId?: string }).sourceId
             console.error('[PortfolioMap] map error:', err ?? e)
-            if (sourceId === 'esri') {
-                setDetail(`tile error${err?.status ? ` HTTP ${err.status}` : ''}: ${err?.message || 'failed to load Esri tile'}`)
-                setMapError('imagery')
-            }
         })
         // Lost GL context (tab/memory pressure) — the canvas goes blank.
         // MapLibre auto-rebuilds the style on restore, so we just flip the
@@ -193,16 +181,6 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         // context back — e.g. after the user closes some tabs.
         map.on('webglcontextlost', () => { setDetail('WebGL context lost'); setMapError('webgl') })
         map.on('webglcontextrestored', () => { setMapError(null); setDetail(''); map.resize(); map.triggerRepaint() })
-        // A real Esri tile decoded → healthy; clear any watchdog/transient flag.
-        map.on('data', (e) => {
-            const d = e as { sourceId?: string; tile?: unknown }
-            if (d.sourceId === 'esri' && d.tile) {
-                firstTilePainted = true
-                clearTimeout(watchdog)
-                setMapError(null)
-                setDetail('')
-            }
-        })
 
         // Blank-canvas guard: the map is mounted via the List→Map toggle into a
         // viewport-sized container, so its size may not be settled at init.
@@ -255,7 +233,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             if (b) map.fitBounds(b as [[number, number], [number, number]], { padding: 48, maxZoom: 14, duration: 0 })
         })
 
-        return () => { clearTimeout(watchdog); ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
+        return () => { ro.disconnect(); map.remove(); mapRef.current = null; loadedRef.current = false }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -268,50 +246,25 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         ;(map.getSource('fields-cent') as maplibregl.GeoJSONSource | undefined)?.setData(cent as never)
     }, [priorities, layer])
 
-    // Graceful missing-key state — never a broken map.
-    if (!ARCGIS_KEY) {
-        return (
-            <div className="w-full h-full min-h-[420px] flex items-center justify-center rounded-[20px] p-8 text-center"
-                style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }}>
-                <div>
-                    <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>map</span>
-                    <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Map unavailable</p>
-                    <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>Imagery key not configured.</p>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="relative w-full h-full min-h-[420px] rounded-[20px] overflow-hidden" style={{ boxShadow: 'var(--shadow-neu)' }}>
-            <div ref={containerRef} className="absolute inset-0" />
+            {/* Plain background so polygons remain visible if imagery never loads. */}
+            <div ref={containerRef} className="absolute inset-0" style={{ background: 'var(--ee-bg)' }} />
 
-            {/* Blank-canvas notice — explain *why* instead of a silent grey box. */}
+            {/* Fatal-only notice: the map couldn't start (WebGL). Imagery failures
+                are non-fatal and never reach here — the map stays mounted. */}
             {mapError && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center p-8 text-center"
                     style={{ background: 'var(--ee-surface)' }}>
                     <div className="max-w-sm">
                         <span className="material-symbols-outlined mb-2" style={{ fontSize: 32, color: 'var(--ee-muted)' }}>
-                            {mapError === 'webgl' ? 'desktop_access_disabled' : 'wrong_location'}
+                            desktop_access_disabled
                         </span>
-                        {mapError === 'webgl' ? (
-                            <>
-                                <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>The map couldn&apos;t start</p>
-                                <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
-                                    Your browser couldn&apos;t open the map view (WebGL). Try closing other tabs and
-                                    reloading, or open the site in Safari or Chrome directly.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Satellite imagery didn&apos;t load</p>
-                                <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
-                                    The ArcGIS imagery didn&apos;t come through. Usually the key needs the Basemaps
-                                    scope and your domain in its referrers (and to be in quota); on a device with
-                                    many tabs open it can also be a browser graphics limit. Try reloading.
-                                </p>
-                            </>
-                        )}
+                        <p className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>The map couldn&apos;t start</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
+                            Your browser couldn&apos;t open the map view (WebGL). Try closing other tabs and
+                            reloading, or open the site in Safari or Chrome directly.
+                        </p>
                         {detail && (
                             <p className="mt-3 px-2 py-1 rounded text-[10px] leading-snug font-mono break-words"
                                 style={{ background: 'var(--ee-bg)', color: 'var(--ee-muted)' }}>
