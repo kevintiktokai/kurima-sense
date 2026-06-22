@@ -27,7 +27,7 @@ import {
 import { routeForField, withFrom } from '@/lib/nav-links'
 import type { PortfolioPriority } from '@/lib/portfolio-utils'
 
-// Keyless Esri World Imagery basemap — no token, no NEXT_PUBLIC_ARCGIS_API_KEY.
+// Keyless Esri World Imagery basemap — no API token / no auth env var required.
 // Attribution is required by the keyless terms and shown via AttributionControl.
 const ESRI_WORLD_IMAGERY = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 const ESRI_ATTRIBUTION = 'Imagery © Esri, Maxar, Earthstar Geographics'

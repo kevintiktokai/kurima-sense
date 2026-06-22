@@ -181,16 +181,21 @@ test('crop palette: tobacco variants share a family hue, distinct from other cro
 const mapSrc = readFileSync('components/portfolio/PortfolioMap.tsx', 'utf8')
 const pageSrc = readFileSync('app/portfolio/fields/page.tsx', 'utf8')
 
-test('map component reads the imagery key from env with a graceful-missing branch', () => {
-    assert.match(mapSrc, /process\.env\.NEXT_PUBLIC_ARCGIS_API_KEY/)
-    assert.match(mapSrc, /Map unavailable/)
-    assert.ok(!/token=[A-Za-z0-9_-]{8,}/.test(mapSrc), 'no hardcoded token')
+test('map uses a keyless Esri basemap source — no ArcGIS key dependency', () => {
+    // Keyless Esri World Imagery raster tiles (no token, no env var).
+    assert.match(mapSrc, /server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile\/\{z\}\/\{y\}\/\{x\}/)
+    assert.match(mapSrc, /tileSize:\s*256/)
+    // The keyed endpoint, its env var, the missing-key gate, and any hardcoded
+    // token are all gone — there is nothing to misconfigure now.
+    assert.ok(!/NEXT_PUBLIC_ARCGIS_API_KEY/.test(mapSrc), 'no ArcGIS key env dependency')
+    assert.ok(!/ibasemaps-api\.arcgis\.com/.test(mapSrc), 'no keyed endpoint')
+    assert.ok(!/Map unavailable/.test(mapSrc), 'no missing-key gate')
+    assert.ok(!/token=/.test(mapSrc), 'no token query param')
 })
 
-test('map uses the keyed Esri endpoint and an attribution control', () => {
-    assert.match(mapSrc, /ibasemaps-api\.arcgis\.com.+World_Imagery/s)
+test('map keeps a visible Esri/Maxar attribution control (keyless terms)', () => {
     assert.match(mapSrc, /AttributionControl/)
-    assert.match(mapSrc, /Esri/)
+    assert.match(mapSrc, /Esri, Maxar, Earthstar Geographics/)
 })
 
 test('map popup links to field detail via routeForField + from param', () => {
@@ -219,10 +224,24 @@ test('no emojis in the map UI', () => {
 test('map resizes the GL canvas to its container (blank-canvas guard)', () => {
     // The map mounts via the List→Map toggle into a viewport-sized container,
     // so the GL canvas must be resized once the container is laid out, else it
-    // renders blank. A ResizeObserver + map.resize() keep canvas == container.
-    assert.match(mapSrc, /new ResizeObserver\(\s*\(\)\s*=>\s*map\.resize\(\)\s*\)/)
-    assert.match(mapSrc, /\.observe\(containerRef\.current\)/)
-    assert.match(mapSrc, /map\.resize\(\)/)
+    // renders blank. A ResizeObserver drives both deferred init and resize, and
+    // construction is gated on a nonzero container size.
+    assert.match(mapSrc, /new ResizeObserver\(/)
+    assert.match(mapSrc, /\.observe\(container\)/)
+    assert.match(mapSrc, /\.resize\(\)/)
+    // gate construction on a real (nonzero) container size before init
+    assert.match(mapSrc, /clientWidth\s*>\s*0/)
+    assert.match(mapSrc, /clientHeight\s*>\s*0/)
     // and the observer is torn down with the map
     assert.match(mapSrc, /ro\.disconnect\(\)/)
+})
+
+test('map frames bounds after the style load with a Mashonaland fallback', () => {
+    // fitBounds runs inside the 'load' handler; with no usable geometry it
+    // falls back to a Zimbabwe-centred view rather than blank ocean.
+    assert.match(mapSrc, /\.on\('load'/)
+    assert.match(mapSrc, /fitBounds/)
+    assert.match(mapSrc, /jumpTo\(\{\s*center:\s*ZW_FALLBACK_CENTER/)
+    // fallback is centred over Mashonaland (~ -17.0, 31.0)
+    assert.match(mapSrc, /ZW_FALLBACK_CENTER:\s*\[number,\s*number\]\s*=\s*\[31\.0,\s*-17\.0\]/)
 })
