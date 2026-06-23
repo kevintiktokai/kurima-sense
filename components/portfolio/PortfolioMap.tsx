@@ -120,6 +120,21 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
         const container = containerRef.current
         if (!container || mapRef.current) return
 
+        // ── TEMP DIAGNOSTICS — remove after root-causing the blank map ──────
+        try {
+            const dgl = document.createElement('canvas').getContext('webgl')
+                || document.createElement('canvas').getContext('experimental-webgl')
+            console.log('WEBGL', !!dgl)
+        } catch (err) {
+            console.log('WEBGL', false, err)
+        }
+        console.log('MAP TILE URL', ESRI_WORLD_IMAGERY)
+        console.log('MAP CONTAINER (effect)', container.clientWidth, container.clientHeight)
+        if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+            console.log('SW CONTROLLED', !!navigator.serviceWorker.controller)
+        }
+        // ── END TEMP DIAGNOSTICS ────────────────────────────────────────────
+
         // Fail fast and loud if the browser can't do WebGL at all.
         const probe = webglProbe()
         if (!probe.ok) {
@@ -136,6 +151,9 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
 
         const initMap = () => {
             if (mapRef.current) return
+
+            // TEMP DIAGNOSTIC — container size at actual construction time.
+            console.log('MAP CONTAINER (init)', container.clientWidth, container.clientHeight)
 
             let map: maplibregl.Map
             try {
@@ -186,6 +204,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
             // over the plain container background instead of showing nothing.
             map.on('error', (e) => {
                 const err = (e as { error?: { status?: number; message?: string } }).error
+                console.error('MAPLIBRE ERROR', err ?? e) // TEMP DIAGNOSTIC
                 console.error('[PortfolioMap] map error:', err ?? e)
             })
             // Lost GL context (tab/memory pressure) — the canvas goes blank.
