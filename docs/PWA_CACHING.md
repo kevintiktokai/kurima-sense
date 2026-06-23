@@ -12,7 +12,8 @@ miscaching bug is the #1 cause of "why is the app showing stale data".
 | 2 | Precache: `/offline` (force-added) | precache | `workbox-precache-v2-*` | until build hash changes | 1 | served by recipe #8 |
 | 3 | Same-origin `GET /api/*` | NetworkFirst (5s timeout) | `api-cache` | 1 day | 100 | falls back to cached response; if miss → network error bubbles to caller |
 | 4 | Same-origin `POST/PUT/DELETE /api/*` | NetworkOnly + BackgroundSync | (no cache; queue `mutation-queue`) | retry window 24h | n/a | queues request and replays when `online` event fires |
-| 5 | `request.destination === 'image'` | CacheFirst | `images` | 30 days | 200 | network error if not yet cached |
+| 5a | Map raster tiles (`*.arcgisonline.com`, `*.tile.openstreetmap.org`) | none (network only) | (not cached) | n/a | n/a | network — never served stale |
+| 5b | `request.destination === 'image'` (excluding map tiles) | CacheFirst | `images-v2` | 30 days | 200 | network error if not yet cached |
 | 6 | `fonts.googleapis.com` | StaleWhileRevalidate | `google-fonts-stylesheets` | (no expiration) | unlimited | network error if not yet cached |
 | 7 | `fonts.gstatic.com` | CacheFirst | `google-fonts-webfonts` | 1 year | 30 | network error if not yet cached |
 | 8 | `request.mode === 'navigate'` | NetworkFirst (3s timeout) | `pages` | (no expiration; NetworkFirst keeps last response) | unlimited | falls to recipe #9 |
@@ -39,11 +40,22 @@ mutations clobbering newer state on the server.
 > requires idempotency keys, the client must include them on the original
 > request — the SW does not add them automatically.
 
-### `images` — CacheFirst, 30 days
-Field photos and satellite tiles are large and largely immutable: a
+### Map raster tiles — NOT cached
+Map tiles (`*.arcgisonline.com` World Imagery, `*.tile.openstreetmap.org`)
+are fetched as `image` requests, so they would otherwise fall into the
+CacheFirst image route. They must not: caching an opaque/error tile response
+(the old route accepted statuses `[0, 200]`) and CacheFirst-serving it for 30
+days is what blanked the production portfolio map. The image matcher now
+excludes these hosts (`MAP_TILE_HOST`), so tiles always go to the network and
+are never served stale. The poisoned legacy `images` cache is deleted on SW
+activation, and the renamed `images-v2` cache only accepts status `200`.
+
+### `images-v2` — CacheFirst, 30 days, status 200 only
+Field photos and UI assets are large and largely immutable: a
 yesterday's-photo is still yesterday's photo. 30 days × 200 entries is a
 reasonable cap (~100–200 MB depending on photo size) and the LRU eviction
-in `ExpirationPlugin` quietly evicts oldest entries first.
+in `ExpirationPlugin` quietly evicts oldest entries first. Only real `200`
+responses are cached — never opaque (`0`) or error responses.
 
 ### Google Fonts — split into two caches
 Material Symbols (and any other Google-hosted font) needs both the CSS
