@@ -100,8 +100,8 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 crop: newFieldCrop,
                 coordinates: newFieldCoords,
                 area: newFieldArea,
-                plantingDate: newFieldDate,
-                transplantDate: isTransplantedCrop ? newFieldTransplantDate : undefined,
+                plantingDate: newFieldDate || undefined,
+                transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
                 isTransplanted: isTransplantedCrop,
                 variety: newFieldVariety,
                 fertilizerHistory: newFieldFertilizer
