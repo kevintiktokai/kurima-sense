@@ -83,12 +83,27 @@ Full suite 204 pass; `tsc --noEmit` clean.
   creation flow (leaflet-draw); not re-solved. Adding *offline* support to that
   flow is a separate slice.
 
+## Offline field creation + captures management (added)
+- **Offline field creation** (`services/fieldCapture.ts`): `FieldManagement.saveField`
+  now falls back to the outbox when offline or on a connectivity failure mid-save
+  (queues the same `POST /fields` body — name, crop, coordinates, planting date,
+  variety, etc., so field boundary + crop/variety/planting are all captured
+  offline together). Online path is unchanged (still `api.saveField` with its
+  cache invalidation).
+- **Pending-uploads view** (`app/dashboard/captures/page.tsx`): lists queued vs
+  failed captures with per-item Retry / Discard and a "Sync now" action; the
+  floating sync badge now links here.
+
+## Six-event status — all captured
+harvest ✓ · input log ✓ (voice) · scouting photo→diagnosis ✓ · tasks ✓ (voice) ·
+field boundary ✓ (offline) · crop/variety/planting ✓ (part of field creation).
+
 ## Still open in Sprint 3 (future slices)
-- Offline support for field-boundary draw + crop/variety/planting creation.
-- Persist scouting observations (currently localStorage pins) and queue photos
-  for deferred diagnosis when offline.
-- WhatsApp intake — inbound webhook on the backend via the **official WhatsApp
-  Business Cloud API** (through a BSP such as Twilio sandbox → 360dialog/WABA for
-  production; unofficial web-automation libraries are ToS-violating and excluded).
-  Reuses the capture events; it's a new entry channel, not new frontend code.
+- Persist scouting **observations** server-side (today they're localStorage pins;
+  there is no scouting persist endpoint — needs a small backend addition) and
+  queue photos for deferred diagnosis when offline.
+- WhatsApp intake — **out of scope for now** (per product decision). When taken
+  up: inbound webhook on the backend via the official WhatsApp Business Cloud API
+  (BSP such as Twilio sandbox → 360dialog/WABA); unofficial web-automation
+  libraries are ToS-violating and excluded. Reuses the capture events.
 - Server-side idempotency key so a lost-2xx can't double-insert.
