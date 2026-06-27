@@ -157,6 +157,14 @@ const Overview: React.FC = () => {
             a.id === actionId ? { ...a, completed: true } : a
         ));
 
+        // AI-suggested actions carry synthetic ids (e.g. "weather-spray-…",
+        // "action-stage-…", "health-…"), not persisted farm_tasks. Checking those
+        // off is a local dismissal — persisting them would PATCH /ai/tasks/{id}
+        // with a non-UUID id and fail, which previously rolled the checkbox back
+        // and made the toggle look broken. Only persist real task UUIDs.
+        const isRealTask = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actionId);
+        if (!isRealTask) return;
+
         try {
             await api.updateTask(actionId, { completed: true });
         } catch (err) {

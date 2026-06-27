@@ -56,11 +56,11 @@ export default function PlanPage() {
     };
 
     return (
-        <div
-            className="p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto"
-            style={{ background: 'var(--ee-bg)' }}
-        >
-            <PageContainer variant="wide">
+        // The dashboard layout's <main> already owns the scroll container; an
+        // inner `h-screen overflow-y-auto` here created a nested scroll region
+        // that ran under the fixed mobile nav and froze before the bottom. Flow
+        // inside the layout's scroll instead (matches the dashboard home page).
+        <PageContainer variant="wide">
             <h1
                 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-5 sm:mb-8 tracking-tight"
                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
@@ -178,7 +178,6 @@ export default function PlanPage() {
                     }}
                 />
             </div>
-            </PageContainer>
-        </div>
+        </PageContainer>
     );
 }
