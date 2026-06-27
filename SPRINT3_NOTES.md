@@ -50,7 +50,30 @@ harvest is low-frequency). A server-side idempotency key is a candidate follow-u
 retriable re-arm, non-retriable park, exhaustion, ordering, gating, throwing
 sender). Full suite: 197 pass; `tsc --noEmit` clean.
 
-## Next in Sprint 3
-Remaining capture events through the same outbox; scouting photo → existing
-`/vision/analyze` diagnosis (per the agreed scope: photo diagnosis only this
-sprint, voice/WhatsApp later).
+## Added since the first slice
+- **Shared submit path** (`lib/offline/submit.ts`): `submitCapture({kind,endpoint,label,body})`
+  — online-first, validation errors thrown (`CaptureValidationError`), transient/
+  offline queued. Harvest + input-log both use it.
+- **Input logging** (`services/inputLog.ts`, `components/capture/InputLogForm.tsx`,
+  `app/fields/[id]/input/page.tsx`) — wraps `POST /inputs`, offline-capable.
+- **Voice capture** (`lib/voice/parse.ts` pure+tested, `lib/voice/speech.ts` Web
+  Speech wrapper, `components/capture/VoiceInput.tsx`): speak e.g. "applied 50 kg
+  of Compound D" → fills quantity/unit/input-type. Degrades silently to typing
+  when unsupported (iOS Safari).
+- **Scouting + photo diagnosis** (`services/`… via `api.analyzeImage`,
+  `components/capture/ScoutingCapture.tsx`, `app/fields/[id]/scout/page.tsx`):
+  photo → `POST /vision/analyze` → issues / health score / treatment. Online-only
+  (diagnosis needs the model); says so plainly when offline.
+- Field-detail page now shows a 3-action capture group (harvest / input / scout),
+  additive only.
+
+Tests: `tests/voice-parse.test.ts` (7) + `tests/offline-outbox.test.ts` (10).
+Full suite 204 pass; `tsc --noEmit` clean.
+
+## Still open in Sprint 3 (future slices)
+- Capture events: field boundary draw, crop/variety/planting, tasks — through the
+  same outbox/submit path.
+- Persisting scouting observations (currently localStorage pins on the field page)
+  and queuing photos for deferred diagnosis when offline.
+- WhatsApp intake (needs an external integration) — deferred.
+- Server-side idempotency key so a lost-2xx can't double-insert.
