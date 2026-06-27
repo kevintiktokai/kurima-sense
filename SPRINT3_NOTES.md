@@ -98,10 +98,19 @@ Full suite 204 pass; `tsc --noEmit` clean.
 harvest ✓ · input log ✓ (voice) · scouting photo→diagnosis ✓ · tasks ✓ (voice) ·
 field boundary ✓ (offline) · crop/variety/planting ✓ (part of field creation).
 
+## Scouting persistence (added — backend + frontend)
+- Backend (kurimasense-backend): `scouting_observations` table (migration 007,
+  RLS on) + `POST/GET /fields/{id}/scouting`, tenant-scoped via resolve_access.
+- Frontend: `services/scouting.ts` + rebuilt `ScoutingCapture` — optional
+  photo→AI diagnosis (pre-fills category/severity), category/severity/notes,
+  optional geolocation, offline-capable Save (diagnosis snapshot persisted).
+
 ## Still open in Sprint 3 (future slices)
-- Persist scouting **observations** server-side (today they're localStorage pins;
-  there is no scouting persist endpoint — needs a small backend addition) and
-  queue photos for deferred diagnosis when offline.
+- Queue scouting **photos** for deferred diagnosis when offline (store the image
+  and run /vision/analyze on reconnect). Observation save already works offline;
+  only the photo-diagnosis step needs the network today.
+- Migrate the legacy localStorage scouting pins on the consumer field page to the
+  new endpoint.
 - WhatsApp intake — **out of scope for now** (per product decision). When taken
   up: inbound webhook on the backend via the official WhatsApp Business Cloud API
   (BSP such as Twilio sandbox → 360dialog/WABA); unofficial web-automation
