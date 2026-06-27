@@ -70,10 +70,25 @@ sender). Full suite: 197 pass; `tsc --noEmit` clean.
 Tests: `tests/voice-parse.test.ts` (7) + `tests/offline-outbox.test.ts` (10).
 Full suite 204 pass; `tsc --noEmit` clean.
 
+## Task capture (added)
+- `services/taskCapture.ts` + `components/capture/TaskForm.tsx` +
+  `app/fields/[id]/task/page.tsx` — wraps `POST /ai/tasks` (title / activity_type
+  / priority + optional field/date) via the offline submit path, voice on the
+  title. Field-detail capture group is now 4 actions (harvest / input / scout /
+  task).
+
+## Six-event status
+- harvest ✓ · input log ✓ · scouting (photo→diagnosis) ✓ · tasks ✓
+- field boundary + crop/variety/planting — already exist in the consumer field
+  creation flow (leaflet-draw); not re-solved. Adding *offline* support to that
+  flow is a separate slice.
+
 ## Still open in Sprint 3 (future slices)
-- Capture events: field boundary draw, crop/variety/planting, tasks — through the
-  same outbox/submit path.
-- Persisting scouting observations (currently localStorage pins on the field page)
-  and queuing photos for deferred diagnosis when offline.
-- WhatsApp intake (needs an external integration) — deferred.
+- Offline support for field-boundary draw + crop/variety/planting creation.
+- Persist scouting observations (currently localStorage pins) and queue photos
+  for deferred diagnosis when offline.
+- WhatsApp intake — inbound webhook on the backend via the **official WhatsApp
+  Business Cloud API** (through a BSP such as Twilio sandbox → 360dialog/WABA for
+  production; unofficial web-automation libraries are ToS-violating and excluded).
+  Reuses the capture events; it's a new entry channel, not new frontend code.
 - Server-side idempotency key so a lost-2xx can't double-insert.

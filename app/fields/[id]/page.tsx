@@ -530,11 +530,12 @@ export default function FieldInsightsPage() {
                 </div>
 
                 {/* Capture actions (additive; offline-capable capture — Sprint 3) */}
-                <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                         { href: `/fields/${fieldId}/harvest`, icon: 'agriculture', title: 'Record harvest', sub: 'Log actual yield — offline' },
                         { href: `/fields/${fieldId}/input`, icon: 'science', title: 'Log input', sub: 'Fertilizer / chemical — voice' },
                         { href: `/fields/${fieldId}/scout`, icon: 'pest_control', title: 'Scout & diagnose', sub: 'Photo → AI diagnosis' },
+                        { href: `/fields/${fieldId}/task`, icon: 'task_alt', title: 'Add task', sub: 'Plan an activity — voice' },
                     ].map((a) => (
                         <Link
                             key={a.href}
