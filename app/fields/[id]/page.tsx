@@ -529,6 +529,24 @@ export default function FieldInsightsPage() {
                     <SeasonAccumulationCharts fieldId={fieldId} surface="consumer" />
                 </div>
 
+                {/* Record harvest (additive; offline-capable capture — Sprint 3) */}
+                <div className="lg:col-span-12">
+                    <Link
+                        href={`/fields/${fieldId}/harvest`}
+                        className="flex items-center justify-between neu-surface p-6 lg:p-8 transition-all hover:opacity-90"
+                        style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--ee-primary)' }}>agriculture</span>
+                            <div>
+                                <div className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>Record harvest</div>
+                                <div className="text-sm" style={{ color: 'var(--ee-muted)' }}>Log actual yield — works offline</div>
+                            </div>
+                        </div>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-muted)' }}>chevron_right</span>
+                    </Link>
+                </div>
+
                 {/* Row 4: Scouting Observations (full width) */}
                 <div className="lg:col-span-12 neu-surface p-8 lg:p-10" style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}>
                     <div className="flex justify-between items-center mb-6">

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import InstallPrompt from "@/components/InstallPrompt"
+import { OutboxSyncProvider } from "@/components/offline/OutboxSyncProvider"
 
 // Editorial serif for headlines (field-journal gravitas) + precise grotesque
 // for body/UI (institutional fintech). Avoids Inter/Roboto defaults.
@@ -132,6 +133,7 @@ export default function RootLayout({
           <AuthProvider>
             {children}
             <InstallPrompt />
+            <OutboxSyncProvider />
           </AuthProvider>
         </ThemeProvider>
       </body>
