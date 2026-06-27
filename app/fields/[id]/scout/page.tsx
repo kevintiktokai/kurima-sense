@@ -43,7 +43,7 @@ export default function ScoutPage() {
                     {fieldLabel} — photograph an affected plant for an instant AI diagnosis.
                 </p>
             </header>
-            <ScoutingCapture fieldId={fieldId} cropType={cropType} />
+            <ScoutingCapture fieldId={fieldId} fieldLabel={fieldLabel} cropType={cropType} />
         </PageContainer>
     )
 }
