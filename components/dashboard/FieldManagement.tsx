@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/services/api';
+import { enqueueFieldCreate, isNetworkError } from '@/services/fieldCapture';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import { useFieldState } from '@/hooks/useFieldState';
 import { FieldData } from './types';
@@ -94,27 +95,49 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const saveField = async () => {
         if (!newFieldName) return;
         setIsSaving(true);
-        try {
-            await api.saveField({
-                name: newFieldName,
-                crop: newFieldCrop,
-                coordinates: newFieldCoords,
-                area: newFieldArea,
-                plantingDate: newFieldDate || undefined,
-                transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
-                isTransplanted: isTransplantedCrop,
-                variety: newFieldVariety,
-                fertilizerHistory: newFieldFertilizer
-            });
+        const payload = {
+            name: newFieldName,
+            crop: newFieldCrop,
+            coordinates: newFieldCoords,
+            area: newFieldArea,
+            plantingDate: newFieldDate || undefined,
+            transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
+            isTransplanted: isTransplantedCrop,
+            variety: newFieldVariety,
+            fertilizerHistory: newFieldFertilizer
+        };
+        const resetForm = () => {
             setIsCreating(false);
             setNewFieldName("");
             setNewFieldDate("");
             setNewFieldTransplantDate("");
             setNewFieldVariety("");
             setNewFieldFertilizer("");
-
+        };
+        try {
+            // Offline: queue the field so the grower can capture a boundary in the
+            // field with no signal; it uploads automatically on reconnect.
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                await enqueueFieldCreate(payload);
+                resetForm();
+                alert("Saved offline — this field will be created automatically when you're back online.");
+                return;
+            }
+            await api.saveField(payload);
+            resetForm();
             await refreshFields();
         } catch (e: any) {
+            // A connectivity failure mid-save → queue it instead of losing the work.
+            if (isNetworkError(e)) {
+                try {
+                    await enqueueFieldCreate(payload);
+                    resetForm();
+                    alert("Saved offline — this field will be created automatically when you're back online.");
+                    return;
+                } catch (queueErr) {
+                    console.error(queueErr);
+                }
+            }
             console.error(e);
             alert(e.message || "Failed to save field");
         } finally {

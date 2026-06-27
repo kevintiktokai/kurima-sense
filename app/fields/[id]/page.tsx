@@ -529,6 +529,29 @@ export default function FieldInsightsPage() {
                     <SeasonAccumulationCharts fieldId={fieldId} surface="consumer" />
                 </div>
 
+                {/* Capture actions (additive; offline-capable capture — Sprint 3) */}
+                <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { href: `/fields/${fieldId}/harvest`, icon: 'agriculture', title: 'Record harvest', sub: 'Log actual yield — offline' },
+                        { href: `/fields/${fieldId}/input`, icon: 'science', title: 'Log input', sub: 'Fertilizer / chemical — voice' },
+                        { href: `/fields/${fieldId}/scout`, icon: 'pest_control', title: 'Scout & diagnose', sub: 'Photo → AI diagnosis' },
+                        { href: `/fields/${fieldId}/task`, icon: 'task_alt', title: 'Add task', sub: 'Plan an activity — voice' },
+                    ].map((a) => (
+                        <Link
+                            key={a.href}
+                            href={a.href}
+                            className="flex items-center gap-3 neu-surface p-5 lg:p-6 transition-all hover:opacity-90"
+                            style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--ee-primary)' }}>{a.icon}</span>
+                            <div>
+                                <div className="font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>{a.title}</div>
+                                <div className="text-sm" style={{ color: 'var(--ee-muted)' }}>{a.sub}</div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+
                 {/* Row 4: Scouting Observations (full width) */}
                 <div className="lg:col-span-12 neu-surface p-8 lg:p-10" style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}>
                     <div className="flex justify-between items-center mb-6">
