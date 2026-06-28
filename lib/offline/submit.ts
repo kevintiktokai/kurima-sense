@@ -18,16 +18,19 @@ export async function submitCapture(args: {
     label: string
     body: unknown
 }): Promise<SubmitResult> {
-    const online = typeof navigator === 'undefined' || navigator.onLine
-    if (online) {
-        const res = await httpSend(args.endpoint, args.body)
-        if (res.ok) {
-            void runSync() // opportunistically drain anything queued earlier
-            return { status: 'submitted' }
-        }
-        if (!res.retriable) throw new CaptureValidationError(res.error)
-        // transient → fall through to queue
+    // Always attempt the live send first. We do NOT gate on navigator.onLine —
+    // it is unreliable in PWAs/WKWebViews (often false while online) and would
+    // wrongly divert submissions to the offline queue. httpSend already returns a
+    // retriable result on an actual network failure, so a genuinely-offline send
+    // simply falls through to the outbox below.
+    const res = await httpSend(args.endpoint, args.body)
+    if (res.ok) {
+        void runSync() // opportunistically drain anything queued earlier
+        return { status: 'submitted' }
     }
+    if (!res.retriable) throw new CaptureValidationError(res.error)
+
+    // transient / offline → queue for automatic replay
     await enqueue({ kind: args.kind, endpoint: args.endpoint, body: args.body, label: args.label })
     return { status: 'queued' }
 }

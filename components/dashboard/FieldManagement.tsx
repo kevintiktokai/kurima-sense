@@ -115,19 +115,17 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             setNewFieldFertilizer("");
         };
         try {
-            // Offline: queue the field so the grower can capture a boundary in the
-            // field with no signal; it uploads automatically on reconnect.
-            if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                await enqueueFieldCreate(payload);
-                resetForm();
-                alert("Saved offline — this field will be created automatically when you're back online.");
-                return;
-            }
+            // Always attempt the live save first. We deliberately do NOT gate on
+            // navigator.onLine — it is unreliable in installed PWAs / iOS WKWebView
+            // (often false while actually online), which would wrongly divert saves
+            // to the offline queue. Only a real network failure (caught below)
+            // falls back to the outbox.
             await api.saveField(payload);
             resetForm();
             await refreshFields();
         } catch (e: any) {
-            // A connectivity failure mid-save → queue it instead of losing the work.
+            // A genuine connectivity failure mid-save → queue it instead of losing
+            // the work; it uploads automatically when the network returns.
             if (isNetworkError(e)) {
                 try {
                     await enqueueFieldCreate(payload);

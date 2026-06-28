@@ -138,11 +138,12 @@ export function initOutboxAutoSync(): () => void {
     }
     window.addEventListener('online', onOnline)
     document.addEventListener('visibilitychange', onVisible)
-    const timer = window.setInterval(() => {
-        if (navigator.onLine) void runSync()
-    }, 60_000)
+    // Always attempt on the interval — never gate on navigator.onLine, which can
+    // be stuck false in PWAs/WKWebViews and would leave queued items stranded.
+    // runSync()/httpSend handle a genuinely-offline attempt by re-queuing.
+    const timer = window.setInterval(() => void runSync(), 60_000)
     // Opportunistic drain on startup.
-    if (navigator.onLine) void runSync()
+    void runSync()
     return () => {
         window.removeEventListener('online', onOnline)
         document.removeEventListener('visibilitychange', onVisible)
