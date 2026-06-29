@@ -115,29 +115,34 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             setNewFieldFertilizer("");
         };
         try {
-            // Always attempt the live save first. We deliberately do NOT gate on
-            // navigator.onLine — it is unreliable in installed PWAs / iOS WKWebView
-            // (often false while actually online), which would wrongly divert saves
-            // to the offline queue. Only a real network failure (caught below)
-            // falls back to the outbox.
-            await api.saveField(payload);
-            resetForm();
-            await refreshFields();
-        } catch (e: any) {
-            // A genuine connectivity failure mid-save → queue it instead of losing
-            // the work; it uploads automatically when the network returns.
-            if (isNetworkError(e)) {
-                try {
+            // 1) Save on the server. The offline fallback applies to THIS call
+            // only — and only for a genuine connectivity failure. We never gate on
+            // navigator.onLine (unreliable in PWAs/WKWebViews), and we never queue
+            // a real server/validation error: those must surface, not be silently
+            // swallowed into the outbox (which is what made saves "disappear").
+            try {
+                await api.saveField(payload);
+            } catch (postErr: any) {
+                if (isNetworkError(postErr)) {
                     await enqueueFieldCreate(payload);
                     resetForm();
-                    alert("Saved offline — this field will be created automatically when you're back online.");
+                    alert("You appear to be offline. This field is saved on your device and will upload automatically when you're back online.");
                     return;
-                } catch (queueErr) {
-                    console.error(queueErr);
                 }
+                throw postErr; // real error → surfaced below
             }
-            console.error(e);
-            alert(e.message || "Failed to save field");
+
+            // 2) Saved successfully. Refresh is best-effort — the field is already
+            // persisted, so a refresh hiccup must never look like a save failure.
+            resetForm();
+            try {
+                await refreshFields();
+            } catch (refreshErr) {
+                console.error("Field saved but list refresh failed:", refreshErr);
+            }
+        } catch (e: any) {
+            console.error("Save field failed:", e);
+            alert(e?.message || "Failed to save field. Please try again.");
         } finally {
             setIsSaving(false);
         }

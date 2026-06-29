@@ -28,14 +28,15 @@ export async function enqueueFieldCreate(payload: FieldCreatePayload): Promise<v
     })
 }
 
-/** True when an error is an *actual* connectivity failure (queue it) rather than
- *  a server error/validation (surface it). Classifies by the thrown error only —
- *  never navigator.onLine, which is unreliable in PWAs/WKWebViews and would
- *  mis-route real server errors to the offline queue. A failed `fetch()` throws a
- *  TypeError ("Failed to fetch" / "Load failed" / "NetworkError"); HTTP error
- *  responses (4xx/5xx) surface as Error messages containing the status code. */
+/** True only for an *actual* connectivity failure (queue it) — never a server
+ *  error/validation (those must surface, not be silently queued). Classifies by
+ *  the thrown error's message, never navigator.onLine (unreliable in
+ *  PWAs/WKWebViews). A failed `fetch()` throws a TypeError whose message is
+ *  "Failed to fetch" (Chrome), "Load failed" (Safari) or "NetworkError…"
+ *  (Firefox); HTTP errors (4xx/5xx) surface as Errors containing the status, so
+ *  they correctly return false here. We match the message rather than
+ *  `instanceof TypeError` so unrelated TypeErrors aren't mistaken for offline. */
 export function isNetworkError(e: unknown): boolean {
-    if (e instanceof TypeError) return true
     const msg = (e as Error)?.message ?? ''
-    return /failed to fetch|networkerror|load failed|network request failed/i.test(msg)
+    return /failed to fetch|networkerror|load failed|network request failed|fetch failed/i.test(msg)
 }
