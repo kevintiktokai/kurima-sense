@@ -30,6 +30,7 @@ import { humanizeCrop, stripDemoPrefix } from '@/lib/portfolio-utils'
 import { parseFrom, routeForGrower, withFrom, BACK_DEFAULTS, type FromContext } from '@/lib/nav-links'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts'
+import { InputVerificationCard } from '@/components/portfolio/InputVerificationCard'
 
 function BackLink({ back }: { back: FromContext }) {
     return (
@@ -282,6 +283,9 @@ export default function InstitutionalFieldDetailPage() {
 
                 {/* Season accumulations — GDD + cumulative rainfall since planting */}
                 <SeasonAccumulationCharts fieldId={fieldId} surface="portfolio" />
+
+                {/* Input verification — did logged inputs produce an NDVI response? */}
+                <InputVerificationCard fieldId={fieldId} />
               </div>
 
               <div className="space-y-5 mt-5 lg:mt-0">
