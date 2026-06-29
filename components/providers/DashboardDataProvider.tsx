@@ -101,7 +101,9 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     const refreshFields = useCallback(async () => {
         if (!user) return
         try {
-            const fieldsData = await api.getFields()
+            // force=true bypasses the in-memory cache so a just-saved field is
+            // never hidden behind a stale 'fields' entry.
+            const fieldsData = await api.getFields(true)
             setFields(fieldsData)
         } catch (e) {
             console.error('[DashboardData] refreshFields error:', e)

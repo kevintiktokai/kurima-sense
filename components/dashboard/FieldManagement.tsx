@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/services/api';
-import { enqueueFieldCreate, isNetworkError } from '@/services/fieldCapture';
+import { isNetworkError } from '@/services/fieldCapture';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import { useFieldState } from '@/hooks/useFieldState';
 import { FieldData } from './types';
@@ -115,34 +115,37 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
             setNewFieldFertilizer("");
         };
         try {
-            // 1) Save on the server. The offline fallback applies to THIS call
-            // only — and only for a genuine connectivity failure. We never gate on
-            // navigator.onLine (unreliable in PWAs/WKWebViews), and we never queue
-            // a real server/validation error: those must surface, not be silently
-            // swallowed into the outbox (which is what made saves "disappear").
+            // Online create with LOUD errors. We previously routed failures into an
+            // offline outbox, which silently swallowed real errors (and the
+            // unreliable navigator.onLine sometimes diverted online saves) — so a
+            // failed save looked like "nothing happened". Field creation now always
+            // hits the server and surfaces exactly what went wrong.
             try {
                 await api.saveField(payload);
             } catch (postErr: any) {
+                // The backend can cold-start (free hosting spins down on idle), so
+                // the first request after a quiet spell may fail/time out. Retry
+                // once after a short wait before giving up.
                 if (isNetworkError(postErr)) {
-                    await enqueueFieldCreate(payload);
-                    resetForm();
-                    alert("You appear to be offline. This field is saved on your device and will upload automatically when you're back online.");
-                    return;
+                    await new Promise((r) => setTimeout(r, 2500));
+                    await api.saveField(payload);
+                } else {
+                    throw postErr;
                 }
-                throw postErr; // real error → surfaced below
             }
 
-            // 2) Saved successfully. Refresh is best-effort — the field is already
-            // persisted, so a refresh hiccup must never look like a save failure.
+            // Saved. Force a cache-bypassing refresh so the new field always shows
+            // (a stale 'fields' cache entry must never hide it).
             resetForm();
-            try {
-                await refreshFields();
-            } catch (refreshErr) {
-                console.error("Field saved but list refresh failed:", refreshErr);
-            }
+            await refreshFields();
         } catch (e: any) {
             console.error("Save field failed:", e);
-            alert(e?.message || "Failed to save field. Please try again.");
+            const offline = isNetworkError(e);
+            alert(
+                offline
+                    ? "Couldn't reach the server — it may be waking up, or you're offline. Please wait a moment and try saving again."
+                    : (e?.message || "Could not save the field. Please try again."),
+            );
         } finally {
             setIsSaving(false);
         }

@@ -96,10 +96,12 @@ export const api = {
         }
     },
 
-    async getFields(): Promise<FieldData[]> {
+    async getFields(force = false): Promise<FieldData[]> {
         const cacheKey = 'fields';
-        const cached = getCached<FieldData[]>(cacheKey);
-        if (cached) return cached;
+        if (!force) {
+            const cached = getCached<FieldData[]>(cacheKey);
+            if (cached) return cached;
+        }
 
         try {
             const headers = await getAuthHeaders();
