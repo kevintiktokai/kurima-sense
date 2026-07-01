@@ -58,3 +58,57 @@ export async function fetchFieldVerification(
     if (!res.ok) throw new Error(`Failed to load verification (${res.status})`)
     return (await res.json()) as FieldVerification
 }
+
+// ───── Portfolio rollup — mirrors backend GET /tenants/{id}/verification ─────
+
+/** Per-field summary within the portfolio rollup (backend sorts most-flagged first). */
+export interface FieldVerificationSummary {
+    field_id: string
+    field_name: string | null
+    grower_name: string | null
+    n_inputs: number
+    n_verified: number
+    n_flagged: number
+    n_unknown: number
+    verification_pct: number | null
+}
+
+export interface PortfolioVerification {
+    tenant_id: string
+    field_count: number          // fields with ≥1 logged input
+    fields_with_flagged: number
+    total_flagged_inputs: number
+    total_inputs: number
+    fields: FieldVerificationSummary[]
+}
+
+/** Split fields into those with ≥1 flagged input (need attention) and the rest. */
+export function partitionFieldsByFlag(fields: FieldVerificationSummary[]): {
+    flagged: FieldVerificationSummary[]
+    ok: FieldVerificationSummary[]
+} {
+    return {
+        flagged: fields.filter((f) => f.n_flagged > 0),
+        ok: fields.filter((f) => f.n_flagged === 0),
+    }
+}
+
+/** Headline for a field summary row, e.g. "2 flagged of 5 inputs · 1 unverifiable". */
+export function fieldSummaryHeadline(f: FieldVerificationSummary): string {
+    const parts: string[] = []
+    if (f.n_flagged > 0) parts.push(`${f.n_flagged} flagged of ${f.n_inputs} input${f.n_inputs === 1 ? '' : 's'}`)
+    else parts.push(`${f.n_verified} of ${f.n_inputs} verified`)
+    if (f.n_unknown > 0) parts.push(`${f.n_unknown} unverifiable`)
+    return parts.join(' · ')
+}
+
+export async function fetchPortfolioVerification(
+    url: string,
+    getHeaders: () => Promise<HeadersInit>,
+    fetchImpl: typeof fetch = fetch,
+): Promise<PortfolioVerification> {
+    const headers = await getHeaders()
+    const res = await fetchImpl(url, { headers })
+    if (!res.ok) throw new Error(`Failed to load verification (${res.status})`)
+    return (await res.json()) as PortfolioVerification
+}

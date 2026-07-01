@@ -7,23 +7,35 @@ import { EmptyStateCard } from '@/components/portfolio/EmptyStateCard'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import { useReconciliation } from '@/hooks/useReconciliation'
+import { usePortfolioVerification } from '@/hooks/usePortfolioVerification'
 import {
     flagStyle,
     formatTonnes,
     partitionByFlag,
     type GrowerReconciliation,
 } from '@/lib/reconciliation-utils'
+import {
+    fieldSummaryHeadline,
+    partitionFieldsByFlag,
+    type FieldVerificationSummary,
+} from '@/lib/verification-utils'
 
 export default function PortfolioReportsPage() {
     const { data: aggregate } = usePortfolioAggregate()
     const tenantId = aggregate?.tenant?.id
     const { data, isLoading, error } = useReconciliation(tenantId)
+    const verification = usePortfolioVerification(tenantId)
 
     return (
         <PageContainer variant="reading">
             <PortfolioPageHeader title="Reports" subtitle="Portfolio-level reporting and exports" />
             <div className="grid gap-6">
                 <ContractPerformance data={data} isLoading={isLoading || !tenantId} error={error} />
+                <InputVerification
+                    data={verification.data}
+                    isLoading={verification.isLoading || !tenantId}
+                    error={verification.error}
+                />
                 <EmptyStateCard
                     title="Yield Forecast Reports"
                     description="Season yield projections aggregated across your contracted growers."
@@ -36,6 +48,94 @@ export default function PortfolioReportsPage() {
                 />
             </div>
         </PageContainer>
+    )
+}
+
+function InputVerification({
+    data,
+    isLoading,
+    error,
+}: {
+    data: ReturnType<typeof usePortfolioVerification>['data']
+    isLoading: boolean
+    error: Error | undefined
+}) {
+    return (
+        <section className="rounded-[24px] p-6 lg:p-8 shadow-[var(--shadow-neu)]" style={{ background: 'var(--ee-surface)' }}>
+            <div className="mb-1 flex items-center gap-2">
+                <span className="material-symbols-outlined" style={{ color: 'var(--ee-primary)' }}>verified</span>
+                <h2 className="text-lg font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                    Input verification
+                </h2>
+            </div>
+            <p className="mb-5 text-sm" style={{ color: 'var(--ee-muted)' }}>
+                Logged inputs cross-checked against the satellite canopy response — flagging inputs that show none.
+            </p>
+
+            {isLoading && <p className="text-sm" style={{ color: 'var(--ee-muted)' }}>Loading…</p>}
+            {error && <p className="text-sm" style={{ color: '#c44' }}>Couldn’t load verification. Try again.</p>}
+
+            {data && !isLoading && (
+                <>
+                    <div className="mb-6 grid grid-cols-3 gap-3">
+                        <Stat label="Fields to check" value={String(data.fields_with_flagged)} tone="#c44" />
+                        <Stat label="Flagged inputs" value={String(data.total_flagged_inputs)} tone="#b8860b" />
+                        <Stat label="Inputs tracked" value={String(data.total_inputs)} tone="var(--ee-text)" />
+                    </div>
+                    <VerificationList fields={data.fields} />
+                </>
+            )}
+        </section>
+    )
+}
+
+function VerificationList({ fields }: { fields: FieldVerificationSummary[] }) {
+    const { flagged } = partitionFieldsByFlag(fields)
+
+    if (fields.length === 0) {
+        return (
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ee-muted)' }}>
+                <Eye className="size-4" /> No inputs logged across the book yet — nothing to verify.
+            </div>
+        )
+    }
+
+    if (flagged.length === 0) {
+        return (
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ee-primary)' }}>
+                <CheckCircle2 className="size-4" /> Every logged input shows a satellite response — nothing flagged.
+            </div>
+        )
+    }
+
+    return (
+        <div className="space-y-2">
+            {flagged.map((f) => <VerificationRow key={f.field_id} f={f} />)}
+        </div>
+    )
+}
+
+function VerificationRow({ f }: { f: FieldVerificationSummary }) {
+    return (
+        <div className="rounded-[16px] px-4 py-3 shadow-[var(--shadow-neu-inset)]" style={{ background: 'var(--ee-bg)' }}>
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                    <AlertTriangle className="size-4" style={{ color: '#c44' }} />
+                    <span className="truncate font-semibold" style={{ color: 'var(--ee-text)' }}>
+                        {f.field_name || 'Unnamed field'}
+                    </span>
+                    {f.grower_name && (
+                        <span className="truncate text-xs" style={{ color: 'var(--ee-muted)' }}>· {f.grower_name}</span>
+                    )}
+                </div>
+                <span className="shrink-0 text-xs font-bold uppercase tracking-wide" style={{ color: '#c44' }}>
+                    No response
+                </span>
+            </div>
+            <div className="mt-1 text-xs" style={{ color: 'var(--ee-muted)' }}>
+                {fieldSummaryHeadline(f)}
+            </div>
+        </div>
     )
 }
 
