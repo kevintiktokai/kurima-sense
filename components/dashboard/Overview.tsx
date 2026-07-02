@@ -199,8 +199,9 @@ const Overview: React.FC = () => {
     return (
         <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-8 pb-12 relative">
 
-            {/* Welcome Widget (Left 8) */}
-            <div id="dashboard-welcome" className="col-span-12 lg:col-span-8 neu-surface p-5 sm:p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
+            {/* Welcome Widget (Left 8 on desktop; full-width on tablet so the
+                priorities panel isn't squashed into a narrow column on iPad) */}
+            <div id="dashboard-welcome" className="col-span-12 xl:col-span-8 neu-surface p-5 sm:p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
                 <div className="relative z-10 flex-1 flex flex-col justify-center">
                     <h3
                         className="text-2xl sm:text-3xl lg:text-5xl mb-3 lg:mb-4 tracking-tight leading-tight"
@@ -253,8 +254,9 @@ const Overview: React.FC = () => {
                 }}></div>
             </div>
 
-            {/* Action Queue (Right Column - Top Priority) */}
-            <div id="action-queue" className="col-span-12 lg:col-span-4 flex flex-col h-full">
+            {/* Action Queue — right column only at xl+; below the welcome card at
+                tablet widths so priority text gets full width instead of wrapping */}
+            <div id="action-queue" className="col-span-12 xl:col-span-4 flex flex-col h-full">
                 {!aiLoaded ? (
                     <AICardPlaceholder icon="task_alt" label="Loading priorities..." />
                 ) : actions.filter(a => !a.completed).length > 0 ? (

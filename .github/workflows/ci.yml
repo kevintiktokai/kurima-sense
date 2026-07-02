@@ -1,0 +1,27 @@
+name: CI
+
+# Tests existed but nothing ran them on push (July 2026 audit). This runs the
+# typecheck + unit tests on every push/PR to main. Both are deterministic and
+# need no secrets or network.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: npm test
