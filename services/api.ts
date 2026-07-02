@@ -680,6 +680,40 @@ export const api = {
     },
 
     /**
+     * Edit a field's agronomic metadata after creation (Phase 4 — field
+     * management). Partial update: only supplied keys change. Accepts any of
+     * name, crop, variety, plantingDate, transplantDate, fertilizerHistory,
+     * isTransplanted. Clears the fields cache so the edit shows immediately.
+     */
+    async updateField(fieldId: string, updates: {
+        name?: string;
+        crop?: string;
+        variety?: string;
+        plantingDate?: string;
+        transplantDate?: string;
+        fertilizerHistory?: string;
+        isTransplanted?: boolean;
+    }): Promise<{ status: string; field: any }> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify(updates),
+            });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ detail: res.statusText }));
+                throw new Error(errorData.detail || `Failed to update field (${res.status})`);
+            }
+            apiCache.delete('fields');
+            return await res.json();
+        } catch (e) {
+            console.error("Update field error", e);
+            throw e;
+        }
+    },
+
+    /**
      * Get proactive alerts for a specific field (growth stage, disease risk, harvest countdown)
      */
     async getProactiveAlerts(fieldId: string): Promise<{
