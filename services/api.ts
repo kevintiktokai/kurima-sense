@@ -215,6 +215,82 @@ export const api = {
         }
     },
 
+    // ───── Chat sessions (LLM-style advisor: history sidebar, new/resume) ─────
+
+    async listChatSessions(): Promise<Array<{
+        id: string; title: string; created_at: string | null;
+        updated_at: string | null; message_count: number; preview: string;
+    }>> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/sessions`, { headers });
+            if (!res.ok) return [];
+            return await res.json();
+        } catch (e) {
+            console.error("List chat sessions error", e);
+            return [];
+        }
+    },
+
+    async createChatSession(title?: string): Promise<{ id: string; title: string } | null> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/sessions`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(title ? { title } : {}),
+            });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            console.error("Create chat session error", e);
+            return null;
+        }
+    },
+
+    async getChatSessionMessages(sessionId: string): Promise<Array<{
+        role: string; content: string; created_at: string | null;
+    }>> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/messages`, { headers });
+            if (!res.ok) return [];
+            return await res.json();
+        } catch (e) {
+            console.error("Get session messages error", e);
+            return [];
+        }
+    },
+
+    async renameChatSession(sessionId: string, title: string): Promise<boolean> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({ title }),
+            });
+            return res.ok;
+        } catch (e) {
+            console.error("Rename chat session error", e);
+            return false;
+        }
+    },
+
+    async deleteChatSession(sessionId: string): Promise<boolean> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+                method: 'DELETE',
+                headers,
+            });
+            return res.ok;
+        } catch (e) {
+            console.error("Delete chat session error", e);
+            return false;
+        }
+    },
+
     async getProactiveInsight(context: any) {
         try {
             const headers = await getAuthHeaders();
