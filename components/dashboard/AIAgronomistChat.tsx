@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { api } from '@/services/api';
 import { useSearchParams } from 'next/navigation';
@@ -18,15 +18,30 @@ interface Message {
     role: 'user' | 'ai';
     content: string;
     timestamp: string;
+    image?: string;               // data-URL preview for attached photos (LLM-style bubble)
     actions?: string[];           // Suggested next actions
     proactiveInsights?: string[]; // Proactive tips from AI
     confidence?: number;          // AI confidence score
     intent?: string;              // Detected user intent
 }
 
+interface ChatSession {
+    id: string;
+    title: string;
+    updated_at: string | null;
+    message_count: number;
+    preview: string;
+}
+
 interface AIAgronomistChatProps {
     selectedField?: FieldData;
 }
+
+const WELCOME: Message = {
+    role: 'ai',
+    content: "Hello! I'm your KurimaSense AI Agronomist. I've analyzed your satellite data. Where should we start?",
+    timestamp: '',
+};
 
 const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: initialField }) => {
     // Field list comes from the shared dashboard provider — no extra fetch
@@ -35,7 +50,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
     const [selectedField, setSelectedField] = useState<FieldData | undefined>(initialField);
     const searchParams = useSearchParams();
 
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([WELCOME]);
     const [input, setInput] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [showMobileSelector, setShowMobileSelector] = useState(false);
@@ -43,20 +58,61 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Initial load of chat history only (fields come from the provider)
-    useEffect(() => {
-        api.getChatHistory().then(history => {
-            if (history && history.length > 0) {
-                setMessages(history);
-            } else {
-                setMessages([{
-                    role: 'ai',
-                    content: "Hello! I'm your KurimaSense AI Agronomist. I've analyzed your satellite data. Where should we start?",
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                }]);
-            }
-        });
+    // ── LLM-style sessions: history sidebar, new chat, resume past chats ──
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+    const [showHistory, setShowHistory] = useState(false); // mobile drawer
+    const [sessionsLoading, setSessionsLoading] = useState(true);
+
+    const refreshSessions = useCallback(async () => {
+        const list = await api.listChatSessions();
+        setSessions(list);
+        setSessionsLoading(false);
+        return list;
     }, []);
+
+    // On mount: load the session list. The newest session is NOT auto-opened —
+    // like other LLM apps, you land on a fresh chat and can resume from history.
+    useEffect(() => {
+        refreshSessions();
+    }, [refreshSessions]);
+
+    const openSession = useCallback(async (sessionId: string) => {
+        setActiveSessionId(sessionId);
+        setShowHistory(false);
+        setLoading(true);
+        try {
+            const msgs = await api.getChatSessionMessages(sessionId);
+            if (msgs.length > 0) {
+                setMessages(msgs.map(m => ({
+                    role: m.role === 'user' ? 'user' as const : 'ai' as const,
+                    content: m.content,
+                    timestamp: m.created_at
+                        ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '',
+                })));
+            } else {
+                setMessages([WELCOME]);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const startNewChat = useCallback(() => {
+        // Lazy creation: the session row is only created when the first message
+        // is sent, so abandoned "new chats" never litter the history.
+        setActiveSessionId(null);
+        setMessages([WELCOME]);
+        setShowHistory(false);
+    }, []);
+
+    const removeSession = useCallback(async (sessionId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        await api.deleteChatSession(sessionId);
+        setSessions(prev => prev.filter(s => s.id !== sessionId));
+        if (activeSessionId === sessionId) startNewChat();
+    }, [activeSessionId, startNewChat]);
 
     // Stable remark plugins reference so the dynamic ReactMarkdown doesn't reset on every render
     const remarkPlugins = useMemo(() => [remarkGfm], []);
@@ -75,6 +131,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
             // Pre-fill input instead of auto-sending to let user review
             setInput(decodeURIComponent(initialMessage));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, fields]);
 
     // Also sync prop if it changes
@@ -108,18 +165,33 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
         setSelectedImage(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
 
+        // Image renders as a real preview bubble, not a "[Image Uploaded]" text tag
         setMessages(prev => [...prev, {
             role: 'user',
-            content: userMsg + (imageToSend ? ' [Image Uploaded]' : ''),
-            timestamp: time
+            content: userMsg,
+            image: imageToSend || undefined,
+            timestamp: time,
         }]);
         setLoading(true);
 
         try {
+            // Ensure a session exists so this exchange lands in history and can
+            // be resumed later. Created lazily on the first send of a new chat.
+            let sessionId = activeSessionId;
+            const isFirstMessage = !sessionId;
+            if (!sessionId) {
+                const created = await api.createChatSession();
+                if (created) {
+                    sessionId = created.id;
+                    setActiveSessionId(created.id);
+                }
+            }
+
             // If there's an image, use the non-streaming v2 endpoint (vision needs full round-trip)
             if (imageToSend) {
-                const response = await api.chatWithAgronomistV2(userMsg, {
+                const response = await api.chatWithAgronomistV2(userMsg || 'Please analyze this photo of my crop.', {
                     fieldId: selectedField?.id,
+                    sessionId: sessionId || undefined,
                     image: imageToSend,
                     language: 'en'
                 });
@@ -134,7 +206,6 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                 }]);
             } else {
                 // Use SSE streaming for text-only queries – tokens arrive incrementally
-                const placeholderIdx = Date.now(); // unique key
                 let streamedText = '';
                 let detectedIntent = '';
 
@@ -148,6 +219,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                 try {
                     for await (const event of api.streamChatWithAgronomist(userMsg, {
                         fieldId: selectedField?.id,
+                        sessionId: sessionId || undefined,
                         language: 'en'
                     })) {
                         if (event.error) {
@@ -186,6 +258,7 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                     // Fallback to non-streaming v2
                     const response = await api.chatWithAgronomistV2(userMsg, {
                         fieldId: selectedField?.id,
+                        sessionId: sessionId || undefined,
                         language: 'en'
                     });
                     setMessages(prev => [...prev, {
@@ -199,6 +272,9 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                     }]);
                 }
             }
+
+            // First exchange of a new chat: pick up the auto-generated title
+            if (isFirstMessage) refreshSessions();
         } catch (err) {
             console.error("Chat error:", err);
             setMessages(prev => [...prev, {
@@ -211,10 +287,66 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
         }
     };
 
+    // ── Sessions list (shared by desktop sidebar + mobile drawer) ──
+    const SessionList = ({ compact = false }: { compact?: boolean }) => (
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+            {sessionsLoading ? (
+                <p className="text-[11px] text-slate-400 font-bold px-3 py-2">Loading history…</p>
+            ) : sessions.length === 0 ? (
+                <p className="text-[11px] text-slate-400 font-medium px-3 py-2 leading-relaxed">
+                    No past chats yet. Your conversations will appear here.
+                </p>
+            ) : (
+                sessions.map(s => (
+                    <div
+                        key={s.id}
+                        onClick={() => openSession(s.id)}
+                        className={`group flex items-start gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
+                            activeSessionId === s.id
+                                ? 'bg-brand-lime/20 text-brand-dark'
+                                : compact ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-100 text-brand-dark'
+                        }`}
+                    >
+                        <span className="material-symbols-outlined mt-0.5 flex-shrink-0 opacity-50" style={{ fontSize: '16px' }}>
+                            chat_bubble
+                        </span>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold truncate">{s.title}</p>
+                            {s.preview && (
+                                <p className={`text-[10px] truncate ${compact ? 'opacity-60' : 'text-slate-400'}`}>{s.preview}</p>
+                            )}
+                        </div>
+                        <button
+                            onClick={(e) => removeSession(s.id, e)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 flex-shrink-0"
+                            title="Delete chat"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#E05C5C' }}>delete</span>
+                        </button>
+                    </div>
+                ))
+            )}
+        </div>
+    );
+
     return (
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] lg:h-[calc(100vh-180px)] gap-4 lg:gap-8 animate-in fade-in duration-500 pb-20 lg:pb-0">
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] lg:h-[calc(100vh-180px)] gap-4 lg:gap-6 animate-in fade-in duration-500 pb-20 lg:pb-0">
+
+            {/* ── CHAT HISTORY SIDEBAR (desktop) — LLM-style ── */}
+            <div className="hidden lg:flex flex-col w-60 xl:w-64 flex-shrink-0 bg-white rounded-[2rem] shadow-xl border border-slate-100 p-4 min-h-0">
+                <button
+                    onClick={startNewChat}
+                    className="w-full mb-4 px-4 py-3 rounded-2xl bg-brand-dark text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                    New chat
+                </button>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">History</p>
+                <SessionList />
+            </div>
+
             {/* Main Chat Area */}
-            <div id="ai-chat-interface" className="flex-1 bg-white rounded-[2.5rem] lg:rounded-[4rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden relative">
+            <div id="ai-chat-interface" className="flex-1 bg-white rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden relative min-w-0">
                 <div className="p-5 lg:p-8 bg-brand-dark text-white flex items-center justify-between border-b border-brand-lime/10 relative z-20">
                     <div className="flex items-center gap-3 lg:gap-5 flex-1 min-w-0">
                         <div className="w-10 lg:w-14 h-10 lg:h-14 bg-brand-lime rounded-full flex items-center justify-center text-xl lg:text-3xl shadow-lg ring-4 ring-brand-lime/20 flex-shrink-0">✨</div>
@@ -226,11 +358,30 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                         </div>
                     </div>
 
-                    {/* Mobile Field Selector Toggle */}
-                    <div className="lg:hidden flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        {/* Mobile: chat history drawer toggle */}
                         <button
-                            onClick={() => setShowMobileSelector(!showMobileSelector)}
-                            className={`p-2 rounded-xl transition-all border ${showMobileSelector
+                            onClick={() => { setShowHistory(!showHistory); setShowMobileSelector(false); }}
+                            className={`lg:hidden p-2 rounded-xl transition-all border ${showHistory
+                                ? 'bg-brand-lime text-brand-dark border-brand-lime'
+                                : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                                }`}
+                            title="Chat history"
+                        >
+                            <span className="material-symbols-outlined block" style={{ fontSize: '20px' }}>history</span>
+                        </button>
+                        {/* Mobile: new chat */}
+                        <button
+                            onClick={startNewChat}
+                            className="lg:hidden p-2 rounded-xl bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-all"
+                            title="New chat"
+                        >
+                            <span className="material-symbols-outlined block" style={{ fontSize: '20px' }}>add</span>
+                        </button>
+                        {/* Mobile Field Selector Toggle */}
+                        <button
+                            onClick={() => { setShowMobileSelector(!showMobileSelector); setShowHistory(false); }}
+                            className={`lg:hidden p-2 rounded-xl transition-all border ${showMobileSelector
                                 ? 'bg-brand-lime text-brand-dark border-brand-lime'
                                 : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                                 }`}
@@ -241,6 +392,21 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                         </button>
                     </div>
                 </div>
+
+                {/* Mobile chat-history drawer */}
+                {showHistory && (
+                    <div className="lg:hidden absolute top-[76px] left-0 right-0 bottom-0 bg-brand-dark z-30 animate-in slide-in-from-top duration-300 flex flex-col p-5">
+                        <button
+                            onClick={startNewChat}
+                            className="w-full mb-4 px-4 py-3 rounded-2xl bg-brand-lime text-brand-dark font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+                            New chat
+                        </button>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">History</p>
+                        <SessionList compact />
+                    </div>
+                )}
 
                 {/* Mobile Selector Overlay/Dropdown */}
                 {showMobileSelector && (
@@ -319,19 +485,29 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                                 ? 'bg-brand-dark text-white rounded-tr-none'
                                 : 'bg-brand-beige text-brand-dark rounded-tl-none border border-slate-100'
                                 }`}>
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    components={{
-                                        strong: ({ node, ...props }) => <strong className={`font-black ${m.role === 'ai' ? 'text-brand-dark' : 'text-brand-lime'}`} {...props} />,
-                                        ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-1 my-2" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-1 my-2" {...props} />,
-                                        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                                        p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
-                                        a: ({ node, ...props }) => <a className="underline decoration-brand-lime underline-offset-2 font-bold" {...props} />,
-                                    }}
-                                >
-                                    {m.content}
-                                </ReactMarkdown>
+                                {/* Attached photo renders as a proper image bubble (LLM-style) */}
+                                {m.image && (
+                                    <img
+                                        src={m.image}
+                                        alt="Attached crop photo"
+                                        className={`rounded-2xl max-h-56 w-auto object-cover border border-white/20 shadow-md ${m.content ? 'mb-3' : ''}`}
+                                    />
+                                )}
+                                {m.content && (
+                                    <ReactMarkdown
+                                        remarkPlugins={remarkPlugins}
+                                        components={{
+                                            strong: ({ node, ...props }) => <strong className={`font-black ${m.role === 'ai' ? 'text-brand-dark' : 'text-brand-lime'}`} {...props} />,
+                                            ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-1 my-2" {...props} />,
+                                            ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-1 my-2" {...props} />,
+                                            li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                            p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+                                            a: ({ node, ...props }) => <a className="underline decoration-brand-lime underline-offset-2 font-bold" {...props} />,
+                                        }}
+                                    >
+                                        {m.content}
+                                    </ReactMarkdown>
+                                )}
 
                                 {/* Show actions as clickable chips for AI messages */}
                                 {m.role === 'ai' && m.actions && m.actions.length > 0 && (
@@ -443,10 +619,11 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                 </div>
             </div>
 
-            {/* Context Panel (Strategic Side Panel) */}
-            <div className="hidden lg:flex flex-col w-80 xl:w-96 gap-6 overflow-y-auto min-h-0 pb-8">
-                <div className="bg-brand-beige p-8 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] border border-slate-200 shadow-sm transition-all hover:bg-white group flex-shrink-0">
-                    <h4 className="font-black text-brand-dark text-lg lg:text-xl mb-6">Active Context</h4>
+            {/* Context Panel (Strategic Side Panel) — xl+ so the history sidebar,
+                chat and context all fit without squeezing the conversation */}
+            <div className="hidden xl:flex flex-col w-80 gap-6 overflow-y-auto min-h-0 pb-8">
+                <div className="bg-brand-beige p-8 rounded-[2.5rem] border border-slate-200 shadow-sm transition-all hover:bg-white group flex-shrink-0">
+                    <h4 className="font-black text-brand-dark text-lg mb-6">Active Context</h4>
 
                     {/* Field Selector */}
                     <div className="mb-6">
@@ -467,31 +644,27 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                     </div>
 
                     <div className="space-y-4">
-                        <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
+                        <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Crop Type</p>
-                            <p className="font-black text-brand-dark text-base lg:text-lg">{selectedField?.crop || 'Mixed'}</p>
+                            <p className="font-black text-brand-dark text-base">{selectedField?.crop || 'Mixed'}</p>
                         </div>
                         {selectedField && (
                             <>
-                                <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
+                                <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">NDVI Score</p>
-                                    <p className="font-black text-brand-dark text-base lg:text-lg">{selectedField.ndvi.toFixed(2)}</p>
+                                    <p className="font-black text-brand-dark text-base">{selectedField.ndvi.toFixed(2)}</p>
                                 </div>
-                                <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
+                                <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-50 transition-all hover:translate-x-1">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Moisture</p>
-                                    <p className="font-black text-brand-dark text-base lg:text-lg">{selectedField.soilMoisture}%</p>
+                                    <p className="font-black text-brand-dark text-base">{selectedField.soilMoisture}%</p>
                                 </div>
                             </>
                         )}
-                        <div className="bg-white p-4 lg:p-5 rounded-3xl shadow-sm border border-slate-50">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                            <p className="font-black text-emerald-600 text-sm uppercase tracking-tighter">● Secure Pipeline</p>
-                        </div>
                     </div>
                 </div>
 
-                <div className="bg-brand-lime/10 p-8 lg:p-10 rounded-[2.5rem] lg:rounded-[3.5rem] border border-brand-lime/30 shadow-sm relative overflow-hidden flex-shrink-0">
-                    <h4 className="font-black text-brand-dark text-lg lg:text-xl mb-6 relative z-10">Quick Actions</h4>
+                <div className="bg-brand-lime/10 p-8 rounded-[2.5rem] border border-brand-lime/30 shadow-sm relative overflow-hidden flex-shrink-0">
+                    <h4 className="font-black text-brand-dark text-lg mb-6 relative z-10">Quick Actions</h4>
                     <div className="space-y-3 relative z-10">
                         {[
                             { label: 'Fertilizer Logic', icon: '🧪' },
