@@ -385,7 +385,12 @@ export const api = {
             const res = await fetch(`${API_BASE_URL}/crops/${encodeURIComponent(cropName)}/varieties`, { headers });
             if (!res.ok) return [];
             const data = await res.json();
-            setCache(cacheKey, data, CACHE_TTL.VARIETIES);
+            // Only cache a non-empty catalogue. Caching an empty result for the
+            // 24h VARIETIES TTL would keep the variety picker hidden long after
+            // the backend catalogue is populated (it self-seeds on boot).
+            if (Array.isArray(data) && data.length > 0) {
+                setCache(cacheKey, data, CACHE_TTL.VARIETIES);
+            }
             return data;
         } catch (e) {
             console.error("Fetch varieties error", e);
