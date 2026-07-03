@@ -1,4 +1,4 @@
-// Institutional portfolio navigation — the 5 tabs. Shared by the desktop sidebar
+// Institutional portfolio navigation — the 6 tabs. Shared by the desktop sidebar
 // and the mobile bottom nav (and asserted by tests) so they never drift.
 
 import { isTabActive } from '@/lib/nav-links'
@@ -14,6 +14,7 @@ export const PORTFOLIO_NAV_ITEMS: PortfolioNavItem[] = [
     { id: 'today', href: '/portfolio/today', icon: 'today', label: 'Today' },
     { id: 'fields', href: '/portfolio/fields', icon: 'grass', label: 'Fields' },
     { id: 'growers', href: '/portfolio/growers', icon: 'groups', label: 'Growers' },
+    { id: 'team', href: '/portfolio/team', icon: 'badge', label: 'Team' },
     { id: 'alerts', href: '/portfolio/alerts', icon: 'notifications', label: 'Alerts' },
     { id: 'reports', href: '/portfolio/reports', icon: 'assessment', label: 'Reports' },
 ]

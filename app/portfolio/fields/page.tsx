@@ -18,13 +18,14 @@ import dynamic from 'next/dynamic'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import {
     filterFields, sortFields, deriveFilterOptions, isFilterActive, debounce,
-    selectScreenState,
+    selectScreenState, deriveAssigneeChips, filterByAssignee,
     DEFAULT_FIELDS_FILTER, DEFAULT_FIELDS_SORT,
     type FieldsFilter, type FieldsSort,
 } from '@/lib/portfolio-utils'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { FieldsControls } from '@/components/portfolio/FieldsControls'
 import { FieldRowCard } from '@/components/portfolio/FieldRowCard'
+import { useActiveAssignments, useTeamMembers, memberName } from '@/hooks/useTeam'
 
 // MapLibre touches `window` at import time → client-only, no SSR.
 const PortfolioMap = dynamic(() => import('@/components/portfolio/PortfolioMap'), {
@@ -129,11 +130,26 @@ export default function PortfolioFieldsPage() {
 
     const clearAll = () => { debouncedSetSearch.cancel(); setSearchInput(''); setFilter(DEFAULT_FIELDS_FILTER) }
 
-    const priorities = data?.priorities ?? []
+    // Assignee filter (operational view: "show me my officer's fields").
+    // Composed at page level on top of the pure FieldsFilter dimensions because
+    // assignments come from a separate endpoint than the aggregate. Derivation
+    // and restriction live in portfolio-utils (pure, tested).
+    const [assignee, setAssignee] = useState<string>('') // '' = everyone
+    const { assignments } = useActiveAssignments()
+    const { members } = useTeamMembers()
+    const assigneeChips = useMemo(
+        () => deriveAssigneeChips(assignments, (userId) => {
+            const m = (members ?? []).find((mm) => mm.user_id === userId)
+            return m ? memberName(m) : null
+        }),
+        [assignments, members],
+    )
+
+    const priorities = useMemo(() => data?.priorities ?? [], [data])
     const options = useMemo(() => deriveFilterOptions(priorities), [priorities])
     const visible = useMemo(
-        () => sortFields(filterFields(priorities, filter), sort),
-        [priorities, filter, sort],
+        () => filterByAssignee(sortFields(filterFields(priorities, filter), sort), assignee, assignments),
+        [priorities, filter, sort, assignee, assignments],
     )
 
     const state = data ? selectScreenState(data.summary) : null
@@ -179,6 +195,31 @@ export default function PortfolioFieldsPage() {
                         onClearAll={clearAll}
                         anyActive={anyActive}
                     />
+
+                    {/* Assignee chips — only when the team actually uses assignment. */}
+                    {assigneeChips.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap px-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider mr-1" style={{ color: 'var(--ee-muted)' }}>
+                                Assignee
+                            </span>
+                            <button onClick={() => setAssignee('')}
+                                className="px-3 py-1 rounded-full text-xs font-bold transition-colors"
+                                style={assignee === ''
+                                    ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                    : { background: 'var(--ee-surface)', color: 'var(--ee-muted)', boxShadow: 'var(--shadow-neu)' }}>
+                                Everyone
+                            </button>
+                            {assigneeChips.map((chip) => (
+                                <button key={chip.userId} onClick={() => setAssignee(assignee === chip.userId ? '' : chip.userId)}
+                                    className="px-3 py-1 rounded-full text-xs font-bold transition-colors"
+                                    style={assignee === chip.userId
+                                        ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                        : { background: 'var(--ee-surface)', color: 'var(--ee-muted)', boxShadow: 'var(--shadow-neu)' }}>
+                                    {chip.name} · {chip.count}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between gap-3 px-1">
                         <p className="text-xs font-bold" style={{ color: 'var(--ee-muted)' }}>

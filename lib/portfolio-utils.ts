@@ -673,3 +673,54 @@ export function alertCounts(derived: DerivedAlerts): AlertCounts {
     const data = derived.awaiting.length + derived.stale.length
     return { health, data, total: health + data }
 }
+
+// ---------------------------------------------------------------------------
+// Assignee filter (institutional operations)
+// ---------------------------------------------------------------------------
+
+export interface AssigneeChip {
+    userId: string
+    name: string
+    count: number
+}
+
+/**
+ * Distinct assignees holding at least one active field assignment, with their
+ * field counts, sorted by name — drives the roster's Assignee chips. Pure so
+ * it's unit-testable and keeps ordering logic out of the page (the page-level
+ * source invariant bans ad-hoc sorts there).
+ */
+export function deriveAssigneeChips(
+    assignments: Array<{ field_id: string; assignee_user_id: string; assignee_name: string | null }> | undefined,
+    nameOf: (userId: string) => string | null,
+): AssigneeChip[] {
+    const byUser = new Map<string, AssigneeChip>()
+    for (const a of assignments ?? []) {
+        const prev = byUser.get(a.assignee_user_id)
+        if (prev) {
+            prev.count += 1
+        } else {
+            byUser.set(a.assignee_user_id, {
+                userId: a.assignee_user_id,
+                name: a.assignee_name || nameOf(a.assignee_user_id) || `User ${a.assignee_user_id.slice(0, 8)}`,
+                count: 1,
+            })
+        }
+    }
+    return [...byUser.values()].sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** Restrict rows to the given assignee's actively-assigned fields ('' = all). */
+export function filterByAssignee(
+    rows: PortfolioPriority[],
+    assigneeUserId: string,
+    assignments: Array<{ field_id: string; assignee_user_id: string }> | undefined,
+): PortfolioPriority[] {
+    if (!assigneeUserId) return rows
+    const mine = new Set(
+        (assignments ?? [])
+            .filter((a) => a.assignee_user_id === assigneeUserId)
+            .map((a) => a.field_id),
+    )
+    return rows.filter((p) => mine.has(p.field_id))
+}

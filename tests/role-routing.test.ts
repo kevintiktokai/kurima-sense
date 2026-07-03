@@ -107,14 +107,14 @@ test('only a CONFIRMED disallowed role triggers a cross-surface redirect', () =>
 // ---------------------------------------------------------------------------
 // 2. Portfolio navigation config
 // ---------------------------------------------------------------------------
-test('portfolio nav has the 5 tabs in order', () => {
+test('portfolio nav has the 6 tabs in order', () => {
     assert.deepEqual(
         PORTFOLIO_NAV_ITEMS.map((i) => i.id),
-        ['today', 'fields', 'growers', 'alerts', 'reports']
+        ['today', 'fields', 'growers', 'team', 'alerts', 'reports']
     )
     assert.deepEqual(
         PORTFOLIO_NAV_ITEMS.map((i) => i.href),
-        ['/portfolio/today', '/portfolio/fields', '/portfolio/growers', '/portfolio/alerts', '/portfolio/reports']
+        ['/portfolio/today', '/portfolio/fields', '/portfolio/growers', '/portfolio/team', '/portfolio/alerts', '/portfolio/reports']
     )
     for (const item of PORTFOLIO_NAV_ITEMS) {
         assert.ok(item.label && item.icon, 'each tab has a label and icon')
