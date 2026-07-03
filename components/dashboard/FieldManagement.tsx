@@ -69,6 +69,9 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [newFieldFertilizer, setNewFieldFertilizer] = useState("");
     const [availableVarieties, setAvailableVarieties] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    // Edit mode: null = creating a new field, otherwise the id of the field
+    // being edited. The creation modal is reused for both flows.
+    const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
 
     // Crops that are typically transplanted (not direct-seeded)
     const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Paprika', 'Green Pepper', 'Strawberries', 'Tea', 'Blueberries', 'Coffee', 'Tobacco', 'Covo', 'Rape', 'Mustard'];
@@ -92,29 +95,62 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
         setIsCreating(true);
     };
 
+    const resetFieldForm = () => {
+        setIsCreating(false);
+        setEditingFieldId(null);
+        setNewFieldName("");
+        setNewFieldDate("");
+        setNewFieldTransplantDate("");
+        setNewFieldVariety("");
+        setNewFieldFertilizer("");
+    };
+
+    // Open the (shared) modal pre-filled to edit an existing field.
+    const openEditModal = (field: FieldData) => {
+        setEditingFieldId(field.id);
+        setNewFieldName(field.name || "");
+        setNewFieldCrop((field.crop as string) || "Maize");
+        setNewFieldDate((field.plantingDate || field.planting_date || "").slice(0, 10));
+        setNewFieldTransplantDate("");
+        setNewFieldVariety(field.variety || "");
+        setNewFieldFertilizer(field.fertilizerHistory || "");
+        setNewFieldCoords([]);
+        setNewFieldArea(field.area || 0);
+        setIsCreating(true);
+    };
+
     const saveField = async () => {
         if (!newFieldName) return;
         setIsSaving(true);
-        const payload = {
-            name: newFieldName,
-            crop: newFieldCrop,
-            coordinates: newFieldCoords,
-            area: newFieldArea,
-            plantingDate: newFieldDate || undefined,
-            transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
-            isTransplanted: isTransplantedCrop,
-            variety: newFieldVariety,
-            fertilizerHistory: newFieldFertilizer
-        };
-        const resetForm = () => {
-            setIsCreating(false);
-            setNewFieldName("");
-            setNewFieldDate("");
-            setNewFieldTransplantDate("");
-            setNewFieldVariety("");
-            setNewFieldFertilizer("");
-        };
         try {
+            if (editingFieldId) {
+                // EDIT: partial metadata update via PATCH /fields/{id}. Geometry
+                // is not editable here (it belongs to the map draw flow).
+                await api.updateField(editingFieldId, {
+                    name: newFieldName,
+                    crop: newFieldCrop,
+                    variety: newFieldVariety,
+                    plantingDate: newFieldDate || undefined,
+                    transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
+                    isTransplanted: isTransplantedCrop,
+                    fertilizerHistory: newFieldFertilizer,
+                });
+                resetFieldForm();
+                await refreshFields();
+                return;
+            }
+
+            const payload = {
+                name: newFieldName,
+                crop: newFieldCrop,
+                coordinates: newFieldCoords,
+                area: newFieldArea,
+                plantingDate: newFieldDate || undefined,
+                transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
+                isTransplanted: isTransplantedCrop,
+                variety: newFieldVariety,
+                fertilizerHistory: newFieldFertilizer
+            };
             // Online create with LOUD errors. We previously routed failures into an
             // offline outbox, which silently swallowed real errors (and the
             // unreliable navigator.onLine sometimes diverted online saves) — so a
@@ -136,7 +172,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
             // Saved. Force a cache-bypassing refresh so the new field always shows
             // (a stale 'fields' cache entry must never hide it).
-            resetForm();
+            resetFieldForm();
             await refreshFields();
         } catch (e: any) {
             console.error("Save field failed:", e);
@@ -327,6 +363,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         showDeleteConfirm={showDeleteConfirm}
                                         deletingFieldId={deletingFieldId}
                                         onCardClick={handleFieldCardClick}
+                                        onEditClick={openEditModal}
                                         onDeleteClick={setShowDeleteConfirm}
                                         onDeleteConfirm={handleDeleteField}
                                         onDeleteCancel={() => setShowDeleteConfirm(null)}
@@ -405,6 +442,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                             showDeleteConfirm={showDeleteConfirm}
                                             deletingFieldId={deletingFieldId}
                                             onCardClick={handleFieldCardClick}
+                                        onEditClick={openEditModal}
                                             onDeleteClick={setShowDeleteConfirm}
                                             onDeleteConfirm={handleDeleteField}
                                             onDeleteCancel={() => setShowDeleteConfirm(null)}
@@ -475,18 +513,18 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                 className="text-2xl font-black"
                                 style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                             >
-                                New Field
+                                {editingFieldId ? 'Edit Field' : 'New Field'}
                             </h3>
                             <div
                                 className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                                 style={{ background: 'color-mix(in srgb, var(--ee-primary) 15%, transparent)' }}
                             >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-text)' }}>crop_free</span>
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ee-text)' }}>{editingFieldId ? 'edit' : 'crop_free'}</span>
                                 <span
                                     className="text-xs font-bold"
                                     style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                                 >
-                                    {newFieldArea} ha
+                                    {(newFieldArea || 0).toFixed(1)} ha
                                 </span>
                             </div>
                         </div>
@@ -634,6 +672,11 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                         onChange={e => setNewFieldVariety(e.target.value)}
                                     >
                                         <option value="">Select variety...</option>
+                                        {/* Preserve an existing (e.g. custom) variety when editing a
+                                            field whose variety isn't in the catalogue. */}
+                                        {newFieldVariety && !availableVarieties.some(v => v.variety_name === newFieldVariety) && newFieldVariety !== 'Other' && (
+                                            <option value={newFieldVariety}>{newFieldVariety}</option>
+                                        )}
                                         {availableVarieties.map(v => (
                                             <option key={v.variety_name} value={v.variety_name}>
                                                 {v.variety_name} {v.breeder ? `(${v.breeder})` : ''}
@@ -686,7 +729,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                             {/* Actions */}
                             <div className="flex gap-3 pt-2">
                                 <button
-                                    onClick={() => setIsCreating(false)}
+                                    onClick={resetFieldForm}
                                     className="flex-1 py-3.5 rounded-[16px] font-bold transition-colors"
                                     style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
                                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--ee-bg)')}
@@ -710,7 +753,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                             <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                                             Saving...
                                         </span>
-                                    ) : 'Save Field'}
+                                    ) : (editingFieldId ? 'Save Changes' : 'Save Field')}
                                 </button>
                             </div>
                         </div>
@@ -728,6 +771,7 @@ interface FieldCardProps {
     showDeleteConfirm: string | null;
     deletingFieldId: string | null;
     onCardClick: (field: FieldData) => void;
+    onEditClick: (field: FieldData) => void;
     onDeleteClick: (id: string) => void;
     onDeleteConfirm: (id: string, name: string) => void;
     onDeleteCancel: () => void;
@@ -740,6 +784,7 @@ const FieldCard: React.FC<FieldCardProps> = ({
     showDeleteConfirm,
     deletingFieldId,
     onCardClick,
+    onEditClick,
     onDeleteClick,
     onDeleteConfirm,
     onDeleteCancel,
@@ -825,6 +870,13 @@ const FieldCard: React.FC<FieldCardProps> = ({
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: health.color }} />
                         {health.label}
                     </span>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onEditClick(field); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
+                        title="Edit field"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'rgba(255,255,255,0.55)' }}>edit</span>
+                    </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onDeleteClick(field.id); }}
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
