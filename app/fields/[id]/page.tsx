@@ -11,6 +11,7 @@ import { fieldsToGeoJSON, fieldsToKML, downloadFile } from '@/lib/geo';
 import { useFieldState } from '@/hooks/useFieldState';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts';
+import { SoilProfileCard } from '@/components/field/SoilProfileCard';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -528,6 +529,9 @@ export default function FieldInsightsPage() {
                 <div className="lg:col-span-12 space-y-5">
                     <SeasonAccumulationCharts fieldId={fieldId} surface="consumer" />
                 </div>
+
+                {/* Soil Intelligence (additive; self-contained fetch, silent if absent) */}
+                <SoilProfileCard fieldId={fieldId} />
 
                 {/* Capture actions (additive; offline-capable capture — Sprint 3) */}
                 <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

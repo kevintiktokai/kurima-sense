@@ -6,6 +6,30 @@ import { apiCache, getCached, setCache, invalidateCache, getAuthHeaders, CACHE_T
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// ───── Soil Intelligence types ─────
+export interface SoilAttribute {
+    key: string;
+    value: string | number | null;
+    unit?: string | null;
+    source: string;
+    confidence?: number | null;
+    acquired_at?: string;
+    refresh_policy?: string;
+    detail?: string | null;
+    derived?: boolean;
+}
+
+export interface SoilProfileResponse {
+    available: boolean;
+    field_id?: string;
+    lat?: number | null;
+    lon?: number | null;
+    built_at?: string;
+    provider_status?: Record<string, string>;
+    attributes: Record<string, SoilAttribute>;
+    summary?: string;
+}
+
 export const api = {
     async getUser(): Promise<UserProfile> {
         try {
@@ -212,6 +236,35 @@ export const api = {
         } catch (e) {
             console.error("Fetch chat history error", e);
             return [];
+        }
+    },
+
+    // ───── Soil Intelligence ─────
+    // Returns the persisted multi-provider soil/terrain profile for a field.
+    // Built once at field creation and reused locally, so this is cheap; the
+    // backend lazily builds it on first access if missing.
+    async getFieldSoil(fieldId: string): Promise<SoilProfileResponse | null> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/soil`, { headers });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            console.error("Fetch soil profile error", e);
+            return null;
+        }
+    },
+    async refreshFieldSoil(fieldId: string): Promise<SoilProfileResponse | null> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/soil/refresh`, {
+                method: "POST", headers,
+            });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            console.error("Refresh soil profile error", e);
+            return null;
         }
     },
 
