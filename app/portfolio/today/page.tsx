@@ -12,6 +12,7 @@
  * error, and empty-tenant states.
  */
 
+import Link from 'next/link'
 import { usePortfolioAggregate } from '@/hooks/usePortfolioAggregate'
 import {
     criticalFieldCount,
@@ -22,6 +23,62 @@ import { scoreToLabel } from '@/lib/field-state-types'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PortfolioPulse } from '@/components/portfolio/PortfolioPulse'
 import { PriorityList } from '@/components/portfolio/PriorityList'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { useTeamActivity, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_ICONS } from '@/hooks/useTeam'
+
+// Time-of-day greeting, mirroring the consumer dashboard's welcome section so
+// both surfaces feel like one product.
+function greetingFor(hour: number): string {
+    if (hour < 12) return 'Good morning'
+    if (hour < 17) return 'Good afternoon'
+    return 'Good evening'
+}
+
+function firstNameOf(user: { email?: string; user_metadata?: Record<string, unknown> } | null): string | null {
+    const metaName = user?.user_metadata?.full_name
+    if (typeof metaName === 'string' && metaName.trim()) return metaName.trim().split(' ')[0]
+    if (user?.email) return user.email.split('@')[0]
+    return null
+}
+
+/** Compact team-activity feed: the org's professional pulse, right on Today. */
+function TeamActivityCard() {
+    const { activity } = useTeamActivity()
+    if (!activity || activity.length === 0) return null
+    return (
+        <div className="p-5 lg:p-6"
+            style={{ background: 'var(--ee-surface)', borderRadius: '20px', boxShadow: 'var(--shadow-neu)' }}>
+            <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-black" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                    Team activity
+                </h2>
+                <Link href="/portfolio/team" className="text-xs font-bold rounded-full" style={{ color: 'var(--ee-primary)' }}>
+                    View team
+                </Link>
+            </div>
+            <div className="space-y-3">
+                {activity.slice(0, 5).map((a) => (
+                    <Link key={a.id} href={`/portfolio/fields/${a.field_id}`}
+                        className="flex items-start gap-3 group">
+                        <span className="material-symbols-outlined flex-shrink-0 mt-0.5"
+                            style={{ fontSize: 18, color: 'var(--ee-primary)' }}>
+                            {ACTIVITY_TYPE_ICONS[a.activity_type] ?? 'more_horiz'}
+                        </span>
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold leading-snug group-hover:underline truncate" style={{ color: 'var(--ee-text)' }}>
+                                {a.title}
+                            </p>
+                            <p className="text-[11px] font-bold" style={{ color: 'var(--ee-muted)' }}>
+                                {[ACTIVITY_TYPE_LABELS[a.activity_type], a.field_name, a.author_name]
+                                    .filter(Boolean).join(' · ')}
+                            </p>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    )
+}
 
 // ─── Loading / error / empty building blocks ────────────────────────────────
 
@@ -153,6 +210,8 @@ function AwaitingSyncCard({ count }: { count: number }) {
 
 export default function PortfolioTodayPage() {
     const { data, isLoading, error, refresh } = usePortfolioAggregate()
+    const { user } = useAuth()
+    const firstName = firstNameOf(user)
 
     const state = data ? selectScreenState(data.summary) : null
     const criticalCount = data
@@ -164,13 +223,13 @@ export default function PortfolioTodayPage() {
 
     return (
         <PageContainer variant="reading">
-            {/* Header */}
+            {/* Header — personalised greeting (same voice as the consumer app) */}
             <div className="mb-6 lg:mb-8">
                 <h1
                     className="text-3xl lg:text-4xl font-black tracking-tight"
                     style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
                 >
-                    Today
+                    {greetingFor(new Date().getHours())}{firstName ? `, ${firstName}` : ''}.
                 </h1>
                 {data ? (
                     <>
@@ -222,6 +281,9 @@ export default function PortfolioTodayPage() {
                         </h2>
                         <PriorityList priorities={data.priorities} expandAwaiting={state === 'awaiting'} from={{ label: 'Today', href: '/portfolio/today' }} />
                     </div>
+
+                    {/* Team activity — the org's professional pulse */}
+                    <TeamActivityCard />
 
                     {/* Footer note */}
                     <p className="text-xs pt-1 pb-4 text-center" style={{ color: 'var(--ee-muted)' }}>

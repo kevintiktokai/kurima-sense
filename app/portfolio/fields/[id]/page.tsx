@@ -31,6 +31,11 @@ import { parseFrom, routeForGrower, withFrom, BACK_DEFAULTS, type FromContext } 
 import { PageContainer } from '@/components/layout/PageContainer'
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts'
 import { InputVerificationCard } from '@/components/portfolio/InputVerificationCard'
+import { SoilProfileCard } from '@/components/field/SoilProfileCard'
+import { YieldProjectionCard } from '@/components/field/YieldProjectionCard'
+import { FieldActivityTimeline } from '@/components/field/FieldActivityTimeline'
+import { FieldManageCard } from '@/components/portfolio/FieldManageCard'
+import { refreshGrowerData } from '@/hooks/useGrowers'
 
 function BackLink({ back }: { back: FromContext }) {
     return (
@@ -286,9 +291,27 @@ export default function InstitutionalFieldDetailPage() {
 
                 {/* Input verification — did logged inputs produce an NDVI response? */}
                 <InputVerificationCard fieldId={fieldId} />
+
+                {/* Professional activity record — visits, recommendations, observations */}
+                <FieldActivityTimeline fieldId={fieldId} />
+
+                {/* Soil intelligence — persisted multi-provider soil/terrain profile */}
+                <SoilProfileCard fieldId={fieldId} />
               </div>
 
               <div className="space-y-5 mt-5 lg:mt-0">
+                {/* Manage — assignment, edit, safeguarded delete */}
+                <FieldManageCard
+                    fieldId={fieldId}
+                    fieldName={fieldName}
+                    crop={fs.field?.crop_type}
+                    variety={fs.field?.variety_code}
+                    plantingDate={fs.season?.planted_date}
+                    onChanged={() => { refresh(); refreshGrowerData() }}
+                />
+
+                {/* Yield projection — same engine the consumer app uses */}
+                <YieldProjectionCard fieldId={fieldId} cropLabel={cropLabel} />
                 {/* Concerns + recommended action */}
                 {!awaiting && (ks.primary_driver || ks.recommended_action || fs.alerts.length > 0) && (
                     <div className="p-6 lg:p-8"

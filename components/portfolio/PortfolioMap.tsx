@@ -277,8 +277,19 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
 
     return (
         <div className="relative w-full h-full min-h-[420px] rounded-[20px] overflow-hidden" style={{ boxShadow: 'var(--shadow-neu)' }}>
-            {/* Plain background so polygons remain visible if imagery never loads. */}
-            <div ref={containerRef} className="absolute inset-0" style={{ background: 'var(--ee-bg)' }} />
+            {/* Plain background so polygons remain visible if imagery never loads.
+                Position/size are INLINE, not Tailwind classes: MapLibre stamps its
+                own `maplibregl-map` class on this div, and maplibre-gl.css declares
+                `.maplibregl-map { position: relative }` at the same specificity as
+                Tailwind's `.absolute`. Whichever stylesheet loads later wins, and
+                when MapLibre's does, the div loses `absolute`, collapses to 0px
+                height, and the whole map renders invisibly (the July 2026
+                "institutional map is blank" bug). Inline styles cannot lose that
+                fight. */}
+            <div
+                ref={containerRef}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: 'var(--ee-bg)' }}
+            />
 
             {/* Fatal-only notice: the map couldn't start (WebGL). Imagery failures
                 are non-fatal and never reach here — the map stays mounted. */}

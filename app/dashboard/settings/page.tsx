@@ -5,6 +5,67 @@ import { useUserProfile } from '@/components/providers/UserProfileProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { requestInstallPrompt } from '@/components/InstallPrompt'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { acceptInvite } from '@/hooks/useTeam'
+
+function JoinOrganisationCard() {
+    const [code, setCode] = useState('')
+    const [pending, setPending] = useState(false)
+    const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+
+    const redeem = async () => {
+        if (!code.trim()) return
+        setPending(true)
+        setResult(null)
+        try {
+            await acceptInvite(code.trim())
+            setResult({ ok: true, text: "You've joined the organisation! Taking you to your team workspace…" })
+            // Role changed server-side; a hard navigation refetches /me/role and
+            // RoleGuard routes the now-institutional user into the portfolio.
+            setTimeout(() => { window.location.href = '/portfolio/today' }, 1200)
+        } catch (e) {
+            setResult({ ok: false, text: e instanceof Error ? e.message : 'Invalid invite code' })
+            setPending(false)
+        }
+    }
+
+    return (
+        <div className="p-4 sm:p-6 rounded-[16px]" style={{ background: 'var(--ee-bg)' }}>
+            <p className="font-bold mb-1" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
+                <span className="material-symbols-outlined text-base mr-2 align-middle" style={{ color: 'var(--ee-primary)' }}>badge</span>
+                Join an organisation
+            </p>
+            <p className="text-sm mb-3" style={{ color: 'var(--ee-muted)' }}>
+                Been given a team invite code? Enter it here to join your organisation&apos;s workspace.
+            </p>
+            <div className="flex gap-2">
+                <input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. 4F7A2C91"
+                    maxLength={16}
+                    className="flex-1 min-w-0 px-4 py-3 rounded-[14px] text-sm font-bold tracking-widest"
+                    style={{
+                        background: 'var(--ee-surface)', color: 'var(--ee-text)',
+                        fontFamily: 'var(--font-body)', boxShadow: 'var(--shadow-neu-inset)', border: 'none',
+                    }}
+                />
+                <button
+                    onClick={redeem}
+                    disabled={pending || !code.trim()}
+                    className="px-5 py-3 rounded-[14px] font-bold text-sm disabled:opacity-50 flex-shrink-0"
+                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}
+                >
+                    {pending ? 'Joining…' : 'Join'}
+                </button>
+            </div>
+            {result && (
+                <p className="text-sm font-bold mt-2" style={{ color: result.ok ? 'var(--ee-primary)' : '#dc2626' }}>
+                    {result.text}
+                </p>
+            )}
+        </div>
+    )
+}
 
 export default function SettingsPage() {
     const { profile, loading, updateProfile } = useUserProfile()
@@ -313,6 +374,11 @@ export default function SettingsPage() {
                         </button>
                     </div>
                 </div>
+
+                {/* Join an organisation — redeem a team invite code. On success
+                    the backend upgrades the account to institutional and the
+                    next role fetch routes the user into /portfolio. */}
+                <JoinOrganisationCard />
 
                 {/* Action Buttons */}
                 <div className="space-y-4 pt-4">
