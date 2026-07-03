@@ -385,7 +385,12 @@ export const api = {
             const res = await fetch(`${API_BASE_URL}/crops/${encodeURIComponent(cropName)}/varieties`, { headers });
             if (!res.ok) return [];
             const data = await res.json();
-            setCache(cacheKey, data, CACHE_TTL.VARIETIES);
+            // Only cache a non-empty catalogue. Caching an empty result for the
+            // 24h VARIETIES TTL would keep the variety picker hidden long after
+            // the backend catalogue is populated (it self-seeds on boot).
+            if (Array.isArray(data) && data.length > 0) {
+                setCache(cacheKey, data, CACHE_TTL.VARIETIES);
+            }
             return data;
         } catch (e) {
             console.error("Fetch varieties error", e);
@@ -670,6 +675,40 @@ export const api = {
             return await res.json();
         } catch (e) {
             console.error("Delete field error", e);
+            throw e;
+        }
+    },
+
+    /**
+     * Edit a field's agronomic metadata after creation (Phase 4 — field
+     * management). Partial update: only supplied keys change. Accepts any of
+     * name, crop, variety, plantingDate, transplantDate, fertilizerHistory,
+     * isTransplanted. Clears the fields cache so the edit shows immediately.
+     */
+    async updateField(fieldId: string, updates: {
+        name?: string;
+        crop?: string;
+        variety?: string;
+        plantingDate?: string;
+        transplantDate?: string;
+        fertilizerHistory?: string;
+        isTransplanted?: boolean;
+    }): Promise<{ status: string; field: any }> {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify(updates),
+            });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ detail: res.statusText }));
+                throw new Error(errorData.detail || `Failed to update field (${res.status})`);
+            }
+            apiCache.delete('fields');
+            return await res.json();
+        } catch (e) {
+            console.error("Update field error", e);
             throw e;
         }
     },

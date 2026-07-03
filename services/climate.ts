@@ -37,22 +37,53 @@ function buildQueryParams(options: Record<string, any>): string {
     return queryString ? `?${queryString}` : '';
 }
 
-async function cachedGet<T>(path: string, options: Record<string, any>, cacheKeyPrefix: string, ttlMs: number): Promise<T | null> {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Resilient cached GET for climate data.
+ *
+ * Retries transient failures (network error, backend cold-start, or a backend
+ * soft-`{available:false}` payload — which is what the API now returns when
+ * Open-Meteo is momentarily rate-limiting the server) with exponential backoff,
+ * so the Climate page self-heals without the user hitting "Retry". Soft
+ * unavailable payloads are NOT cached, so the next attempt can fetch live data.
+ */
+async function cachedGet<T>(
+    path: string,
+    options: Record<string, any>,
+    cacheKeyPrefix: string,
+    ttlMs: number,
+    retries = 2,
+): Promise<T | null> {
     const cacheKey = `${cacheKeyPrefix}|${buildKey(options)}`;
     const cached = getCached<T>(cacheKey);
     if (cached) return cached;
 
-    try {
-        const headers = await getAuthHeaders();
-        const res = await fetch(`${API_BASE_URL}${path}${buildQueryParams(options)}`, { headers });
-        if (!res.ok) throw new Error(`Failed to fetch ${path}`);
-        const data = await res.json() as T;
-        setCache(cacheKey, data, ttlMs);
-        return data;
-    } catch (e) {
-        console.error(`[Climate] ${path} error:`, e);
-        return null;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}${path}${buildQueryParams(options)}`, { headers });
+            if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+            const data = await res.json() as T & { available?: boolean };
+
+            // Backend signalled a transient outage — retry rather than cache it.
+            if (data && data.available === false && attempt < retries) {
+                await sleep(1000 * Math.pow(2, attempt));
+                continue;
+            }
+            if (!data || data.available === false) return data as T; // final: hand back so UI shows its unavailable state
+            setCache(cacheKey, data, ttlMs);
+            return data as T;
+        } catch (e) {
+            if (attempt < retries) {
+                await sleep(1000 * Math.pow(2, attempt)); // 1s, 2s
+                continue;
+            }
+            console.error(`[Climate] ${path} error after ${retries + 1} attempts:`, e);
+            return null;
+        }
     }
+    return null;
 }
 
 export const climateApi = {

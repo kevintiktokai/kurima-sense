@@ -18,7 +18,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 22 (LTS): has native WebSocket, which @supabase/realtime-js
+          # requires at import time. On Node 20 (no native WebSocket) the test
+          # files that transitively import the Supabase client throw at load
+          # ("Node.js 20 detected without native WebSocket support"). Node 20 is
+          # also being deprecated on GitHub runners.
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: Typecheck
