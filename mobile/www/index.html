@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>KurimaSense</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #F4F1EA; color: #1E2B20; font-family: system-ui, sans-serif; text-align: center;
+    }
+    @media (prefers-color-scheme: dark) { body { background: #141A15; color: #EDE9DF; } }
+    .wrap { padding: 32px; max-width: 320px; }
+    .logo { font-size: 40px; margin-bottom: 12px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    p { font-size: 14px; opacity: 0.7; line-height: 1.5; margin: 0 0 20px; }
+    button {
+      background: #2F6B3C; color: #fff; border: 0; border-radius: 12px;
+      padding: 12px 24px; font-size: 14px; font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cold-start bootstrap: shown only when the app has never loaded and the
+       device is offline. After the first online launch, the service worker
+       serves the KurimaSense shell offline and this page is not seen. -->
+  <div class="wrap">
+    <div class="logo">🌱</div>
+    <h1>KurimaSense</h1>
+    <p>Connect to the internet once to set up the app. After that, your planner and field data work offline.</p>
+    <button onclick="window.location.reload()">Try again</button>
+  </div>
+</body>
+</html>

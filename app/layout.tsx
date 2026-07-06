@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 import { OutboxSyncProvider } from "@/components/offline/OutboxSyncProvider"
+import { NativeBridge } from "@/components/native/NativeBridge"
 
 // Editorial serif for headlines (field-journal gravitas) + precise grotesque
 // for body/UI (institutional fintech). Avoids Inter/Roboto defaults.
@@ -134,6 +135,7 @@ export default function RootLayout({
             {children}
             <InstallPrompt />
             <OutboxSyncProvider />
+            <NativeBridge />
           </AuthProvider>
         </ThemeProvider>
       </body>
