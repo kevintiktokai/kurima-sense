@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import InstallButton from '@/components/InstallButton';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 const Header: React.FC = () => {
     const pathname = usePathname();
@@ -60,19 +61,8 @@ const Header: React.FC = () => {
 
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                 <InstallButton />
-                {/* Neumorphic circular button — notification */}
-                <button
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-200 active:shadow-[var(--shadow-neu-inset)]"
-                    style={{
-                        backgroundColor: 'var(--ee-bg)',
-                        boxShadow: 'var(--shadow-neu)',
-                    }}
-                >
-                    <span className="relative">
-                        <span className="material-symbols-outlined" style={{ color: 'var(--ee-text)', fontSize: '20px' }}>notifications</span>
-                        <span className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: 'var(--ee-sun)' }}></span>
-                    </span>
-                </button>
+                {/* Live notification center (centralized notification service) */}
+                <NotificationBell />
                 {/* Neumorphic circular button — settings */}
                 <Link href="/dashboard/settings">
                     <button

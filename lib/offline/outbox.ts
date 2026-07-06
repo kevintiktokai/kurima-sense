@@ -41,7 +41,7 @@ async function notify(): Promise<void> {
 export async function httpSend(
     endpoint: string,
     body: unknown,
-    method: 'POST' = 'POST',
+    method: 'POST' | 'PATCH' = 'POST',
 ): Promise<SendResult> {
     try {
         const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
@@ -73,13 +73,14 @@ export async function enqueue(args: {
     endpoint: string
     body: unknown
     label: string
+    method?: 'POST' | 'PATCH'
 }): Promise<OutboxItem> {
     const now = Date.now()
     const item: OutboxItem = {
         id: crypto.randomUUID(),
         kind: args.kind,
         endpoint: args.endpoint,
-        method: 'POST',
+        method: args.method ?? 'POST',
         body: args.body,
         label: args.label,
         createdAt: now,

@@ -15,6 +15,7 @@ import type {
 import { getWeatherIcon, getDayName, formatTime } from '@/lib/climate-types';
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ComposedChart, Line } from "recharts";
 import { PageContainer } from '@/components/layout/PageContainer';
+import IrrigationOutlook from '@/components/irrigation/IrrigationOutlook';
 
 export default function WeatherPage() {
     const { fields } = useDashboardData();
@@ -157,6 +158,15 @@ export default function WeatherPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Irrigation decision support — combines this forecast with soil +
+                crop stage per field (AI irrigation engine). Placed above the raw
+                weather so the page leads with decisions, not just data. */}
+            {fields.length > 0 && (
+                <div className="col-span-12">
+                    <IrrigationOutlook />
                 </div>
             )}
 

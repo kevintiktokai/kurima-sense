@@ -34,3 +34,15 @@ export function submitTask(fieldLabel: string, entry: TaskEntry): Promise<Submit
         body: entry,
     })
 }
+
+/** Mark a planner task complete — offline-safe (PATCH replays via the outbox),
+ *  so activities recorded in the field without signal sync automatically. */
+export function submitTaskCompletion(taskId: string, taskTitle: string): Promise<SubmitResult> {
+    return submitCapture({
+        kind: 'task',
+        endpoint: `/ai/tasks/${taskId}`,
+        method: 'PATCH',
+        label: `Completed — ${taskTitle}`,
+        body: { completed: true },
+    })
+}

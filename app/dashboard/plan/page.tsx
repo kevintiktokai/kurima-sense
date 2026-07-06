@@ -8,6 +8,7 @@ import { FieldData } from '@/components/dashboard/types';
 import { PageContainer } from '@/components/layout/PageContainer';
 import Link from 'next/link';
 import { routeForField, withFrom } from '@/lib/nav-links';
+import IrrigationAdvisorCard from '@/components/irrigation/IrrigationAdvisorCard';
 
 export default function PlanPage() {
     const { fields, loading } = useDashboardData();
@@ -161,6 +162,15 @@ export default function PlanPage() {
                 <CropPlan
                     selectedField={selectedField}
                     onActionsAdded={handleActionsAdded}
+                />
+            </div>
+
+            {/* AI irrigation recommendation for the selected field — the
+                irrigation engine's actionable planner integration. */}
+            <div className="mb-5 sm:mb-8">
+                <IrrigationAdvisorCard
+                    fieldId={selectedField?.id}
+                    fieldName={selectedField?.name}
                 />
             </div>
 

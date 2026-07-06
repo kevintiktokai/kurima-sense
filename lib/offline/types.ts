@@ -23,7 +23,8 @@ export interface OutboxItem {
     kind: CaptureKind
     /** API path relative to NEXT_PUBLIC_API_URL, e.g. "/fields/<id>/harvest". */
     endpoint: string
-    method: 'POST'
+    /** POST for new captures; PATCH for offline mutations (e.g. task completion). */
+    method: 'POST' | 'PATCH'
     body: unknown
     /** Short human label for the pending-items UI, e.g. "Harvest — North Block". */
     label: string
