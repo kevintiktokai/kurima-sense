@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useUserProfile } from '@/components/providers/UserProfileProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { requestInstallPrompt } from '@/components/InstallPrompt'
@@ -374,6 +375,25 @@ export default function SettingsPage() {
                         </button>
                     </div>
                 </div>
+
+                {/* Notification preferences — channels, categories, quiet hours
+                    (centralized notification service). */}
+                <Link
+                    href="/dashboard/settings/notifications"
+                    className="flex items-center justify-between p-4 sm:p-6 rounded-[16px] transition-all hover:opacity-90"
+                    style={{ background: 'var(--ee-bg)' }}
+                >
+                    <div>
+                        <p className="font-bold mb-1" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
+                            <span className="material-symbols-outlined text-base mr-2 align-middle" style={{ color: 'var(--ee-primary)' }}>notifications_active</span>
+                            Notification preferences
+                        </p>
+                        <p className="text-sm" style={{ color: 'var(--ee-muted)' }}>
+                            Channels, categories, quiet hours and farm summaries.
+                        </p>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-muted)' }}>chevron_right</span>
+                </Link>
 
                 {/* Join an organisation — redeem a team invite code. On success
                     the backend upgrades the account to institutional and the
