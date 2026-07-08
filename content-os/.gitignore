@@ -1,9 +1,0 @@
-node_modules/
-outputs/
-engine/tokens.css
-.env
-.env.*
-!.env.example
-
-# baked gpt-image-1 output is large + regenerable; scenes.json IS tracked
-assets/generated/*.png
