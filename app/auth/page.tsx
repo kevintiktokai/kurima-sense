@@ -81,14 +81,16 @@ export default function AuthPage() {
                 // complete, then the role-appropriate app shell.
                 router.push(await resolvePostAuthDestination(data.user.id))
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : ''
+            const status = (err as { status?: number } | null)?.status
             // Handle rate limiting error specifically
-            if (err.message?.includes('429') || err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
+            if (message.includes('429') || status === 429 || message.toLowerCase().includes('rate limit')) {
                 setError('Too many attempts. Please wait a moment before trying again.')
-            } else if (err.message?.includes('already registered')) {
+            } else if (message.includes('already registered')) {
                 setError('This email is already registered. Try signing in instead.')
             } else {
-                setError(err.message || 'An error occurred. Please try again.')
+                setError(message || 'An error occurred. Please try again.')
             }
         } finally {
             setLoading(false)
@@ -115,8 +117,8 @@ export default function AuthPage() {
                 }
             })
             if (error) throw error
-        } catch (err: any) {
-            setError(err.message)
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Could not start Google sign-in. Please try again.')
             setLoading(false)
         }
     }
@@ -288,7 +290,7 @@ export default function AuthPage() {
                                 </span>
                             ) : (
                                 <span>
-                                    Don't have an account? <span className="underline decoration-2 decoration-[#D7F26C] underline-offset-4 font-bold">Sign up</span>
+                                    Don&apos;t have an account? <span className="underline decoration-2 decoration-[#D7F26C] underline-offset-4 font-bold">Sign up</span>
                                 </span>
                             )}
                         </button>
