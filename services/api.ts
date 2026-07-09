@@ -4,7 +4,7 @@ import { FieldData, UserProfile } from '@/components/dashboard/types';
 import { supabase } from '@/lib/supabase';
 import { apiCache, getCached, setCache, invalidateCache, getAuthHeaders, CACHE_TTL } from '@/lib/api-cache';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/lib/api-base';
 
 // ───── Soil Intelligence types ─────
 export interface SoilAttribute {

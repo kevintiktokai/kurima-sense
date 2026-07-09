@@ -12,7 +12,7 @@ import type {
     NotificationPreferences,
 } from '@/lib/notification-utils'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 const INBOX_KEY = 'notifications:inbox'
 const PREFS_KEY = 'notifications:preferences'

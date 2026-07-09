@@ -11,7 +11,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import type { FieldState } from '@/lib/field-state-types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 export function fieldStateKey(fieldId: string | null | undefined): string | null {
     return fieldId ? `field-state:${fieldId}` : null

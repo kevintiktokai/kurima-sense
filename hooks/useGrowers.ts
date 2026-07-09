@@ -18,7 +18,7 @@ import type { Grower, GrowerPayload } from '@/lib/portfolio-utils'
 
 export type { Grower, GrowerWithStats, GrowerPayload } from '@/lib/portfolio-utils'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 const GROWERS_URL = `${API_BASE_URL}/tenants/me/growers`
 const AGGREGATE_URL = `${API_BASE_URL}/portfolio/aggregate`
 

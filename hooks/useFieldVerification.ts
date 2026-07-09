@@ -11,7 +11,7 @@ import useSWR from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { fetchFieldVerification, type FieldVerification } from '@/lib/verification-utils'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 export interface UseFieldVerificationResult {
     data: FieldVerification | undefined

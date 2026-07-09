@@ -9,7 +9,7 @@ import { createIdbStore } from './store'
 import { syncOutbox, type SendResult } from './sync'
 import type { CaptureKind, OutboxItem, OutboxStore } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+import { API_BASE_URL as API_URL } from '@/lib/api-base';
 
 let _store: OutboxStore | null = null
 function store(): OutboxStore {

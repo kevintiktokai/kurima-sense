@@ -15,7 +15,7 @@ import type {
 } from '@/lib/climate-types';
 import { getAuthHeaders, getCached, setCache, CACHE_TTL } from '@/lib/api-cache';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/lib/api-base';
 
 // Build query params from options + a stable cache-key suffix
 function buildKey(options: Record<string, any>): string {
