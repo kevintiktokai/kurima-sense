@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FullTermsDisclaimer } from '@/components/legal/DisclaimerBanner'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { isExistingUserSignUp, resolvePostAuthDestination } from '@/lib/auth-routing'
+
+type Mode = 'signin' | 'signup' | 'forgot'
 
 export default function AuthPage() {
-    const [isSignUp, setIsSignUp] = useState(false)
+    const [mode, setMode] = useState<Mode>('signin')
+    const isSignUp = mode === 'signup'
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -17,6 +21,12 @@ export default function AuthPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const router = useRouter()
     const isSubmitting = useRef(false)
+
+    // Surface a failure message forwarded by /auth/callback (?error=...).
+    useEffect(() => {
+        const forwarded = new URLSearchParams(window.location.search).get('error')
+        if (forwarded) setError(forwarded)
+    }, [])
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -30,21 +40,34 @@ export default function AuthPage() {
         setSuccessMessage(null)
 
         try {
-            if (isSignUp) {
+            if (mode === 'forgot') {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/auth/reset`,
+                })
+                if (error) throw error
+                setSuccessMessage('If that email has an account, a reset link is on its way. Open it in this browser.')
+            } else if (isSignUp) {
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
-                        emailRedirectTo: `${window.location.origin}/onboarding`
+                        // Land on the callback so the confirmation link gets a real
+                        // exchange + error handling instead of a blind /onboarding hop.
+                        emailRedirectTo: `${window.location.origin}/auth/callback`
                     }
                 })
                 if (error) throw error
 
-                // Check if email confirmation is required
-                if (data.user && !data.session) {
+                if (isExistingUserSignUp(data)) {
+                    // Supabase "succeeds" for an existing confirmed email
+                    // (anti-enumeration) — telling this user to check their inbox
+                    // strands them waiting for an email that never comes.
+                    setError('This email is already registered. Try signing in — or use "Forgot password?" below.')
+                    setMode('signin')
+                } else if (data.user && !data.session) {
                     setSuccessMessage('Check your email for the confirmation link!')
                 } else if (data.session) {
-                    // Auto-confirmed, redirect to onboarding
+                    // Auto-confirmed (confirmations disabled) — straight to onboarding.
                     router.push('/onboarding')
                 }
             } else {
@@ -54,28 +77,9 @@ export default function AuthPage() {
                 })
                 if (error) throw error
 
-                // Check if user has completed onboarding
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('full_name')
-                    .eq('id', data.user.id)
-                    .single()
-
-                if (!profile?.full_name) {
-                    router.push('/onboarding')
-                } else {
-                    // Route by role from the canonical backend endpoint. Institutional
-                    // users go to the portfolio shell; consumer/admin (and any fetch
-                    // failure → null) fall back to the dashboard so we never lock a
-                    // user out if the role lookup fails.
-                    const { fetchUserRoleOnce } = await import('@/hooks/useUserRole')
-                    const roleCtx = await fetchUserRoleOnce()
-                    if (roleCtx?.role === 'institutional') {
-                        router.push('/portfolio/today')
-                    } else {
-                        router.push('/dashboard')
-                    }
-                }
+                // Shared post-auth routing: onboarding until the profile is
+                // complete, then the role-appropriate app shell.
+                router.push(await resolvePostAuthDestination(data.user.id))
             }
         } catch (err: any) {
             // Handle rate limiting error specifically
@@ -104,7 +108,10 @@ export default function AuthPage() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/onboarding`
+                    // The callback exchanges the code and routes onboarded users to
+                    // their app home — previously every returning Google user was
+                    // dropped back into /onboarding.
+                    redirectTo: `${window.location.origin}/auth/callback`
                 }
             })
             if (error) throw error
@@ -143,7 +150,7 @@ export default function AuthPage() {
                             KurimaSense
                         </h1>
                         <p className="text-[#2D3A26]/70 text-lg">
-                            {isSignUp ? 'Create your account' : 'Welcome back'}
+                            {mode === 'forgot' ? 'Reset your password' : isSignUp ? 'Create your account' : 'Welcome back'}
                         </p>
                     </div>
 
@@ -165,6 +172,7 @@ export default function AuthPage() {
                     )}
 
                     {/* Google OAuth Button */}
+                    {mode !== 'forgot' && (
                     <button
                         onClick={handleGoogleAuth}
                         disabled={loading}
@@ -190,8 +198,10 @@ export default function AuthPage() {
                         </svg>
                         <span className="group-hover:text-[#2D3A26] transition-colors">Continue with Google</span>
                     </button>
+                    )}
 
                     {/* Divider */}
+                    {mode !== 'forgot' && (
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-[#2D3A26]/10"></div>
@@ -202,6 +212,7 @@ export default function AuthPage() {
                             </span>
                         </div>
                     </div>
+                    )}
 
                     {/* Email/Password Form */}
                     <form onSubmit={handleEmailAuth} className="space-y-4">
@@ -219,6 +230,7 @@ export default function AuthPage() {
                             />
                         </div>
 
+                        {mode !== 'forgot' && (
                         <div>
                             <label className="block text-sm font-semibold text-[#2D3A26] mb-2">
                                 Password
@@ -229,32 +241,50 @@ export default function AuthPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 minLength={6}
+                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
                                 className="w-full px-4 py-3.5 rounded-xl border-2 border-[#2D3A26]/10 bg-white/80 focus:border-[#D7F26C] focus:ring-4 focus:ring-[#D7F26C]/20 focus:outline-none transition-all placeholder-[#2D3A26]/30 text-[#2D3A26]"
                                 placeholder="••••••••"
                             />
+                            {mode === 'signin' && (
+                                <div className="text-right mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setMode('forgot'); setError(null); setSuccessMessage(null) }}
+                                        className="text-sm font-medium text-[#2D3A26]/70 hover:text-[#2D3A26] underline underline-offset-4 transition-colors"
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                            )}
                         </div>
+                        )}
 
                         <button
                             type="submit"
                             disabled={loading}
                             className="w-full px-4 py-3.5 rounded-xl bg-[#2D3A26] text-[#D7F26C] font-bold text-lg hover:bg-[#1a2216] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#2D3A26]/20 mt-2"
                         >
-                            {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
+                            {loading ? 'Processing...' : mode === 'forgot' ? 'Send reset link' : isSignUp ? 'Create Account' : 'Sign In'}
                         </button>
                     </form>
 
-                    {/* Toggle Sign Up/Sign In */}
+                    {/* Toggle Sign Up / Sign In / back from Forgot */}
                     <div className="mt-8 text-center bg-[#2D3A26]/5 rounded-xl py-4">
                         <button
                             onClick={() => {
-                                setIsSignUp(!isSignUp)
+                                setMode(mode === 'signin' ? 'signup' : 'signin')
                                 setError(null)
+                                setSuccessMessage(null)
                             }}
                             className="text-sm font-medium text-[#2D3A26] hover:text-[#2D3A26]/80 transition-colors"
                         >
-                            {isSignUp ? (
+                            {mode === 'signup' ? (
                                 <span>
                                     Already have an account? <span className="underline decoration-2 decoration-[#D7F26C] underline-offset-4 font-bold">Sign in</span>
+                                </span>
+                            ) : mode === 'forgot' ? (
+                                <span>
+                                    Remembered it? <span className="underline decoration-2 decoration-[#D7F26C] underline-offset-4 font-bold">Back to sign in</span>
                                 </span>
                             ) : (
                                 <span>

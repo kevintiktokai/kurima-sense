@@ -54,6 +54,23 @@ Ran, not assumed (this audit re-verified everything locally):
    19 files; a missed env var silently sent production traffic to localhost. Now one import,
    with a loud console error if production runs unconfigured.
 
+**Signup path (follow-up commit, same branch)**
+9. **`/auth/callback` route** — OAuth and email-confirmation links previously redirected
+   blindly to `/onboarding` and hoped the SDK exchanged the `?code` in time; failures
+   (expired link, other browser, cancelled Google consent) silently bounced users to
+   `/auth`. The callback now exchanges the code explicitly, waits out SDK races, and shows
+   a human-readable error with a way back.
+10. **Returning Google users no longer re-onboard** — post-auth routing is centralized in
+    `lib/auth-routing.ts` (onboarding-complete? → role home) and shared by sign-in, the
+    callback, and onboarding (which now skips completed users and pre-fills the Google name).
+11. **Forgot/reset-password flow added** (`/auth/reset` + "Forgot password?" on `/auth`) —
+    there was previously no recovery path at all.
+12. **Already-registered signups detected** via Supabase's empty-`identities` fake-success
+    signal — existing users were being told "check your email" for an email that never comes.
+13. **`docs/auth_signup_checklist.md`** — the Supabase/Google dashboard settings the code
+    can't set (redirect allowlist, Google OAuth credentials, consent screen, SMTP), the
+    flow reference, and a 10-minute pre-launch smoke test.
+
 **Remaining `npm audit` findings are accepted:** postcss (bundled inside Next) and
 serialize-javascript (inside workbox's *build-time* tooling) never ship to users; the
 suggested "fixes" are absurd downgrades. Revisit when next-pwa updates workbox.
@@ -74,11 +91,12 @@ suggested "fixes" are absurd downgrades. Revisit when next-pwa updates workbox.
 4. **Move Render off the free tier.** 512 MB + 15-min spin-down (the keep-warm cron is a crutch)
    will fall over under ad-driven traffic bursts; cold starts were measured at 90s+. The
    in-memory caches/rate-limits also reset on every restart.
-5. **Supabase production settings** (dashboard, ~15 min): enable leaked-password protection
-   (already flagged in `SECURITY_HARDENING_SPRINT4.md`), confirm redirect-URL allowlist,
-   verify backup/PITR settings on a paid tier, and **set up custom SMTP** — default Supabase
-   auth email has low deliverability, and every confirmation email that lands in spam is a
-   paid signup lost at the last step.
+5. **Supabase production settings** (dashboard, ~15 min): follow
+   `docs/auth_signup_checklist.md` §1 — redirect-URL allowlist (`/auth/callback`,
+   `/auth/reset`), Google provider credentials + published consent screen, custom SMTP
+   (default sender is rate-limited and lands in spam — each lost confirmation email is a
+   lost paid signup), leaked-password protection, and backup/PITR on a paid tier. Then run
+   the 10-minute smoke test in §4 of that doc.
 6. **Custom domain.** Ads pointing at `*.vercel.app` convert worse and look untrustworthy;
    buying the domain later means re-doing OG URLs, CORS, Supabase redirects, and ad accounts.
    Set `NEXT_PUBLIC_SITE_URL` + `CORS_ORIGINS` when it lands (code already reads both).
