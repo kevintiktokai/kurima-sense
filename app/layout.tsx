@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 import { OutboxSyncProvider } from "@/components/offline/OutboxSyncProvider"
 import { NativeBridge } from "@/components/native/NativeBridge"
+import MetaPixel from "@/components/analytics/MetaPixel"
 import { SITE_URL } from "@/lib/site"
 
 // Editorial serif for headlines (field-journal gravitas) + precise grotesque
@@ -154,6 +155,7 @@ export default function RootLayout({
             <InstallPrompt />
             <OutboxSyncProvider />
             <NativeBridge />
+            <MetaPixel />
           </AuthProvider>
         </ThemeProvider>
       </body>

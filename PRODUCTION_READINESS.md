@@ -79,15 +79,17 @@ suggested "fixes" are absurd downgrades. Revisit when next-pwa updates workbox.
 
 ## 3. P0 — do these BEFORE spending money on ads
 
-1. **Conversion analytics.** There is currently **zero analytics** — no way to know if ads
-   convert. Add PostHog (or GA4 + Meta Pixel) with events for: landing view, signup started,
-   signup completed, onboarding completed, first field created, first analysis run. Ad spend
-   without these events is unmeasurable. Add a lightweight cookie-consent banner at the same time.
-2. **Frontend error tracking.** Backend has Sentry; the browser has nothing — user-side crashes
-   are invisible today. Add `@sentry/nextjs` (free tier is fine) so "the app is broken on my
-   phone" comes with a stack trace.
-3. **Turn monitoring on.** Set `SENTRY_DSN` on Render (code is already wired), and point a free
-   uptime monitor (UptimeRobot / Better Stack) at `GET /health` with alerting to your email/phone.
+1. **Conversion analytics — ✅ code wired (Meta Pixel), needs the ID.** `Lead` (signup
+   submitted), `CompleteRegistration` (onboarding finished), `FieldCreated` (activation) +
+   SPA page views. Dormant until `NEXT_PUBLIC_META_PIXEL_ID` is set on Vercel — create the
+   pixel in Meta Events Manager and paste the ID. Consider a consent banner if you later
+   target EU users; not blocking for the initial markets.
+2. **Frontend error tracking — ✅ code wired (`@sentry/nextjs`), needs the DSN.** Client +
+   server init and both error boundaries report; dormant until `NEXT_PUBLIC_SENTRY_DSN` is
+   set on Vercel (create a free Sentry project → copy DSN).
+3. **Turn monitoring on.** Set `SENTRY_DSN` on Render (backend code already wired) and the
+   two Vercel env vars above; point a free uptime monitor (UptimeRobot / Better Stack) at
+   `GET /health` with alerting to your email/phone.
 4. **Move Render off the free tier.** 512 MB + 15-min spin-down (the keep-warm cron is a crutch)
    will fall over under ad-driven traffic bursts; cold starts were measured at 90s+. The
    in-memory caches/rate-limits also reset on every restart.
@@ -100,10 +102,10 @@ suggested "fixes" are absurd downgrades. Revisit when next-pwa updates workbox.
 6. **Custom domain.** Ads pointing at `*.vercel.app` convert worse and look untrustworthy;
    buying the domain later means re-doing OG URLs, CORS, Supabase redirects, and ad accounts.
    Set `NEXT_PUBLIC_SITE_URL` + `CORS_ORIGINS` when it lands (code already reads both).
-7. **Kill mock-data fallbacks in production** (backend). ~17 code paths return `MOCK_FIELDS`
-   -style demo data when the DB is unreachable — a real user during a DB blip sees *fake
-   fields that look real*. Gate with an env var (e.g. `ALLOW_MOCK_FALLBACK=false` in prod →
-   return 503) so failures are visible instead of fabricated.
+7. **Kill mock-data fallbacks in production — ✅ done.** With `DATABASE_URL` configured, a DB
+   outage now returns an honest 503 on every previously-fabricating endpoint (fields, user
+   profile, chat history, create/delete, inputs, insights). Local dev without `DATABASE_URL`
+   keeps mock mode; `ALLOW_MOCK_FALLBACK` overrides either way. Nothing to configure on Render.
 8. **Real OG image.** A 1200×630 card (current placeholder: the 200px logo). Direct CTR impact
    on every shared link and some ad formats.
 

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { DisclaimerBanner } from '@/components/legal/DisclaimerBanner'
+import { trackEvent } from '@/lib/analytics'
 
 import { API_BASE_URL } from '@/lib/api-base';
 
@@ -116,6 +117,7 @@ export default function OnboardingPage() {
 
             if (upsertError) throw upsertError
 
+            trackEvent('CompleteRegistration', { account_type: 'consumer' })
             router.push('/dashboard')
         } catch (err: unknown) {
             setError(toFriendlyError(err))
@@ -166,6 +168,7 @@ export default function OnboardingPage() {
                 throw new Error(detail)
             }
 
+            trackEvent('CompleteRegistration', { account_type: 'institution' })
             router.push('/portfolio/today')
         } catch (err: unknown) {
             setError(toFriendlyError(err))

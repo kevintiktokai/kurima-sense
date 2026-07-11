@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { apiCache, getCached, setCache, invalidateCache, getAuthHeaders, CACHE_TTL } from '@/lib/api-cache';
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { trackEvent } from '@/lib/analytics';
 
 // ───── Soil Intelligence types ─────
 export interface SoilAttribute {
@@ -175,6 +176,8 @@ export const api = {
             invalidateCache('fields');
             invalidateCache('dashboard_init');
             invalidateCache('dashboard_stats');
+            // Activation conversion: the first real product action after signup.
+            trackEvent('FieldCreated', { crop: fieldData?.crop });
             return await res.json();
         } catch (e) {
             console.error("Save field error", e);

@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { FullTermsDisclaimer } from '@/components/legal/DisclaimerBanner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { isExistingUserSignUp, resolvePostAuthDestination } from '@/lib/auth-routing'
+import { trackEvent } from '@/lib/analytics'
 
 type Mode = 'signin' | 'signup' | 'forgot'
 
@@ -65,8 +66,10 @@ export default function AuthPage() {
                     setError('This email is already registered. Try signing in — or use "Forgot password?" below.')
                     setMode('signin')
                 } else if (data.user && !data.session) {
+                    trackEvent('Lead') // signup submitted; registration completes at onboarding
                     setSuccessMessage('Check your email for the confirmation link!')
                 } else if (data.session) {
+                    trackEvent('Lead')
                     // Auto-confirmed (confirmations disabled) — straight to onboarding.
                     router.push('/onboarding')
                 }
