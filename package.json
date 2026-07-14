@@ -12,7 +12,8 @@
     "audit:pwa": "bash scripts/audit-pwa.sh",
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
-    "cap:run:android": "cap run android"
+    "cap:run:android": "cap run android",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",
@@ -72,6 +73,7 @@
   "devDependencies": {
     "@capacitor/android": "^8.4.1",
     "@capacitor/cli": "^8.4.1",
+    "@playwright/test": "1.56.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
