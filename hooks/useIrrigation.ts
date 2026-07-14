@@ -10,7 +10,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import type { IrrigationOutlookResponse, IrrigationRecommendation } from '@/lib/irrigation-types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 const OUTLOOK_KEY = 'irrigation:outlook'
 
 async function authedFetch(path: string, init?: RequestInit): Promise<Response> {

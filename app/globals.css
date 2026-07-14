@@ -82,6 +82,17 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* The exit counterpart to animate-in. --animate-out (above) referenced this
+     keyframes without it ever being defined — the browser then reported an
+     animation-name but never ran (or ended) the animation, so Radix Presence
+     waited for `animationend` forever and closing Sheets/Dialogs never left
+     the DOM. This was the "install instructions won't dismiss on Got it" bug;
+     it silently affected every animated close in the app. */
+  @keyframes animate-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+  }
 }
 
 /* ── CSS Custom Properties ── */

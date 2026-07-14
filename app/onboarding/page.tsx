@@ -7,8 +7,9 @@ import { supabase } from '@/lib/supabase'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { DisclaimerBanner } from '@/components/legal/DisclaimerBanner'
+import { trackEvent } from '@/lib/analytics'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 type AccountType = 'consumer' | 'institution'
 
@@ -46,11 +47,42 @@ export default function OnboardingPage() {
         organizationName: '',
     })
 
-    // Redirect to auth if not logged in
+    // Gate: unauthenticated → /auth; already-onboarded → their app home.
+    // Without the second check every "Continue with Google" sign-in (which
+    // redirects through here) forced returning users back through the wizard.
+    const [profileChecked, setProfileChecked] = useState(false)
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return
+        if (!user) {
             router.push('/auth')
+            return
         }
+        let cancelled = false
+        ;(async () => {
+            let dest = '/onboarding'
+            try {
+                const { resolvePostAuthDestination } = await import('@/lib/auth-routing')
+                dest = await resolvePostAuthDestination(user.id)
+            } catch {
+                // Resolution failed — fall through to the wizard; its profile
+                // upsert is idempotent, so re-onboarding is always safe.
+            }
+            if (cancelled) return
+            if (dest !== '/onboarding') {
+                router.replace(dest)
+            } else {
+                // New user — pre-fill the name Google gave us (email signups
+                // have no metadata name and keep the empty field).
+                const metaName =
+                    (user.user_metadata?.full_name as string | undefined) ||
+                    (user.user_metadata?.name as string | undefined) || ''
+                if (metaName) {
+                    setFormData((prev) => prev.fullName ? prev : { ...prev, fullName: metaName })
+                }
+                setProfileChecked(true)
+            }
+        })()
+        return () => { cancelled = true }
     }, [user, authLoading, router])
 
     const handleNext = async () => {
@@ -85,6 +117,7 @@ export default function OnboardingPage() {
 
             if (upsertError) throw upsertError
 
+            trackEvent('CompleteRegistration', { account_type: 'consumer' })
             router.push('/dashboard')
         } catch (err: unknown) {
             setError(toFriendlyError(err))
@@ -135,6 +168,7 @@ export default function OnboardingPage() {
                 throw new Error(detail)
             }
 
+            trackEvent('CompleteRegistration', { account_type: 'institution' })
             router.push('/portfolio/today')
         } catch (err: unknown) {
             setError(toFriendlyError(err))
@@ -143,8 +177,8 @@ export default function OnboardingPage() {
         }
     }
 
-    // Show loading while checking auth
-    if (authLoading) {
+    // Show loading while checking auth + whether onboarding is already done
+    if (authLoading || !profileChecked) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#EBEBE3]">
                 <div className="w-12 h-12 border-4 border-[#2D3A26] border-t-transparent rounded-full animate-spin"></div>

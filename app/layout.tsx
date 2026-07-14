@@ -6,6 +6,8 @@ import { AuthProvider } from "@/components/providers/AuthProvider"
 import InstallPrompt from "@/components/InstallPrompt"
 import { OutboxSyncProvider } from "@/components/offline/OutboxSyncProvider"
 import { NativeBridge } from "@/components/native/NativeBridge"
+import MetaPixel from "@/components/analytics/MetaPixel"
+import { SITE_URL } from "@/lib/site"
 
 // Editorial serif for headlines (field-journal gravitas) + precise grotesque
 // for body/UI (institutional fintech). Avoids Inter/Roboto defaults.
@@ -26,8 +28,25 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "KurimaSense — Precision Agriculture",
   description: "AI-powered precision farming intelligence for African agriculture",
+  // Social/ad link previews. TODO: replace logo-200 with a real 1200×630 OG
+  // card before running paid campaigns — link CTR is measurably higher with one.
+  openGraph: {
+    type: "website",
+    siteName: "KurimaSense",
+    title: "KurimaSense — Precision Agriculture",
+    description: "AI-powered precision farming intelligence for African agriculture",
+    url: "/",
+    images: [{ url: "/logo-200.png", width: 200, height: 200, alt: "KurimaSense" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "KurimaSense — Precision Agriculture",
+    description: "AI-powered precision farming intelligence for African agriculture",
+    images: ["/logo-200.png"],
+  },
   manifest: "/manifest.json",
   applicationName: "KurimaSense",
   appleWebApp: {
@@ -136,6 +155,7 @@ export default function RootLayout({
             <InstallPrompt />
             <OutboxSyncProvider />
             <NativeBridge />
+            <MetaPixel />
           </AuthProvider>
         </ThemeProvider>
       </body>

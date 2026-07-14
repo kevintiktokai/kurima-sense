@@ -24,7 +24,7 @@ import {
     selectChartState, type SeasonAccumulations,
 } from '@/lib/season-chart-utils'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 export interface SeasonAccumulationChartsProps {
     fieldId: string

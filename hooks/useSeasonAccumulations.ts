@@ -16,7 +16,7 @@ import type { SeasonAccumulations } from '@/lib/season-chart-utils'
 
 export type { SeasonAccumulations, SeasonAccumulationDay } from '@/lib/season-chart-utils'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 
 /** Error that carries the HTTP status so the UI can branch on 422 vs other. */
 export class SeasonAccumulationsError extends Error {

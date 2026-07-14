@@ -148,8 +148,13 @@ test('portfolio layout is guarded for institutional -> dashboard', () => {
 })
 
 test('login routes institutional users to the portfolio', () => {
-    assert.match(AUTH_PAGE, /fetchUserRoleOnce/)
-    assert.match(AUTH_PAGE, /\/portfolio\/today/)
+    // Post-auth routing is centralized in lib/auth-routing (shared by the
+    // sign-in handler, /auth/callback and onboarding). The auth page must use
+    // it, and the resolver must still consult /me/role and know the portfolio.
+    assert.match(AUTH_PAGE, /resolvePostAuthDestination/)
+    const AUTH_ROUTING = readFileSync('lib/auth-routing.ts', 'utf8')
+    assert.match(AUTH_ROUTING, /fetchUserRoleOnce/)
+    assert.match(AUTH_ROUTING, /\/portfolio\/today/)
 })
 
 test('useUserRole hits /me/role and defaults role to null', () => {

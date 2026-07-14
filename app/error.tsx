@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
+
 // Route-segment error boundary. Without this, any render error in a page
 // white-screens the whole app; with it, the user gets a styled recovery UI.
 export default function Error({
@@ -9,6 +12,10 @@ export default function Error({
     error: Error & { digest?: string }
     reset: () => void
 }) {
+    useEffect(() => {
+        Sentry.captureException(error)
+    }, [error])
+
     return (
         <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--ee-bg)' }}>
             <div className="neu-surface max-w-md w-full p-8 rounded-[24px] text-center">

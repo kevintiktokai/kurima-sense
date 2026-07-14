@@ -11,7 +11,7 @@
 import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_BASE_URL } from '@/lib/api-base';
 const MEMBERS_URL = `${API_BASE_URL}/team/members`
 const INVITES_URL = `${API_BASE_URL}/team/invites`
 

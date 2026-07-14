@@ -47,3 +47,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 kurimasense-backend-main 2/
+
+# playwright
+/test-results/
+/playwright-report/
