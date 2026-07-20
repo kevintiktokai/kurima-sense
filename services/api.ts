@@ -121,7 +121,7 @@ export const api = {
         }
     },
 
-    async getFields(force = false): Promise<FieldData[]> {
+    async getFields(force = false, opts?: { throwOnError?: boolean }): Promise<FieldData[]> {
         const cacheKey = 'fields';
         if (!force) {
             const cached = getCached<FieldData[]>(cacheKey);
@@ -131,13 +131,20 @@ export const api = {
         try {
             const headers = await getAuthHeaders();
             const res = await fetch(`${API_BASE_URL}/fields`, { headers });
-            if (!res.ok) return [];
+            if (!res.ok) {
+                // throwOnError lets the dashboard distinguish "backend down"
+                // from "genuinely no fields" — silently returning [] here made a
+                // 502 render as an empty farm, which reads as data loss.
+                if (opts?.throwOnError) throw new Error(`Fields request failed (${res.status})`);
+                return [];
+            }
             const data = await res.json();
             const fields = Array.isArray(data) ? data : [];
             setCache(cacheKey, fields, CACHE_TTL.FIELDS);
             return fields;
         } catch (e) {
             console.error("Fetch fields error", e);
+            if (opts?.throwOnError) throw e;
             return [];
         }
     },

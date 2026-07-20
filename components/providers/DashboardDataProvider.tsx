@@ -24,6 +24,10 @@ interface DashboardDataContextType {
     marketData: MarketData | null
     dashboardStats: any
     loading: boolean
+    /** True when the backend could not be reached / errored on the last fetch.
+     * Consumers must render an error state — NOT an empty farm. A 502 shown as
+     * "0 fields" reads as data loss to a farmer. */
+    backendError: boolean
     refreshFields: () => Promise<void>
     refreshAll: () => Promise<void>
 }
@@ -33,6 +37,7 @@ const DashboardDataContext = createContext<DashboardDataContextType>({
     marketData: null,
     dashboardStats: null,
     loading: true,
+    backendError: false,
     refreshFields: async () => {},
     refreshAll: async () => {},
 })
@@ -54,6 +59,7 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
     const [marketData, setMarketData] = useState<MarketData | null>(null)
     const [dashboardStats, setDashboardStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [backendError, setBackendError] = useState(false)
 
     const lastFetchedAt = useRef<number>(0)
     const initializedRef = useRef(false)
@@ -76,22 +82,31 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
                 setFields(Array.isArray(initData.fields) ? initData.fields : [])
                 setDashboardStats(initData.stats)
                 setMarketData(initData.market)
+                setBackendError(false)
             } else {
-                // Fallback to individual requests if combined endpoint isn't available
-                const [fieldsData, statsData, market] = await Promise.all([
-                    api.getFields(),
+                // getDashboardInit returned null — either the combined route is
+                // missing (older backend) or the backend is down. The strict
+                // fields call disambiguates: it THROWS on failure instead of
+                // returning [], so an outage becomes an error state rather than
+                // an empty farm.
+                const fieldsData = await api.getFields(true, { throwOnError: true })
+                const [statsData, market] = await Promise.all([
                     api.getDashboardStats(),
                     api.getMarketPrices('Zimbabwe'),
                 ])
                 setFields(fieldsData)
                 setDashboardStats(statsData)
                 setMarketData(market)
+                setBackendError(false)
             }
 
             lastFetchedAt.current = Date.now()
             initializedRef.current = true
         } catch (e) {
             console.error('[DashboardData] fetch error:', e)
+            // Keep whatever fields we already have (stale beats a fake empty
+            // farm) and surface the failure to the UI.
+            setBackendError(true)
         } finally {
             setLoading(false)
             fetchingRef.current = false
@@ -102,11 +117,14 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
         if (!user) return
         try {
             // force=true bypasses the in-memory cache so a just-saved field is
-            // never hidden behind a stale 'fields' entry.
-            const fieldsData = await api.getFields(true)
+            // never hidden behind a stale 'fields' entry. Strict mode: a failed
+            // refresh must not silently blank the field list.
+            const fieldsData = await api.getFields(true, { throwOnError: true })
             setFields(fieldsData)
+            setBackendError(false)
         } catch (e) {
             console.error('[DashboardData] refreshFields error:', e)
+            setBackendError(true)
         }
     }, [user])
 
@@ -139,10 +157,11 @@ export function DashboardDataProvider({ children }: { children: ReactNode }) {
             marketData,
             dashboardStats,
             loading,
+            backendError,
             refreshFields,
             refreshAll: fetchAll,
         }),
-        [fields, marketData, dashboardStats, loading, refreshFields, fetchAll]
+        [fields, marketData, dashboardStats, loading, backendError, refreshFields, fetchAll]
     )
 
     return (
