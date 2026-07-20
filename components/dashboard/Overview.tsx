@@ -47,7 +47,7 @@ const AICardPlaceholder: React.FC<{ icon: string; label: string }> = ({ icon, la
 const Overview: React.FC = () => {
     const router = useRouter();
     const { profile } = useUserProfile();
-    const { fields, dashboardStats: stats, loading: dataLoading } = useDashboardData();
+    const { fields, dashboardStats: stats, loading: dataLoading, backendError, refreshAll } = useDashboardData();
 
     // Portfolio-level KurimaScore from the aggregator (one canonical state per
     // field), replacing the old client-side mean(field.ndvi). No batch endpoint
@@ -199,6 +199,24 @@ const Overview: React.FC = () => {
     return (
         <div className="grid grid-cols-12 gap-4 sm:gap-5 lg:gap-8 pb-12 relative">
 
+            {/* Backend-unreachable banner: a failed fetch must read as an outage,
+                never as an empty farm ("all my fields are wiped" incident). */}
+            {backendError && (
+                <div className="col-span-12 neu-surface p-4 sm:p-5 rounded-[16px] flex flex-wrap items-center gap-3" style={{ border: '1px solid rgba(232, 163, 101, 0.5)', backgroundColor: 'rgba(232, 163, 101, 0.08)' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--ee-sun)' }}>cloud_off</span>
+                    <p className="flex-1 min-w-[220px] text-sm font-semibold" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}>
+                        We can&apos;t reach the server right now. Your fields and data are safe — this is a connection issue, not data loss.
+                    </p>
+                    <button
+                        onClick={() => refreshAll()}
+                        className="px-4 py-2 rounded-[12px] text-sm font-bold text-white"
+                        style={{ backgroundColor: 'var(--ee-primary)', fontFamily: 'var(--font-heading)' }}
+                    >
+                        Retry
+                    </button>
+                </div>
+            )}
+
             {/* Welcome Widget (Left 8 on desktop; full-width on tablet so the
                 priorities panel isn't squashed into a narrow column on iPad) */}
             <div id="dashboard-welcome" className="col-span-12 xl:col-span-8 neu-surface p-5 sm:p-8 lg:p-16 flex flex-col justify-center relative overflow-hidden h-full min-h-[220px] sm:min-h-[280px] lg:min-h-[350px]">
@@ -212,7 +230,13 @@ const Overview: React.FC = () => {
                     <div className="p-2.5 sm:p-3 lg:p-4 rounded-[12px] lg:rounded-[16px] mb-4 lg:mb-6 inline-block" style={{ backgroundColor: 'rgba(15, 184, 133, 0.08)' }}>
                         <p className="text-xs sm:text-sm lg:text-base leading-snug" style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'var(--ee-text)' }}>
                             <span className="material-symbols-outlined align-middle mr-1" style={{ fontSize: '16px', color: 'var(--ee-primary)' }}>lightbulb</span>
-                            {insight || "Analyzing your fields..."}
+                            {insight || (
+                                backendError
+                                    ? "AI analysis is paused — we can't reach the server. Retry above when you're back online."
+                                    : activeFieldsCount === 0
+                                        ? "Add your first field to unlock AI analysis of your farm."
+                                        : "Analyzing your fields..."
+                            )}
                         </p>
                     </div>
                     <p className="text-sm sm:text-base lg:text-xl max-w-lg leading-relaxed" style={{ fontFamily: 'var(--font-body)', fontWeight: 500, color: 'var(--ee-muted)' }}>
