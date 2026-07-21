@@ -12,6 +12,7 @@ import { useFieldState } from '@/hooks/useFieldState';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts';
 import { SoilProfileCard } from '@/components/field/SoilProfileCard';
+import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -524,6 +525,19 @@ export default function FieldInsightsPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Field map + zone-level analysis (Mapbox when configured,
+                    Leaflet fallback; per-zone NDVI shows WHERE to scout). */}
+                {field?.coordinates && field.coordinates.length >= 3 && (
+                    <div className="lg:col-span-12">
+                        <FieldZoneAnalysis
+                            fieldId={fieldId}
+                            polygon={field.coordinates}
+                            center={field.location ? [field.location.lat, field.location.lon] : undefined}
+                            fieldName={field.name}
+                        />
+                    </div>
+                )}
 
                 {/* Season accumulations (additive; self-contained data hook) */}
                 <div className="lg:col-span-12 space-y-5">
