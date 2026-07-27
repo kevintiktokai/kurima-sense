@@ -527,17 +527,17 @@ export default function FieldInsightsPage() {
                 </div>
 
                 {/* Field map + zone-level analysis (Mapbox when configured,
-                    Leaflet fallback; per-zone NDVI shows WHERE to scout). */}
-                {field?.coordinates && field.coordinates.length >= 3 && (
-                    <div className="lg:col-span-12">
-                        <FieldZoneAnalysis
-                            fieldId={fieldId}
-                            polygon={field.coordinates}
-                            center={field.location ? [field.location.lat, field.location.lon] : undefined}
-                            fieldName={field.name}
-                        />
-                    </div>
-                )}
+                    Leaflet fallback; per-zone NDVI shows WHERE to scout).
+                    Always rendered — the card explains a missing boundary
+                    itself rather than silently disappearing. */}
+                <div className="lg:col-span-12">
+                    <FieldZoneAnalysis
+                        fieldId={fieldId}
+                        polygon={field?.coordinates ?? []}
+                        center={field?.location ? [field.location.lat, field.location.lon] : undefined}
+                        fieldName={field?.name}
+                    />
+                </div>
 
                 {/* Season accumulations (additive; self-contained data hook) */}
                 <div className="lg:col-span-12 space-y-5">
