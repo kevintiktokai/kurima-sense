@@ -244,6 +244,22 @@ const Overview: React.FC = () => {
                             ? `${activeFieldsCount} active field${activeFieldsCount > 1 ? 's' : ''} monitored across ${totalHectares.toFixed(1)} ha.`
                             : 'Add your first field to get started with precision farming.'}
                     </p>
+
+                    {/* Activation CTA: with zero fields the dashboard has nothing to
+                        show, and the prose alone left new users with no next step
+                        (the "I can't see my fields" report — the account genuinely
+                        had none). This is also the activation event worth tracking
+                        when ads start. */}
+                    {activeFieldsCount === 0 && !dataLoading && !backendError && (
+                        <Link
+                            href="/dashboard/fields"
+                            className="inline-flex items-center gap-2 mt-5 px-6 py-3.5 rounded-[16px] font-bold text-sm uppercase tracking-wider hover:scale-105 transition-transform w-fit"
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
+                        >
+                            <span className="material-symbols-outlined text-base">add_location_alt</span>
+                            Add your first field
+                        </Link>
+                    )}
                     {/* Stat tiles double as quick links into the Fields screen — clicking the
                         "active fields / total area" summary drills into the fields it counts. */}
                     <div className="flex flex-wrap gap-3 sm:gap-5 lg:gap-6 mt-5 sm:mt-8 lg:mt-10">

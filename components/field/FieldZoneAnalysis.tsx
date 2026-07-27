@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { useFieldSections } from '@/hooks/useFieldSections'
 import { zoneStyle, worstZone } from '@/lib/section-colors'
@@ -33,6 +34,34 @@ export function FieldZoneAnalysis({ fieldId, polygon, center, fieldName }: Props
     const sections = data?.sections ?? []
     const worst = worstZone(sections)
     const anyAnalyzed = sections.some((s) => s.ndvi !== null)
+    // A field needs a real boundary (>=3 points) before it can be mapped or
+    // split into zones. Previously the caller hid this whole card when the
+    // polygon was missing — rendering NOTHING, which reads as "the map feature
+    // is broken". Explain it instead, and point at the fix.
+    const hasBoundary = Array.isArray(polygon) && polygon.length >= 3
+
+    if (!hasBoundary) {
+        return (
+            <div className="neu-surface p-6 lg:p-8" style={{ background: 'var(--ee-surface)', borderRadius: 24 }}>
+                <h2 className="text-xl font-black mb-2" style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}>
+                    Field Map &amp; Zones
+                </h2>
+                <p className="text-sm font-semibold mb-5" style={{ color: 'var(--ee-muted)' }}>
+                    This field has no mapped boundary yet, so we can&apos;t show its map or split
+                    it into zones. Draw the boundary on the satellite map (or walk it with GPS)
+                    and the zone analysis unlocks automatically.
+                </p>
+                <Link
+                    href="/dashboard/fields"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-[16px] font-bold text-sm uppercase tracking-wider hover:scale-105 transition-transform"
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
+                >
+                    <span className="material-symbols-outlined text-sm">edit_location_alt</span>
+                    Map this boundary
+                </Link>
+            </div>
+        )
+    }
 
     return (
         <div className="neu-surface p-6 lg:p-8" style={{ background: 'var(--ee-surface)', borderRadius: 24 }}>

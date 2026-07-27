@@ -60,3 +60,32 @@ test('map offers multiple basemap styles', () => {
         assert.match(src, new RegExp(style))
     }
 })
+
+// --- Empty states: never render nothing ------------------------------------
+// A field with no mapped boundary used to hide the whole map card, which reads
+// as "the map feature is broken" (the July 2026 "Mapbox isn't working" report —
+// the account simply had no fields/boundaries).
+
+test('field page always renders the zone card (no silent hiding)', () => {
+    const page = readFileSync('app/fields/[id]/page.tsx', 'utf8')
+    assert.match(page, /<FieldZoneAnalysis/)
+    // The old gate `field?.coordinates && field.coordinates.length >= 3 && (`
+    // must be gone — the card explains a missing boundary itself.
+    assert.doesNotMatch(page, /coordinates\.length >= 3 && \(/)
+})
+
+test('zone card explains a missing boundary and links to mapping', () => {
+    const src = readFileSync('components/field/FieldZoneAnalysis.tsx', 'utf8')
+    assert.match(src, /no mapped boundary yet/)
+    assert.match(src, /Map this boundary/)
+    assert.match(src, /href="\/dashboard\/fields"/)
+})
+
+test('dashboard shows an actionable CTA when the account has no fields', () => {
+    const src = readFileSync('components/dashboard/Overview.tsx', 'utf8')
+    assert.match(src, /Add your first field/)
+    // Must be a real link to the field-creation screen, not just prose...
+    assert.match(src, /href="\/dashboard\/fields"/)
+    // ...and must not fire during loading or an outage (that's the error state's job).
+    assert.match(src, /activeFieldsCount === 0 && !dataLoading && !backendError/)
+})
