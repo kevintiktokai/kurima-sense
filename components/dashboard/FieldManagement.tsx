@@ -17,17 +17,24 @@ interface FieldManagementProps {
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
-const MapComponent = dynamic(() => import('./MapComponent'), {
-    ssr: false,
-    loading: () => (
-        <div
-            className="w-full h-full animate-pulse flex items-center justify-center"
-            style={{ background: '#1a2e1a', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', fontWeight: 700 }}
-        >
-            Loading Satellite Map...
-        </div>
-    )
-});
+// Mapbox GL when a token is configured (richer basemaps + Satellite/Streets/
+// Terrain toggle); the Leaflet implementation stays as the fallback so the
+// field-mapping flow keeps working if the token is missing or revoked. Both
+// implementations expose the identical prop contract.
+const hasMapboxToken = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+const mapLoading = () => (
+    <div
+        className="w-full h-full animate-pulse flex items-center justify-center"
+        style={{ background: '#1a2e1a', color: 'var(--ee-muted)', fontFamily: 'var(--font-body)', fontWeight: 700 }}
+    >
+        Loading Satellite Map...
+    </div>
+);
+
+const MapComponent = hasMapboxToken
+    ? dynamic(() => import('./MapComponentMapbox'), { ssr: false, loading: mapLoading })
+    : dynamic(() => import('./MapComponent'), { ssr: false, loading: mapLoading });
 
 const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const router = useRouter();
