@@ -18,8 +18,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { calculatePolygonArea, calculatePolygonPerimeter, distanceBetween } from '@/lib/geo';
-
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+import { MAPBOX_TOKEN } from '@/lib/mapbox';
 
 export type MapMode = 'view' | 'draw' | 'gps-walk';
 
@@ -44,6 +43,9 @@ interface MapComponentProps {
     mode?: MapMode;
     onModeChange?: (mode: MapMode) => void;
     fullscreen?: boolean;
+    /** Called when Mapbox GL cannot start, so the caller can swap in the
+     *  Leaflet map rather than leaving the user with no way to map a field. */
+    onInitError?: (err: unknown) => void;
 }
 
 type Pt = { lat: number; lon: number };
@@ -159,10 +161,13 @@ function ModeSelector({ onSelectDraw, onSelectGPS, onCancel }: {
 
 const MapComponentMapbox: React.FC<MapComponentProps> = ({
     fields, onSelectField, onFieldCreated, highlightedFieldId,
-    mode = 'view', onModeChange, fullscreen = false,
+    mode = 'view', onModeChange, fullscreen = false, onInitError,
 }) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
+    // Held in a ref so the init effect below stays genuinely run-once.
+    const onInitErrorRef = useRef(onInitError);
+    onInitErrorRef.current = onInitError;
     const [ready, setReady] = useState(false);
     const [styleId, setStyleId] = useState('satellite');
     const [internalMode, setInternalMode] = useState<'view' | 'choosing' | 'draw' | 'gps-walk'>('view');
@@ -192,13 +197,25 @@ const MapComponentMapbox: React.FC<MapComponentProps> = ({
         if (!containerRef.current || mapRef.current || !MAPBOX_TOKEN) return;
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const firstLoc = fields.find((f) => f.location)?.location;
-        const map = new mapboxgl.Map({
-            container: containerRef.current,
-            style: STYLES[0].url,
-            center: firstLoc ? [firstLoc.lon, firstLoc.lat] : DEFAULT_CENTER,
-            zoom: 15,
-            attributionControl: false,
-        });
+        // `new mapboxgl.Map` throws synchronously on an unusable token or when
+        // WebGL is unavailable. Uncaught in an effect, that reaches the route
+        // error boundary and blanks the page — so catch it and let the caller
+        // fall back to Leaflet: the user must never lose the ability to map a
+        // field because of a basemap misconfiguration.
+        let map: mapboxgl.Map;
+        try {
+            map = new mapboxgl.Map({
+                container: containerRef.current,
+                style: STYLES[0].url,
+                center: firstLoc ? [firstLoc.lon, firstLoc.lat] : DEFAULT_CENTER,
+                zoom: 15,
+                attributionControl: false,
+            });
+        } catch (err) {
+            console.error('[mapbox] map init failed; falling back to the basic map', err);
+            onInitErrorRef.current?.(err);
+            return;
+        }
         map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
         map.addControl(new mapboxgl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
@@ -206,6 +223,10 @@ const MapComponentMapbox: React.FC<MapComponentProps> = ({
             showUserHeading: true,
         }), 'bottom-right');
         map.on('load', () => setReady(true));
+        // Async failures (style 401, tile errors) surface as events, not throws.
+        // mapbox-gl re-raises an unhandled 'error', so this listener also keeps
+        // a bad tile request from escalating into a page crash.
+        map.on('error', (e) => console.error('[mapbox] ', e?.error?.message || e));
         mapRef.current = map;
         return () => { map.remove(); mapRef.current = null; };
         // eslint-disable-next-line react-hooks/exhaustive-deps

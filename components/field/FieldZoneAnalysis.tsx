@@ -1,15 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { useFieldSections } from '@/hooks/useFieldSections'
 import { zoneStyle, worstZone } from '@/lib/section-colors'
+import { MAPBOX_ENABLED } from '@/lib/mapbox'
 
-// Mapbox needs the DOM; the token gate lives in the component. Falls back to
-// the existing Leaflet map when NEXT_PUBLIC_MAPBOX_TOKEN is absent so the
-// feature degrades gracefully instead of breaking the page.
-const hasMapboxToken = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+// Mapbox needs the DOM, and it needs a token it can actually use — an
+// unusable one is treated as absent by lib/mapbox rather than allowed to throw
+// out of the map's init effect and blank the page. Leaflet is the fallback, so
+// the field always gets a map.
 
 const FieldMapbox = dynamic(() => import('@/components/field/FieldMapbox'), {
     ssr: false,
@@ -31,6 +33,11 @@ interface Props {
 
 export function FieldZoneAnalysis({ fieldId, polygon, center, fieldName }: Props) {
     const { data, loading, error, analyzing, analyze } = useFieldSections(fieldId, 2)
+    // Belt-and-braces: even with a well-formed token Mapbox can fail to start
+    // (no WebGL, revoked token, blocked domain). Swap to Leaflet at runtime
+    // rather than leaving a blank rectangle where the map should be.
+    const [mapboxFailed, setMapboxFailed] = useState(false)
+    const useMapbox = MAPBOX_ENABLED && !mapboxFailed
     const sections = data?.sections ?? []
     const worst = worstZone(sections)
     const anyAnalyzed = sections.some((s) => s.ndvi !== null)
@@ -91,8 +98,13 @@ export function FieldZoneAnalysis({ fieldId, polygon, center, fieldName }: Props
 
             {/* Map */}
             <div style={{ height: 380, width: '100%' }}>
-                {hasMapboxToken ? (
-                    <FieldMapbox polygon={polygon} sections={sections} showSections={anyAnalyzed} />
+                {useMapbox ? (
+                    <FieldMapbox
+                        polygon={polygon}
+                        sections={sections}
+                        showSections={anyAnalyzed}
+                        onInitError={() => setMapboxFailed(true)}
+                    />
                 ) : (
                     <LeafletFieldMap
                         center={center}

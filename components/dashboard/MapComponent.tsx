@@ -41,6 +41,11 @@ interface MapComponentProps {
     mode?: MapMode;
     onModeChange?: (mode: MapMode) => void;
     fullscreen?: boolean;
+    /** Accepted (and ignored) so this component is prop-compatible with the
+     *  Mapbox implementation it stands in for — Leaflet has no init failure
+     *  mode to report. Keeping the contracts identical is what lets the caller
+     *  swap engines at runtime. */
+    onInitError?: (err: unknown) => void;
 }
 
 // ─── Location marker (blue dot) ───────────────────────────────────────────────
