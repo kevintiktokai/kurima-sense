@@ -8,6 +8,7 @@ import { useFieldState } from '@/hooks/useFieldState';
 import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
 import type { MapMode } from './MapComponent';
+import { MAPBOX_ENABLED } from '@/lib/mapbox';
 
 interface FieldManagementProps {
     onSelectField?: (field: FieldData) => void;
@@ -17,12 +18,11 @@ interface FieldManagementProps {
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 
-// Mapbox GL when a token is configured (richer basemaps + Satellite/Streets/
-// Terrain toggle); the Leaflet implementation stays as the fallback so the
-// field-mapping flow keeps working if the token is missing or revoked. Both
-// implementations expose the identical prop contract.
-const hasMapboxToken = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
+// Mapbox GL when a USABLE token is configured (richer basemaps + Satellite/
+// Streets/Terrain toggle); the Leaflet implementation stays as the fallback so
+// the field-mapping flow keeps working if the token is missing, revoked, or of
+// the wrong kind — see lib/mapbox. Both expose the identical prop contract, so
+// the choice can also be revised at runtime if Mapbox fails to start.
 const mapLoading = () => (
     <div
         className="w-full h-full animate-pulse flex items-center justify-center"
@@ -32,9 +32,8 @@ const mapLoading = () => (
     </div>
 );
 
-const MapComponent = hasMapboxToken
-    ? dynamic(() => import('./MapComponentMapbox'), { ssr: false, loading: mapLoading })
-    : dynamic(() => import('./MapComponent'), { ssr: false, loading: mapLoading });
+const MapboxMap = dynamic(() => import('./MapComponentMapbox'), { ssr: false, loading: mapLoading });
+const LeafletMap = dynamic(() => import('./MapComponent'), { ssr: false, loading: mapLoading });
 
 const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const router = useRouter();
@@ -42,6 +41,11 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [deletingFieldId, setDeletingFieldId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
+    // Mapbox can still fail to start with a well-formed token (no WebGL,
+    // revoked key, blocked domain). Drop to Leaflet rather than leaving the
+    // user with no map — this screen IS how fields get created.
+    const [mapboxFailed, setMapboxFailed] = useState(false);
+    const MapComponent = MAPBOX_ENABLED && !mapboxFailed ? MapboxMap : LeafletMap;
 
     // Panel state: open/closed on mobile, always visible on desktop
     const [panelOpen, setPanelOpen] = useState(false);
@@ -235,6 +239,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                     mode={mapMode}
                     onModeChange={setMapMode}
                     fullscreen
+                    onInitError={() => setMapboxFailed(true)}
                 />
             </div>
 

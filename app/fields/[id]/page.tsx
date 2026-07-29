@@ -194,6 +194,10 @@ export default function FieldInsightsPage() {
         );
     }
 
+    // Typed non-nullable, but treated as optional everywhere below — see the
+    // health-badge comment. `?? null` normalises an absent block to one check.
+    const ks = fs.kurima_score ?? null;
+
     const projected = fs.yield_projection?.projected_tonnes_per_ha;
     const potential = fs.yield_projection?.potential_tonnes_per_ha;
     const yieldEfficiency = (projected != null && potential)
@@ -215,8 +219,8 @@ export default function FieldInsightsPage() {
 
     // Agronomist insight reads ONLY from the aggregator's KurimaScore block, which
     // runs in the field's own scope — so it never shows "Field not found".
-    const displayInsight = fs.kurima_score
-        ? [fs.kurima_score.primary_driver, fs.kurima_score.likely_cause, fs.kurima_score.recommended_action].filter(Boolean).join(' ')
+    const displayInsight = ks
+        ? [ks.primary_driver, ks.likely_cause, ks.recommended_action].filter(Boolean).join(' ')
         : null;
 
     return (
@@ -324,19 +328,22 @@ export default function FieldInsightsPage() {
                         </div>
                         {/* Single health badge from the aggregator's KurimaScore.
                             Replaces the old `field.healthStatus` badge that could read
-                            "EXCELLENT" while the NDVI below it read "Critical". */}
+                            "EXCELLENT" while the NDVI below it read "Critical".
+                            Every read is optional: the type says kurima_score is always
+                            present, but a partial/legacy payload must degrade to "—",
+                            not throw and take the whole page to the error boundary. */}
                         <div
                             className="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider"
                             style={{
-                                background: fs?.kurima_score ? `${fs.kurima_score.color}1A` : 'rgba(139,157,143,0.12)',
-                                color: fs?.kurima_score?.color || 'var(--ee-muted)',
+                                background: ks ? `${ks.color}1A` : 'rgba(139,157,143,0.12)',
+                                color: ks?.color || 'var(--ee-muted)',
                             }}
-                            title={`KurimaScore ${fs.kurima_score.score}/100`}
+                            title={ks ? `KurimaScore ${ks.score}/100` : 'KurimaScore unavailable'}
                         >
                             <span className="material-symbols-outlined text-xs mr-1 align-middle">
-                                {fs.kurima_score.score >= 70 ? 'eco' : fs.kurima_score.score >= 55 ? 'spa' : 'warning'}
+                                {ks == null ? 'help' : ks.score >= 70 ? 'eco' : ks.score >= 55 ? 'spa' : 'warning'}
                             </span>
-                            {`${fs.kurima_score.label} • ${fs.kurima_score.score}/100`}
+                            {ks ? `${ks.label} • ${ks.score}/100` : 'Score pending'}
                         </div>
                     </div>
 

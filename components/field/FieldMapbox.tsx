@@ -5,10 +5,9 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { FieldSection } from '@/hooks/useFieldSections'
 import { zoneStyle } from '@/lib/section-colors'
+import { MAPBOX_TOKEN, MAPBOX_ENABLED } from '@/lib/mapbox'
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
-
-export const MAPBOX_ENABLED = !!MAPBOX_TOKEN
+export { MAPBOX_ENABLED }
 
 const STYLES: { id: string; label: string; url: string }[] = [
     { id: 'satellite', label: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
@@ -24,6 +23,9 @@ interface Props {
     showSections?: boolean
     onZoneClick?: (section: FieldSection) => void
     className?: string
+    /** Called when Mapbox GL cannot start (bad token, WebGL unavailable, …)
+     *  so the caller can swap in the fallback map instead of showing nothing. */
+    onInitError?: (err: unknown) => void
 }
 
 // {lat,lon} open ring → GeoJSON [lon,lat] closed ring.
@@ -48,12 +50,15 @@ function boundsOf(pts: { lat: number; lon: number }[]): mapboxgl.LngLatBounds | 
  * token is configured — callers fall back to the Leaflet map otherwise.
  */
 export default function FieldMapbox({
-    polygon, sections = [], showSections = true, onZoneClick, className,
+    polygon, sections = [], showSections = true, onZoneClick, className, onInitError,
 }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null)
     const mapRef = useRef<mapboxgl.Map | null>(null)
     const [styleId, setStyleId] = useState('satellite')
     const [ready, setReady] = useState(false)
+    // Keep the latest callback in a ref so the init effect stays run-once.
+    const onInitErrorRef = useRef(onInitError)
+    onInitErrorRef.current = onInitError
 
     // Init once.
     useEffect(() => {
@@ -65,18 +70,33 @@ export default function FieldMapbox({
             ? (b.getCenter().toArray() as [number, number])
             : [31.05, -17.82]
 
-        const map = new mapboxgl.Map({
-            container: containerRef.current,
-            style: STYLES[0].url,
-            center,
-            zoom: 15,
-            attributionControl: false,
-        })
+        // `new mapboxgl.Map` THROWS synchronously on an unusable token or when
+        // WebGL is unavailable. Uncaught inside an effect that reaches the route
+        // error boundary and replaces the entire page with "Something went
+        // wrong" — so a map that can't start must degrade, never escalate.
+        let map: mapboxgl.Map
+        try {
+            map = new mapboxgl.Map({
+                container: containerRef.current,
+                style: STYLES[0].url,
+                center,
+                zoom: 15,
+                attributionControl: false,
+            })
+        } catch (err) {
+            console.error('[mapbox] map init failed; falling back to the basic map', err)
+            onInitErrorRef.current?.(err)
+            return
+        }
         map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right')
         map.on('load', () => {
             if (b) map.fitBounds(b, { padding: 48, duration: 0, maxZoom: 17 })
             setReady(true)
         })
+        // Async failures (401 on the style, tile errors) arrive here rather than
+        // as a throw. mapbox-gl treats an unhandled 'error' as fatal, so this
+        // listener is also what stops it from re-raising.
+        map.on('error', (e) => console.error('[mapbox] ', e?.error?.message || e))
         mapRef.current = map
         return () => { map.remove(); mapRef.current = null }
         // polygon intentionally read once at init; fitBounds re-runs via the

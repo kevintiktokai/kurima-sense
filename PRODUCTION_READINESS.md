@@ -79,6 +79,21 @@ suggested "fixes" are absurd downgrades. Revisit when next-pwa updates workbox.
 
 ## 3. P0 — do these BEFORE spending money on ads
 
+0. **🔴 ROTATE THE LEAKED MAPBOX TOKEN — do this first.** The production build was made
+   with a Mapbox **secret** token (`sk.eyJ1Ijoia2V2aW4tdW5sb2NrZWQi…`) in
+   `NEXT_PUBLIC_MAPBOX_TOKEN`. `NEXT_PUBLIC_*` values are compiled into the browser
+   bundle, so that secret was served publicly to every visitor (confirmed live via
+   `GET https://api.mapbox.com/tokens/v2` → `"usage":"sk"`). It also *broke the app*:
+   mapbox-gl **throws** from `new mapboxgl.Map(...)` on an `sk.*` token, and the throw
+   escaped the map's effect into the route error boundary, so `/fields/[id]` rendered
+   "Something went wrong" instead of the field.
+   - Revoke the `sk.*` token at <https://account.mapbox.com/access-tokens/>.
+   - Set `NEXT_PUBLIC_MAPBOX_TOKEN` on Vercel to a **public** token (`pk.*`), scoped with
+     a URL restriction to the production domain, then **redeploy** (the value is inlined
+     at build time — changing the env var alone does nothing).
+   - Code-side this can no longer take a page down: `lib/mapbox.ts` rejects any token
+     mapbox-gl would throw on and both maps fall back to Leaflet. Until a `pk.*` token is
+     set, users get the basic map, not the satellite/terrain one.
 1. **Conversion analytics — ✅ code wired (Meta Pixel), needs the ID.** `Lead` (signup
    submitted), `CompleteRegistration` (onboarding finished), `FieldCreated` (activation) +
    SPA page views. Dormant until `NEXT_PUBLIC_META_PIXEL_ID` is set on Vercel — create the

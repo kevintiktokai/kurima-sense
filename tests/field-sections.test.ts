@@ -45,12 +45,17 @@ test('worstZone returns null when nothing is analyzed yet', () => {
 
 // --- Source invariants -------------------------------------------------------
 
-test('Mapbox map is gated on the token env var (fallback preserved)', () => {
+test('Mapbox map is gated on a VALIDATED token (fallback preserved)', () => {
+    // The gate moved from a bare `!!process.env.NEXT_PUBLIC_MAPBOX_TOKEN` to
+    // lib/mapbox, which also rejects tokens mapbox-gl would throw on (sk.*).
+    // See tests/mapbox-token.test.ts for the incident this covers.
     const src = readFileSync('components/field/FieldMapbox.tsx', 'utf8')
-    assert.match(src, /NEXT_PUBLIC_MAPBOX_TOKEN/)
+    assert.match(src, /import \{ MAPBOX_TOKEN, MAPBOX_ENABLED \} from '@\/lib\/mapbox'/)
     const panel = readFileSync('components/field/FieldZoneAnalysis.tsx', 'utf8')
-    // Falls back to the Leaflet map when no token.
-    assert.match(panel, /hasMapboxToken \? \(/)
+    // Falls back to the Leaflet map with no usable token — or if Mapbox fails
+    // to start despite one.
+    assert.match(panel, /const useMapbox = MAPBOX_ENABLED && !mapboxFailed/)
+    assert.match(panel, /useMapbox \? \(/)
     assert.match(panel, /field-map/)
 })
 
