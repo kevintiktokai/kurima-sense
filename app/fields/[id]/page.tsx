@@ -13,6 +13,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts';
 import { SoilProfileCard } from '@/components/field/SoilProfileCard';
 import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
+import { StandCheckPrompt } from '@/components/planning/StandCheckPrompt';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -314,6 +315,11 @@ export default function FieldInsightsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
+                {/* Stand Check prompt — sits above everything while its window is
+                    open, because unlike the cards below it, this measurement
+                    expires. Renders nothing outside the window. */}
+                <StandCheckPrompt fieldId={fieldId} />
+
                 {/* Row 1: Status Card (full width) */}
                 <div className="lg:col-span-12 neu-surface p-8 lg:p-10" style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}>
                     <div className="flex justify-between items-start mb-8">
@@ -558,6 +564,7 @@ export default function FieldInsightsPage() {
                 <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                         { href: `/fields/${fieldId}/plan-season`, icon: 'event_upcoming', title: 'Plan a season', sub: 'Crop, spacing & fertiliser — before planting' },
+                        { href: `/fields/${fieldId}/stand-check`, icon: 'straighten', title: 'Stand Check', sub: 'Count your plants — sets the ceiling' },
                         { href: `/fields/${fieldId}/harvest`, icon: 'agriculture', title: 'Record harvest', sub: 'Log actual yield — offline' },
                         { href: `/fields/${fieldId}/input`, icon: 'science', title: 'Log input', sub: 'Fertilizer / chemical — voice' },
                         { href: `/fields/${fieldId}/scout`, icon: 'pest_control', title: 'Scout & diagnose', sub: 'Photo → AI diagnosis' },
