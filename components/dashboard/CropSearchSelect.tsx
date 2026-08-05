@@ -55,8 +55,10 @@ const CROP_CATALOG = [
     ]},
 ];
 
-// Flatten for search
-const ALL_CROPS = CROP_CATALOG.flatMap(g => g.crops.map(c => ({ ...c, group: g.group })));
+// Flatten for search. Exported so other surfaces (the season planner's
+// "what grew here last season" picker) offer exactly the same crop vocabulary —
+// a crop the catalogue doesn't know can't be matched to a rotation family.
+export const ALL_CROPS = CROP_CATALOG.flatMap(g => g.crops.map(c => ({ ...c, group: g.group })));
 
 interface CropSearchSelectProps {
     value: string;

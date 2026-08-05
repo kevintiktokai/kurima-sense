@@ -83,6 +83,12 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     // Edit mode: null = creating a new field, otherwise the id of the field
     // being edited. The creation modal is reused for both flows.
     const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+    // Mapping a field and planting it are different events, often weeks apart.
+    // Forcing a crop and planting date at capture time made farmers invent
+    // both — and a wrong planting date silently corrupts every stage, GDD and
+    // yield calculation downstream. An unplanted field is now a valid state,
+    // and the natural next step from it is the season planner.
+    const [notPlantedYet, setNotPlantedYet] = useState(false);
 
     // Crops that are typically transplanted (not direct-seeded)
     const TRANSPLANTED_CROPS = ['Tomato', 'Cabbage', 'Onion', 'Potato', 'Paprika', 'Green Pepper', 'Strawberries', 'Tea', 'Blueberries', 'Coffee', 'Tobacco', 'Covo', 'Rape', 'Mustard'];
@@ -109,6 +115,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const resetFieldForm = () => {
         setIsCreating(false);
         setEditingFieldId(null);
+        setNotPlantedYet(false);
         setNewFieldName("");
         setNewFieldDate("");
         setNewFieldTransplantDate("");
@@ -151,31 +158,42 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                 return;
             }
 
-            const payload = {
-                name: newFieldName,
-                crop: newFieldCrop,
-                coordinates: newFieldCoords,
-                area: newFieldArea,
-                plantingDate: newFieldDate || undefined,
-                transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
-                isTransplanted: isTransplantedCrop,
-                variety: newFieldVariety,
-                fertilizerHistory: newFieldFertilizer
-            };
+            // An unplanted field carries no crop details at all. Leaving the
+            // planting date empty is the important part: downstream stage, GDD
+            // and yield maths all key off it, and a placeholder date is worse
+            // than no date because it produces confident wrong answers.
+            const payload = notPlantedYet
+                ? {
+                    name: newFieldName,
+                    coordinates: newFieldCoords,
+                    area: newFieldArea,
+                }
+                : {
+                    name: newFieldName,
+                    crop: newFieldCrop,
+                    coordinates: newFieldCoords,
+                    area: newFieldArea,
+                    plantingDate: newFieldDate || undefined,
+                    transplantDate: isTransplantedCrop ? (newFieldTransplantDate || undefined) : undefined,
+                    isTransplanted: isTransplantedCrop,
+                    variety: newFieldVariety,
+                    fertilizerHistory: newFieldFertilizer
+                };
             // Online create with LOUD errors. We previously routed failures into an
             // offline outbox, which silently swallowed real errors (and the
             // unreliable navigator.onLine sometimes diverted online saves) — so a
             // failed save looked like "nothing happened". Field creation now always
             // hits the server and surfaces exactly what went wrong.
+            let created: { id?: string } | undefined;
             try {
-                await api.saveField(payload);
+                created = await api.saveField(payload);
             } catch (postErr: any) {
                 // The backend can cold-start (free hosting spins down on idle), so
                 // the first request after a quiet spell may fail/time out. Retry
                 // once after a short wait before giving up.
                 if (isNetworkError(postErr)) {
                     await new Promise((r) => setTimeout(r, 2500));
-                    await api.saveField(payload);
+                    created = await api.saveField(payload);
                 } else {
                     throw postErr;
                 }
@@ -183,8 +201,17 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
 
             // Saved. Force a cache-bypassing refresh so the new field always shows
             // (a stale 'fields' cache entry must never hide it).
+            const wasUnplanted = notPlantedYet;
+            const newFieldId = created?.id;
             resetFieldForm();
             await refreshFields();
+
+            // An unplanted field's whole point is the plan that follows, so go
+            // straight there rather than dropping the farmer on an empty field.
+            if (wasUnplanted && newFieldId) {
+                router.push(`/fields/${newFieldId}/plan-season`);
+                return;
+            }
         } catch (e: any) {
             console.error("Save field failed:", e);
             const offline = isNetworkError(e);
@@ -567,6 +594,41 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                 />
                             </div>
 
+                            {/* Not-planted-yet escape hatch. Only offered when
+                                creating — editing an existing field's crop is a
+                                different intent. */}
+                            {!editingFieldId && (
+                                <label
+                                    className="flex items-start gap-3 rounded-[16px] p-3.5 cursor-pointer"
+                                    style={{ background: 'var(--ee-bg)', boxShadow: 'var(--shadow-neu-inset)' }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={notPlantedYet}
+                                        onChange={e => setNotPlantedYet(e.target.checked)}
+                                        className="w-5 h-5 mt-0.5 shrink-0"
+                                    />
+                                    <span>
+                                        <span
+                                            className="text-sm font-bold block"
+                                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-body)' }}
+                                        >
+                                            I haven&apos;t planted here yet
+                                        </span>
+                                        <span
+                                            className="text-xs block mt-0.5 leading-relaxed"
+                                            style={{ color: 'var(--ee-muted)', fontFamily: 'var(--font-body)' }}
+                                        >
+                                            Save the boundary now and plan the crop, spacing and
+                                            fertiliser next — that&apos;s where the decisions that
+                                            matter still get made.
+                                        </span>
+                                    </span>
+                                </label>
+                            )}
+
+                            {!notPlantedYet && (
+                            <>
                             {/* Crop Type — Searchable */}
                             <div>
                                 <label
@@ -737,6 +799,8 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                     onChange={e => setNewFieldFertilizer(e.target.value)}
                                 />
                             </div>
+                            </>
+                            )}
 
                             {/* Actions */}
                             <div className="flex gap-3 pt-2">
@@ -867,7 +931,12 @@ const FieldCard: React.FC<FieldCardProps> = ({
                         className="text-[10px] font-bold uppercase"
                         style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-body)' }}
                     >
-                        {field.crop} &bull; {field.area.toFixed(1)} ha
+                        {/* A field with no planting date has nothing growing in
+                            it, so naming a crop would be a claim rather than a
+                            fact — say "not planted" instead. */}
+                        {(field.plantingDate || field.planting_date)
+                            ? <>{field.crop} &bull; {field.area.toFixed(1)} ha</>
+                            : <>Not planted &bull; {field.area.toFixed(1)} ha</>}
                     </p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
