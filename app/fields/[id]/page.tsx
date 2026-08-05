@@ -14,6 +14,7 @@ import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationC
 import { SoilProfileCard } from '@/components/field/SoilProfileCard';
 import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
 import { StandCheckPrompt } from '@/components/planning/StandCheckPrompt';
+import { SeasonHistoryCard } from '@/components/field/SeasonHistoryCard';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -551,6 +552,11 @@ export default function FieldInsightsPage() {
                         fieldName={field?.name}
                     />
                 </div>
+
+                {/* Season-over-season comparison. Renders nothing until two
+                    observed seasons exist, so it appears only once the field
+                    has history worth comparing. */}
+                <SeasonHistoryCard fieldId={fieldId} />
 
                 {/* Season accumulations (additive; self-contained data hook) */}
                 <div className="lg:col-span-12 space-y-5">

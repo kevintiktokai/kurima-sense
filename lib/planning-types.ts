@@ -139,3 +139,39 @@ export interface StandAssessment {
     recommendation: string
     rationale: string[]
 }
+
+// --- Season history ---------------------------------------------------------
+
+export interface HistoryPoint {
+    date: string
+    days_after_planting: number
+    ndvi: number | null
+    evi: number | null
+}
+
+export interface SeasonHistory {
+    season_id: string
+    season_label: string | null
+    crop_type: string | null
+    variety: string | null
+    status: SeasonStatus | null
+    planting_date: string | null
+    points: HistoryPoint[]
+    peak_ndvi: number | null
+    days_to_peak: number | null
+    mean_ndvi: number | null
+    observation_count: number
+    peak_is_confident: boolean
+    target_population_per_ha: number | null
+    established_population_per_ha: number | null
+    yield_tonnes_per_ha: number | null
+}
+
+export type FieldTrend = 'unknown' | 'improving' | 'stable' | 'declining'
+
+export interface FieldHistory {
+    field_id: string
+    seasons: SeasonHistory[]
+    comparisons: string[]
+    trend: FieldTrend
+}

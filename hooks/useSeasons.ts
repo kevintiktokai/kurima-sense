@@ -11,6 +11,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { API_BASE_URL } from '@/lib/api-base'
 import type {
+    FieldHistory,
     PrePlantBrief,
     RotationSummary,
     Season,
@@ -247,4 +248,23 @@ export async function submitStandCheck(
     // the field's canonical state is now stale.
     void globalMutate(`field-state:${fieldId}`)
     return result
+}
+
+// --- Season history ---------------------------------------------------------
+
+export const seasonHistoryKey = (fieldId: string | null | undefined) =>
+    fieldId ? `season-history:${fieldId}` : null
+
+/**
+ * Season-over-season history for a field. Separate from useSeasons because it
+ * carries every observation for every season — far heavier than the season
+ * list, and only the history card needs it.
+ */
+export function useSeasonHistory(fieldId: string | null | undefined) {
+    const { data, error, isLoading } = useSWR<FieldHistory>(
+        seasonHistoryKey(fieldId),
+        () => authedJson<FieldHistory>(`/fields/${fieldId}/season-history`),
+        { revalidateOnFocus: false, dedupingInterval: 300_000, shouldRetryOnError: false }
+    )
+    return { history: data, isLoading, error: error as Error | undefined }
 }
