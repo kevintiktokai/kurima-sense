@@ -89,7 +89,7 @@ export default function PortfolioGrowersPage() {
                 <button
                     onClick={() => setShowForm(true)}
                     className="flex items-center gap-1.5 px-4 py-2.5 rounded-full font-bold text-sm flex-shrink-0 hover:scale-105 transition-transform"
-                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                 >
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
                     <span className="hidden sm:inline">Add grower</span>
@@ -105,7 +105,7 @@ export default function PortfolioGrowersPage() {
                     action={
                         <button onClick={refresh}
                             className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>Retry</button>
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>Retry</button>
                     } />
             )}
 
@@ -114,7 +114,7 @@ export default function PortfolioGrowersPage() {
                     action={
                         <button onClick={() => setShowForm(true)}
                             className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>Add grower</button>
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>Add grower</button>
                     } />
             )}
 
@@ -142,7 +142,7 @@ export default function PortfolioGrowersPage() {
                             action={
                                 <button onClick={clearSearch}
                                     className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>Clear search</button>
+                                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>Clear search</button>
                             } />
                     ) : (
                         <div className="space-y-3">

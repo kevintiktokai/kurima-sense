@@ -132,7 +132,7 @@ export default function PortfolioAlertsPage() {
                     action={
                         <button onClick={refresh}
                             className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>Retry</button>
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>Retry</button>
                     } />
             )}
 

@@ -29,7 +29,7 @@ function RoleChip({ role }: { role: MemberRole }) {
     return (
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
             style={managerial
-                ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                ? { background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }
                 : { background: 'var(--ee-bg)', color: 'var(--ee-muted)' }}>
             {ROLE_LABELS[role] ?? role}
         </span>
@@ -125,7 +125,7 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
                         </div>
                         <button onClick={onClose}
                             className="px-6 py-3 rounded-full font-bold text-sm"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>
                             Done
                         </button>
                     </div>
@@ -151,7 +151,7 @@ function InviteModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
                         {error && <p className="text-sm font-bold" style={{ color: '#dc2626' }}>{error}</p>}
                         <button onClick={submit} disabled={pending}
                             className="w-full py-3.5 rounded-full font-black text-sm disabled:opacity-50"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                             {pending ? 'Creating…' : 'Create invite code'}
                         </button>
                     </div>
@@ -181,7 +181,7 @@ function MemberRow({ member, canManage, isSelf, onError }: {
             style={{ background: 'var(--ee-surface)', borderRadius: '20px', boxShadow: 'var(--shadow-neu)', opacity: member.status === 'suspended' ? 0.65 : 1 }}>
             {/* Avatar */}
             <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-black text-sm"
-                style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                 {memberName(member).slice(0, 2).toUpperCase()}
             </div>
 
@@ -282,7 +282,7 @@ export default function TeamPage() {
                 {canManage && (
                     <button onClick={() => setShowInvite(true)}
                         className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-black hover:scale-105 transition-transform"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 18 }}>person_add</span>
                         Invite
                     </button>
@@ -309,7 +309,7 @@ export default function TeamPage() {
                     <p className="text-sm mt-1 mb-5" style={{ color: 'var(--ee-muted)' }}>{error.message}</p>
                     <button onClick={refresh}
                         className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>
                         Retry
                     </button>
                 </div>

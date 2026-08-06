@@ -23,7 +23,7 @@ export interface SeverityStyle {
 const SEVERITY_STYLES: Record<ZoneSeverity, SeverityStyle> = {
     problem: { label: 'Well behind', color: '#dc2626', surfaced: true },
     watch: { label: 'Behind', color: '#ea580c', surfaced: true },
-    ok: { label: 'In line', color: '#0fb885', surfaced: false },
+    ok: { label: 'In line', color: '#6DBE45', surfaced: false },
     unknown: { label: 'Not analysed', color: '#9ca3af', surfaced: false },
 }
 
@@ -42,7 +42,7 @@ export interface VerdictStyle {
 const VERDICT_STYLES: Record<ZoneVerdict, VerdictStyle> = {
     persistent: { label: 'Every season', color: '#dc2626', structural: true },
     occasional: { label: 'Some seasons', color: '#eab308', structural: false },
-    consistent: { label: 'Keeps up', color: '#0fb885', structural: false },
+    consistent: { label: 'Keeps up', color: '#6DBE45', structural: false },
     insufficient: { label: 'Too little history', color: '#9ca3af', structural: false },
 }
 

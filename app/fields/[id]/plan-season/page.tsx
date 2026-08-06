@@ -257,7 +257,7 @@ export default function PlanSeasonPage() {
                     <button
                         onClick={() => setStep(2)}
                         className="w-full py-3.5 rounded-[16px] font-bold"
-                        style={{ background: 'var(--ee-primary)', color: '#fff', fontFamily: 'var(--font-body)' }}
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-body)' }}
                     >
                         Continue
                     </button>
@@ -390,7 +390,7 @@ export default function PlanSeasonPage() {
                         <button
                             onClick={() => setStep(3)}
                             className="flex-[2] py-3.5 rounded-[16px] font-bold"
-                            style={{ background: 'var(--ee-primary)', color: '#fff', fontFamily: 'var(--font-body)' }}
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-body)' }}
                         >
                             See the plan
                         </button>
@@ -459,7 +459,7 @@ export default function PlanSeasonPage() {
                             onClick={save}
                             disabled={saving || isLoading}
                             className="flex-[2] py-3.5 rounded-[16px] font-bold disabled:opacity-60"
-                            style={{ background: 'var(--ee-primary)', color: '#fff', fontFamily: 'var(--font-body)' }}
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-body)' }}
                         >
                             {saving ? 'Saving…' : 'Save this plan'}
                         </button>

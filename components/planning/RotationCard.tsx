@@ -149,7 +149,7 @@ export function RotationCard({ rotation, loading, onAddPastSeason }: Props) {
                             className="text-sm font-bold py-2 px-4 rounded-[12px]"
                             style={{
                                 background: 'var(--ee-primary)',
-                                color: '#fff',
+                                color: 'var(--ee-on-primary)',
                                 fontFamily: 'var(--font-body)',
                             }}
                         >

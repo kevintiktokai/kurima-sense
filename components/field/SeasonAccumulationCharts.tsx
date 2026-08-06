@@ -186,7 +186,7 @@ export function SeasonAccumulationCharts({ fieldId, surface }: SeasonAccumulatio
                     <button
                         onClick={() => mutate(`${API_BASE_URL}/field/${fieldId}/season-accumulations`)}
                         className="text-sm font-bold rounded-full px-4 py-1.5"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                     >
                         Retry
                     </button>

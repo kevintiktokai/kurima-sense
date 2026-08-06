@@ -161,7 +161,7 @@ export function GrowerForm({ grower, onSubmit, onClose }: GrowerFormProps) {
                             onClick={handleSubmit}
                             disabled={pending}
                             className="flex-1 py-3 rounded-[16px] font-black transition-all disabled:opacity-50"
-                            style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}
+                            style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}
                         >
                             {pending ? 'Saving…' : grower ? 'Save' : 'Add grower'}
                         </button>

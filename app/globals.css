@@ -34,8 +34,8 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /* EARTHY ELEGANCE BRAND COLORS */
-  --color-brand-primary: #0fb885;
-  --color-brand-bg: #F4F1ED;
+  --color-brand-primary: #6DBE45;
+  --color-brand-bg: #FBF8F2;
   --color-brand-bg-dim: #f3f0ec;
   --color-brand-bg-pressed: #e5e2dd;
   --color-brand-bg-border: #e0ddd8;
@@ -48,7 +48,7 @@
 
   /* Legacy aliases for compatibility */
   --color-brand-dark: #2D3A30;
-  --color-brand-lime: #0fb885;
+  --color-brand-lime: #6DBE45;
   --color-brand-beige: #F4F1ED;
 
   /* Neumorphic Shadows */
@@ -98,8 +98,21 @@
 /* ── CSS Custom Properties ── */
 :root {
   /* Colors */
-  --ee-primary: #0fb885;
-  --ee-bg: #F4F1ED;
+  /* The logo's leaf green, matched to the Velocity Playbook. Was #0fb885, a
+     teal-mint that shared nothing with the mark or with any document a client
+     has actually seen. */
+  --ee-primary: #6DBE45;
+
+  /* Text and icons on a --ee-primary fill.
+     NOT white. White on this green is 2.31:1 and fails WCAG AA — as it already
+     did on the old teal at 2.56:1, which is a pre-existing bug the colour
+     change would otherwise have made worse. The deep ink below is 5.54:1. */
+  --ee-on-primary: #0B3A22;
+
+  /* Heading ink, from the playbook. Deeper and greener than --ee-text, which
+     stays as body copy. */
+  --ee-ink: #0B3A22;
+  --ee-bg: #FBF8F2;
   --ee-bg-dim: #f3f0ec;
   --ee-bg-pressed: #e5e2dd;
   --ee-bg-border: #e0ddd8;
@@ -117,14 +130,14 @@
   /* ── Institutional depth palette (Phase 3 redesign) ──
      Dominant dark loam base for institution-credible sections, warm earth
      neutrals for body, brand green as a single signal accent (not a wash). */
-  --ee-loam: #0E1A14;          /* deep forest-black — institutional base */
+  --ee-loam: #062515;          /* deep forest — the playbook's cover */
   --ee-loam-soft: #16271E;     /* lifted panel sitting on loam */
   --ee-loam-line: rgba(255, 255, 255, 0.09);
   --ee-loam-muted: rgba(233, 228, 219, 0.62);
   --ee-clay: #C8A98A;          /* warm sand / clay neutral */
   --ee-soil: #6B5847;          /* deep soil brown */
   --ee-oat-deep: #E9E4DB;      /* deeper oat for layering */
-  --ee-green-bright: #2DD4A7;  /* green accent legible on loam */
+  --ee-green-bright: #8FD46A;  /* leaf green lifted for legibility on loam */
 
   /* Radii */
   --radius-ee-sm: 8px;
@@ -149,8 +162,8 @@
   --card-foreground: 144 14% 20%;
   --popover: 0 0% 100%;
   --popover-foreground: 144 14% 20%;
-  --primary: 157 83% 39%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 100 48% 51%;
+  --primary-foreground: 149 68% 14%;
   --secondary: 37 18% 94%;
   --secondary-foreground: 144 14% 20%;
   --muted: 144 10% 58%;
@@ -161,7 +174,7 @@
   --destructive-foreground: 0 0% 100%;
   --border: 35 10% 86%;
   --input: 35 10% 86%;
-  --ring: 157 83% 39%;
+  --ring: 100 48% 51%;
   --radius: 1.5rem;
 }
 
