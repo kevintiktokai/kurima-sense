@@ -352,14 +352,32 @@ inconsistent documents and no keystone.
 
 ---
 
-## 8. What I need from you before starting
+## 8. Decisions taken
 
-1. **Confirm the priority order** — Evidence Pack first, or your original order?
-   This is the one decision that changes the whole sequence.
-2. **Brand assets.** Logo in vector, and any existing print collateral to match.
-   I've only seen the app's CSS tokens.
-3. **Is there a real STP submission format** a leaf buyer expects, or is the
-   contractor assembling it themselves? If BAT publishes a template, matching it
-   beats inventing one.
-4. **Servemox data access** — the pack should be built against real fields, not
-   fixtures, or it will be wrong in ways only real data reveals.
+Answered 6 August 2026.
+
+1. **Priority: Evidence Pack first.** The playbook's order, not the original
+   one. Portfolio report, field report and season plan follow.
+2. **Brand assets: a kit exists** and is to be supplied. Until it arrives the
+   documents use the app's CSS tokens with the wordmark set in Fraunces. Only
+   the mark is affected — swapping it is a one-file change to `base.html` and
+   the cover band, so nothing else waits on it.
+3. **No real STP submission format available.** The pack is built around the
+   four themes the playbook names, structured so the same data layer can be
+   re-laid-out to a real template later without touching the assembly.
+4. **Servemox data access** — still outstanding. The pack currently renders
+   against fixtures. See §9.
+
+## 9. Still outstanding
+
+- **Brand kit.** The only thing blocking a final cover.
+- **Real client data.** The pack will be wrong in ways only real data reveals —
+  growers with no fields, fields with no observations in a window, duplicate
+  TIMB numbers. The assembly handles all three deliberately, but "handles" is a
+  claim that needs testing against a real portfolio.
+- **Agronomist sign-off**, now including `THEME_ADEQUATE_SHARE`, which decides
+  what the pack presents as adequate coverage of an STP theme.
+- **Document registry.** Issue numbers are generated but not yet persisted, so
+  nothing tracks what was issued to whom. Needed before the playbook's
+  "evidence packs issued and forwarded" metric means anything.
+- **Recovery baseline capture** (§3.4) — still the date-critical one.
