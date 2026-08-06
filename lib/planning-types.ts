@@ -175,3 +175,34 @@ export interface FieldHistory {
     comparisons: string[]
     trend: FieldTrend
 }
+
+// --- Action windows ---------------------------------------------------------
+
+export type WindowState = 'upcoming' | 'open' | 'closing' | 'closed'
+export type WindowCategory = 'establishment' | 'weed' | 'nutrition' | 'protection'
+
+export interface ActionWindow {
+    key: string
+    title: string
+    category: WindowCategory
+    opens_day: number
+    closes_day: number
+    irreversible: boolean
+    cost_pct: number | null
+    cost_of_missing: string
+    why: string
+    stage_code: string | null
+    opens_date: string | null
+    closes_date: string | null
+    days_remaining: number | null
+    state: WindowState
+}
+
+export interface ActionWindowsResponse {
+    field_id: string
+    season_id: string | null
+    crop_type?: string | null
+    planting_date?: string | null
+    windows: ActionWindow[]
+    reason?: string
+}
