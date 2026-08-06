@@ -82,7 +82,7 @@ function Body({ plan }: { plan: PostHarvestPlan }) {
             {plan.storage_moisture_pct !== null && (
                 <div
                     className="rounded-[16px] p-4 mb-4"
-                    style={{ background: 'var(--ee-primary)', color: '#fff' }}
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                 >
                     <p
                         className="text-[10px] font-bold uppercase opacity-80 mb-1"

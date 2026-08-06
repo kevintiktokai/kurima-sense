@@ -153,7 +153,7 @@ function EditModal({ fieldId, initial, onClose, onSaved }: {
 
                     <button onClick={submit} disabled={pending}
                         className="w-full py-3.5 rounded-full font-black text-sm disabled:opacity-50"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                         {pending ? 'Saving…' : 'Save changes'}
                     </button>
                 </div>

@@ -501,8 +501,8 @@ export default function FieldInsightsPage() {
                                     <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorKurima" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.25} />
-                                                <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
+                                                <stop offset="5%" stopColor="#6DBE45" stopOpacity={0.25} />
+                                                <stop offset="95%" stopColor="#6DBE45" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E4DF" />
@@ -525,10 +525,10 @@ export default function FieldInsightsPage() {
                                             label={{ value: 'KurimaScore (0–100)', angle: -90, position: 'insideLeft', style: { fill: '#8B9D8F', fontSize: 10, fontWeight: 700 } }}
                                         />
                                         {/* Score bands as background regions: Strong/Adequate/Stressed */}
-                                        <ReferenceArea y1={70} y2={100} fill="#0fb885" fillOpacity={0.06} />
+                                        <ReferenceArea y1={70} y2={100} fill="#6DBE45" fillOpacity={0.06} />
                                         <ReferenceArea y1={55} y2={70} fill="#EAB308" fillOpacity={0.06} />
                                         <ReferenceArea y1={0} y2={55} fill="#dc2626" fillOpacity={0.05} />
-                                        <ReferenceLine y={70} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Strong', position: 'right', fontSize: 9, fill: '#0fb885' }} />
+                                        <ReferenceLine y={70} stroke="#6DBE45" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Strong', position: 'right', fontSize: 9, fill: '#6DBE45' }} />
                                         <ReferenceLine y={55} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Adequate', position: 'right', fontSize: 9, fill: '#EAB308' }} />
                                         <ReferenceLine y={40} stroke="#dc2626" strokeDasharray="4 4" strokeOpacity={0.4} label={{ value: 'Stressed', position: 'right', fontSize: 9, fill: '#dc2626' }} />
                                         <Tooltip
@@ -543,7 +543,7 @@ export default function FieldInsightsPage() {
                                             cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }}
                                             labelFormatter={(val) => new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         />
-                                        <Area type="monotone" dataKey="kurima_score" stroke="#0fb885" strokeWidth={3} fillOpacity={1} fill="url(#colorKurima)" name="KurimaScore" connectNulls />
+                                        <Area type="monotone" dataKey="kurima_score" stroke="#6DBE45" strokeWidth={3} fillOpacity={1} fill="url(#colorKurima)" name="KurimaScore" connectNulls />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -818,7 +818,7 @@ export default function FieldInsightsPage() {
                                     className="flex-1 py-3.5 rounded-[16px] font-black transition-all disabled:opacity-50"
                                     style={{
                                         background: 'var(--ee-primary)',
-                                        color: '#FFFFFF',
+                                        color: 'var(--ee-on-primary)',
                                         fontFamily: 'var(--font-heading)',
                                     }}
                                 >

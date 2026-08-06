@@ -149,7 +149,7 @@ export default function IrrigationAdvisorCard({ fieldId, fieldName }: {
                     onClick={onApply}
                     disabled={applyState === 'pending' || applyState === 'done'}
                     className="w-full py-3 rounded-[14px] font-bold text-sm transition-all hover:opacity-90 disabled:opacity-60"
-                    style={{ background: 'var(--ee-primary)', color: '#fff', fontFamily: 'var(--font-body)' }}
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-body)' }}
                 >
                     {applyState === 'done' ? '✓ Added to your plan'
                         : applyState === 'pending' ? 'Adding…'

@@ -69,7 +69,7 @@ function OutlookRow({ rec }: { rec: IrrigationRecommendation }) {
                                 onClick={onApply}
                                 disabled={applyState === 'pending' || applyState === 'done'}
                                 className="px-4 py-2 rounded-[12px] font-bold text-xs disabled:opacity-60"
-                                style={{ background: 'var(--ee-primary)', color: '#fff' }}
+                                style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                             >
                                 {applyState === 'done' ? '✓ In your plan'
                                     : applyState === 'pending' ? 'Adding…'

@@ -54,7 +54,7 @@ function JoinOrganisationCard() {
                     onClick={redeem}
                     disabled={pending || !code.trim()}
                     className="px-5 py-3 rounded-[14px] font-bold text-sm disabled:opacity-50 flex-shrink-0"
-                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                 >
                     {pending ? 'Joining…' : 'Join'}
                 </button>

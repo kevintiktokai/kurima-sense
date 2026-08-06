@@ -120,8 +120,8 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="confidenceGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0fb885" stopOpacity={0.2} />
-                                <stop offset="95%" stopColor="#0fb885" stopOpacity={0.02} />
+                                <stop offset="5%" stopColor="#6DBE45" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#6DBE45" stopOpacity={0.02} />
                             </linearGradient>
                             <linearGradient id="midGradient" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#2D3A30" stopOpacity={0.6} />
@@ -163,7 +163,7 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                         <Area
                             type="monotone"
                             dataKey="high"
-                            stroke="#0fb885"
+                            stroke="#6DBE45"
                             strokeWidth={2}
                             strokeDasharray="4 4"
                             fill="url(#confidenceGradient)"
@@ -173,7 +173,7 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                         <Area
                             type="monotone"
                             dataKey="low"
-                            stroke="#0fb885"
+                            stroke="#6DBE45"
                             strokeWidth={2}
                             strokeDasharray="4 4"
                             fill="white"
@@ -196,10 +196,10 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
                         <Area
                             type="monotone"
                             dataKey="actual"
-                            stroke="#0fb885"
+                            stroke="#6DBE45"
                             strokeWidth={2}
                             fill="none"
-                            dot={{ fill: '#0fb885', strokeWidth: 2 }}
+                            dot={{ fill: '#6DBE45', strokeWidth: 2 }}
                             name="actual"
                         />
                     </AreaChart>

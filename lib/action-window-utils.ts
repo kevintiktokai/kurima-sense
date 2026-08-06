@@ -18,7 +18,7 @@ export interface WindowStateStyle {
 
 const STATE_STYLES: Record<WindowState, WindowStateStyle> = {
     closing: { label: 'Closing', color: '#dc2626', urgent: true },
-    open: { label: 'Open now', color: '#0fb885', urgent: false },
+    open: { label: 'Open now', color: '#6DBE45', urgent: false },
     upcoming: { label: 'Coming up', color: '#64748b', urgent: false },
     closed: { label: 'Closed', color: '#9ca3af', urgent: false },
 }

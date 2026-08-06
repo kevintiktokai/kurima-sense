@@ -22,7 +22,7 @@ export function RichStatCard({
     trend,
     trendValue,
     data,
-    color = "#0fb885",
+    color = "#6DBE45",
     icon,
     className
 }: RichStatCardProps) {

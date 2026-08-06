@@ -46,7 +46,7 @@ function Notice({
                 <Link
                     href={cta.href}
                     className="inline-block text-sm font-bold py-2.5 px-4 rounded-[12px]"
-                    style={{ background: 'var(--ee-primary)', color: '#fff', fontFamily: 'var(--font-body)' }}
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-body)' }}
                 >
                     {cta.label}
                 </Link>

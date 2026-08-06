@@ -132,7 +132,7 @@ function LogForm({ fieldId, onDone, onCancel }: { fieldId: string; onDone: () =>
                 </button>
                 <button onClick={submit} disabled={pending}
                     className="flex-1 py-2.5 rounded-full text-sm font-black disabled:opacity-50"
-                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                     {pending ? 'Saving…' : 'Save to field record'}
                 </button>
             </div>
@@ -217,7 +217,7 @@ export function FieldActivityTimeline({ fieldId, canLog = true }: { fieldId: str
                 {canLog && !showForm && (
                     <button onClick={() => setShowForm(true)}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black hover:scale-105 transition-transform"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
                         Log activity
                     </button>

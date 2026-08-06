@@ -94,7 +94,7 @@ export default function InstitutionalFieldDetailPage() {
                     <button
                         onClick={() => refresh()}
                         className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}
                     >
                         Retry
                     </button>
@@ -250,8 +250,8 @@ export default function InstitutionalFieldDetailPage() {
                                 <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorKurimaInst" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#0fb885" stopOpacity={0.25} />
-                                            <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#6DBE45" stopOpacity={0.25} />
+                                            <stop offset="95%" stopColor="#6DBE45" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8E4DF" />
@@ -264,10 +264,10 @@ export default function InstitutionalFieldDetailPage() {
                                         axisLine={false} tickLine={false} domain={[0, 100]}
                                         tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }}
                                     />
-                                    <ReferenceArea y1={70} y2={100} fill="#0fb885" fillOpacity={0.06} />
+                                    <ReferenceArea y1={70} y2={100} fill="#6DBE45" fillOpacity={0.06} />
                                     <ReferenceArea y1={55} y2={70} fill="#EAB308" fillOpacity={0.06} />
                                     <ReferenceArea y1={0} y2={55} fill="#dc2626" fillOpacity={0.05} />
-                                    <ReferenceLine y={70} stroke="#0fb885" strokeDasharray="4 4" strokeOpacity={0.4} />
+                                    <ReferenceLine y={70} stroke="#6DBE45" strokeDasharray="4 4" strokeOpacity={0.4} />
                                     <ReferenceLine y={55} stroke="#EAB308" strokeDasharray="4 4" strokeOpacity={0.4} />
                                     <Tooltip
                                         contentStyle={{
@@ -278,7 +278,7 @@ export default function InstitutionalFieldDetailPage() {
                                         cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }}
                                         labelFormatter={(val) => new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     />
-                                    <Area type="monotone" dataKey="kurima_score" stroke="#0fb885" strokeWidth={3}
+                                    <Area type="monotone" dataKey="kurima_score" stroke="#6DBE45" strokeWidth={3}
                                         fillOpacity={1} fill="url(#colorKurimaInst)" name="KurimaScore" connectNulls />
                                 </AreaChart>
                             </ResponsiveContainer>

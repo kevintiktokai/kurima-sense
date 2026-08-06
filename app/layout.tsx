@@ -93,7 +93,7 @@ const appleSplashScreens = [
 ];
 
 export const viewport: Viewport = {
-  themeColor: "#0fb885",
+  themeColor: "#6DBE45",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

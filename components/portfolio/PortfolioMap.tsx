@@ -325,7 +325,7 @@ export default function PortfolioMap({ priorities }: PortfolioMapProps) {
                             onClick={() => setLayer(l)}
                             className="px-3 py-1.5 rounded-full text-xs font-bold transition-colors"
                             style={layer === l
-                                ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                ? { background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }
                                 : { background: 'transparent', color: 'var(--ee-muted)' }}
                         >
                             {MAP_LAYER_LABELS[l]}

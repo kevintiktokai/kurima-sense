@@ -335,8 +335,8 @@ export default function WeatherPage() {
                             <ComposedChart data={hourlyChartData}>
                                 <defs>
                                     <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0fb885" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#6DBE45" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#6DBE45" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <XAxis
@@ -369,7 +369,7 @@ export default function WeatherPage() {
                                         color: '#fff',
                                         fontFamily: 'var(--font-body)'
                                     }}
-                                    itemStyle={{ color: '#0fb885' }}
+                                    itemStyle={{ color: '#6DBE45' }}
                                 />
                                 <Area
                                     yAxisId="temp"
@@ -529,19 +529,19 @@ export default function WeatherPage() {
                                         <AreaChart data={gddData}>
                                             <defs>
                                                 <linearGradient id="gddGradient" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#0fb885" stopOpacity={0.8} />
-                                                    <stop offset="95%" stopColor="#0fb885" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#6DBE45" stopOpacity={0.8} />
+                                                    <stop offset="95%" stopColor="#6DBE45" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#2D3A30', borderRadius: '16px', border: 'none', fontFamily: 'var(--font-body)' }}
-                                                labelStyle={{ color: '#0fb885' }}
+                                                labelStyle={{ color: '#6DBE45' }}
                                                 itemStyle={{ color: '#fff' }}
                                             />
                                             <Area
                                                 type="monotone"
                                                 dataKey="cumulative"
-                                                stroke="#0fb885"
+                                                stroke="#6DBE45"
                                                 strokeWidth={2}
                                                 fillOpacity={1}
                                                 fill="url(#gddGradient)"

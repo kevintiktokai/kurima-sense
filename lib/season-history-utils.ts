@@ -11,7 +11,7 @@ import type { FieldHistory, FieldTrend, SeasonHistory } from './planning-types'
 
 // Distinct, colour-blind-safe series colours. The current season always takes
 // index 0, so it reads as "yours now" against the muted history behind it.
-export const SERIES_COLORS = ['#0fb885', '#6366f1', '#ea580c', '#64748b', '#a855f7']
+export const SERIES_COLORS = ['#6DBE45', '#6366f1', '#ea580c', '#64748b', '#a855f7']
 
 export interface SeasonSeries {
     seasonId: string
@@ -94,7 +94,7 @@ export interface TrendStyle {
 }
 
 const TREND_STYLES: Record<FieldTrend, TrendStyle> = {
-    improving: { label: 'Improving', color: '#0fb885', icon: 'trending_up' },
+    improving: { label: 'Improving', color: '#6DBE45', icon: 'trending_up' },
     stable: { label: 'Holding steady', color: '#64748b', icon: 'trending_flat' },
     declining: { label: 'Declining', color: '#ea580c', icon: 'trending_down' },
     unknown: { label: 'Not enough history', color: '#9ca3af', icon: 'help' },

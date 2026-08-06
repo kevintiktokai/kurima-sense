@@ -25,6 +25,12 @@ CI runs `tsc --noEmit` + `npm test` on every push and PR to `main`.
   broken or "no data" card on the farmer's main surface.
 - Styling uses CSS custom properties (`--ee-bg`, `--ee-text`, `--ee-primary`,
   `--shadow-neu*`) — not Tailwind colour classes.
+- **Text on a `--ee-primary` fill is `--ee-on-primary`, never white.** White is
+  2.31:1 against the brand green and fails WCAG AA. `tests/brand-tokens.test.ts`
+  enforces both the ratio and the absence of white-on-primary in components.
+- The palette is the **logo and the Velocity Playbook**, not the other way
+  round. `services/documents/tokens.py` in the backend samples the same values;
+  if one side changes, change both.
 
 ## Kev Kreds
 

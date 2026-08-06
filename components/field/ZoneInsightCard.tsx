@@ -109,8 +109,8 @@ function HistoryRow({ track }: { track: ZoneTrack }) {
                         key={i}
                         className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{
-                            background: m.behind ? '#dc262622' : '#0fb88522',
-                            color: m.behind ? '#dc2626' : '#0fb885',
+                            background: m.behind ? '#dc262622' : '#6DBE4522',
+                            color: m.behind ? '#dc2626' : '#6DBE45',
                             fontFamily: 'var(--font-body)',
                         }}
                         title={m.behind ? 'Behind the field' : 'Kept up'}

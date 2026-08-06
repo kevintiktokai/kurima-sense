@@ -16,7 +16,7 @@ import {
 const p = (id: string): PortfolioPriority => ({
     field_id: id, field_name: `F${id}`, grower_id: null, grower_name: null,
     district: null, natural_region: null, crop_type: 'maize', variety: null,
-    size_hectares: 1, kurima_score: 70, kurima_label: 'Good', kurima_color: '#0fb885',
+    size_hectares: 1, kurima_score: 70, kurima_label: 'Good', kurima_color: '#6DBE45',
     primary_concern: '', recommended_action: '', urgency: 'none' as never,
     days_since_observation: 1, planting_date: null, days_since_planting: null,
 })

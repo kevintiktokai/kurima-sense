@@ -22,7 +22,7 @@ export interface StatusStyle {
 
 const STATUS_STYLES: Record<SeasonStatus, StatusStyle> = {
     planned: { label: 'Planned', color: '#6366f1', nextAction: 'Confirm planting' },
-    active: { label: 'Growing', color: '#0fb885', nextAction: 'Record harvest' },
+    active: { label: 'Growing', color: '#6DBE45', nextAction: 'Record harvest' },
     harvested: { label: 'Harvested', color: '#eab308', nextAction: 'Close season' },
     closed: { label: 'Closed', color: '#64748b', nextAction: null },
     abandoned: { label: 'Abandoned', color: '#94a3b8', nextAction: null },
@@ -61,7 +61,7 @@ export interface RiskStyle {
 const RISK_STYLES: Record<RotationRisk, RiskStyle> = {
     high: { label: 'High disease carry-over risk', color: '#dc2626', prominent: true },
     moderate: { label: 'Moderate carry-over risk', color: '#eab308', prominent: true },
-    low: { label: 'Good rotation', color: '#0fb885', prominent: false },
+    low: { label: 'Good rotation', color: '#6DBE45', prominent: false },
     unknown: { label: 'No history yet', color: '#9ca3af', prominent: false },
 }
 
@@ -80,7 +80,7 @@ export interface VerdictStyle {
 }
 
 const VERDICT_STYLES: Record<StandVerdict, VerdictStyle> = {
-    good: { label: 'On target', color: '#0fb885', actionable: false },
+    good: { label: 'On target', color: '#6DBE45', actionable: false },
     acceptable: { label: 'Slightly below target', color: '#65a30d', actionable: false },
     thin: { label: 'Thin stand', color: '#ea580c', actionable: true },
     severely_thin: { label: 'Severely thin', color: '#dc2626', actionable: true },

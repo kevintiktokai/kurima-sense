@@ -63,7 +63,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
             <p className="text-sm mt-1 mb-5" style={{ color: 'var(--ee-muted)' }}>Check your connection and try again.</p>
             <button onClick={onRetry}
                 className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>
+                style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>
                 Retry
             </button>
         </div>
@@ -94,7 +94,7 @@ function EmptyFilterState({ onClear }: { onClear: () => void }) {
             <p className="text-sm mt-1 mb-5" style={{ color: 'var(--ee-muted)' }}>Try widening your search or filters.</p>
             <button onClick={onClear}
                 className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>
+                style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>
                 Clear all filters
             </button>
         </div>
@@ -205,7 +205,7 @@ export default function PortfolioFieldsPage() {
                             <button onClick={() => setAssignee('')}
                                 className="px-3 py-1 rounded-full text-xs font-bold transition-colors"
                                 style={assignee === ''
-                                    ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                    ? { background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }
                                     : { background: 'var(--ee-surface)', color: 'var(--ee-muted)', boxShadow: 'var(--shadow-neu)' }}>
                                 Everyone
                             </button>
@@ -213,7 +213,7 @@ export default function PortfolioFieldsPage() {
                                 <button key={chip.userId} onClick={() => setAssignee(assignee === chip.userId ? '' : chip.userId)}
                                     className="px-3 py-1 rounded-full text-xs font-bold transition-colors"
                                     style={assignee === chip.userId
-                                        ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                        ? { background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }
                                         : { background: 'var(--ee-surface)', color: 'var(--ee-muted)', boxShadow: 'var(--shadow-neu)' }}>
                                     {chip.name} · {chip.count}
                                 </button>
@@ -234,7 +234,7 @@ export default function PortfolioFieldsPage() {
                                     onClick={() => setView(v)}
                                     className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-colors"
                                     style={view === v
-                                        ? { background: 'var(--ee-primary)', color: '#FFFFFF' }
+                                        ? { background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }
                                         : { background: 'transparent', color: 'var(--ee-muted)' }}
                                 >
                                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>

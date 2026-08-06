@@ -819,7 +819,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
                                     className="flex-1 py-3.5 rounded-[16px] font-black transition-all disabled:opacity-50"
                                     style={{
                                         background: 'var(--ee-primary)',
-                                        color: '#FFFFFF',
+                                        color: 'var(--ee-on-primary)',
                                         fontFamily: 'var(--font-heading)',
                                         boxShadow: 'var(--shadow-neu)',
                                     }}

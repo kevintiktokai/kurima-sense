@@ -54,7 +54,7 @@ function RoleGuardError({ onRetry }: { onRetry: () => void }) {
                 </p>
                 <button onClick={onRetry}
                     className="px-6 py-3 rounded-full font-bold text-sm hover:scale-105 transition-transform"
-                    style={{ background: 'var(--ee-primary)', color: '#FFFFFF' }}>
+                    style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)' }}>
                     Try again
                 </button>
             </div>

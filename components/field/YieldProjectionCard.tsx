@@ -74,7 +74,7 @@ export function YieldProjectionCard({ fieldId, cropLabel }: { fieldId: string; c
                     {error && <p className="text-sm font-bold mb-3" style={{ color: '#dc2626' }}>{error}</p>}
                     <button onClick={generate} disabled={pending}
                         className="flex items-center gap-2 px-5 py-3 rounded-full font-black text-sm disabled:opacity-60 hover:scale-105 transition-transform"
-                        style={{ background: 'var(--ee-primary)', color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+                        style={{ background: 'var(--ee-primary)', color: 'var(--ee-on-primary)', fontFamily: 'var(--font-heading)' }}>
                         <span className={`material-symbols-outlined ${pending ? 'animate-spin' : ''}`} style={{ fontSize: 18 }}>
                             {pending ? 'progress_activity' : 'insights'}
                         </span>
