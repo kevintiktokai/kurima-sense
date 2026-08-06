@@ -211,15 +211,15 @@ export default function HeroArtifact() {
                     <svg viewBox={`0 0 ${chart.w} ${chart.h}`} className="w-full h-[88px]" preserveAspectRatio="none" aria-hidden>
                         <defs>
                             <linearGradient id="ks-band" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#2DD4A7" stopOpacity="0.32" />
-                                <stop offset="100%" stopColor="#2DD4A7" stopOpacity="0.04" />
+                                <stop offset="0%" stopColor="#8FD46A" stopOpacity="0.32" />
+                                <stop offset="100%" stopColor="#8FD46A" stopOpacity="0.04" />
                             </linearGradient>
                         </defs>
                         <path d={chart.band} fill="url(#ks-band)" />
                         <motion.path
                             d={chart.mid}
                             fill="none"
-                            stroke="#2DD4A7"
+                            stroke="#8FD46A"
                             strokeWidth={2.5}
                             strokeLinecap="round"
                             initial={reduceMotion ? undefined : { pathLength: 0 }}
