@@ -228,3 +228,27 @@ export interface PostHarvestPlan {
     steps: PostHarvestStep[]
     warnings: string[]
 }
+
+// --- Season retrospective ---------------------------------------------------
+
+export interface GapFactor {
+    key: string
+    label: string
+    tonnes_per_ha: number
+    evidence: string
+    controllable: boolean
+    next_season: string
+}
+
+export interface Retrospective {
+    season_id: string
+    crop_type: string | null
+    variety: string | null
+    actual_yield_t_ha: number | null
+    potential_yield_t_ha: number | null
+    gap_t_ha: number | null
+    factors: GapFactor[]
+    unexplained_t_ha: number | null
+    headline: string
+    notes: string[]
+}

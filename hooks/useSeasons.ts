@@ -15,6 +15,7 @@ import type {
     FieldHistory,
     PostHarvestPlan,
     PrePlantBrief,
+    Retrospective,
     RotationSummary,
     Season,
     StandAssessment,
@@ -315,4 +316,19 @@ export function usePostHarvestPlan(
         { revalidateOnFocus: false, dedupingInterval: 600_000, shouldRetryOnError: false }
     )
     return { plan: data, isLoading, error: error as Error | undefined }
+}
+
+// --- Retrospective ----------------------------------------------------------
+
+export const retrospectiveKey = (seasonId: string | null | undefined) =>
+    seasonId ? `retrospective:${seasonId}` : null
+
+/** Where a finished season's yield gap went. Static once a season is closed. */
+export function useRetrospective(seasonId: string | null | undefined) {
+    const { data, error, isLoading } = useSWR<Retrospective>(
+        retrospectiveKey(seasonId),
+        () => authedJson<Retrospective>(`/seasons/${seasonId}/retrospective`),
+        { revalidateOnFocus: false, dedupingInterval: 600_000, shouldRetryOnError: false }
+    )
+    return { retrospective: data, isLoading, error: error as Error | undefined }
 }
