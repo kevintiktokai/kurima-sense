@@ -467,6 +467,12 @@ export interface Grower {
     claimed_by_user_id?: string | null
     created_by_user_id?: string | null
     notes?: string | null
+    /**
+     * TIMB grower registration number. The join key to the sector's own
+     * register — what lets a leaf buyer check an evidence pack rather than just
+     * read it. Optional: plenty of growers are not registered tobacco growers.
+     */
+    timb_grower_number?: string | null
     created_at: string
     updated_at: string
 }
@@ -550,6 +556,7 @@ export interface GrowerFormValues {
     phone: string
     email: string
     notes: string
+    timbGrowerNumber: string
 }
 
 export interface GrowerPayload {
@@ -557,6 +564,7 @@ export interface GrowerPayload {
     phone?: string
     email?: string
     notes?: string
+    timb_grower_number?: string
 }
 
 /** Minimal email shape check — only meaningful when the user typed something. */
@@ -577,15 +585,34 @@ export function validateGrowerForm(values: GrowerFormValues): GrowerFormValidati
     return { valid: Object.keys(errors).length === 0, errors }
 }
 
+/**
+ * Normalise a TIMB grower number for display and submission.
+ *
+ * Case-folded and whitespace-collapsed, because the same number gets read off a
+ * card and typed by different people. Mirrors
+ * `services/documents/grower_number.py` on the backend, which normalises again
+ * on write — the two are matched by tests on both sides rather than shared over
+ * the wire, since the form has to show the tidied value before anything is sent.
+ *
+ * Deliberately **not** format-validated. TIMB's format isn't documented in
+ * anything we can verify, and a regex guessed from a few examples would reject
+ * valid growers — dropping them out of the traceability the pack claims.
+ */
+export function normaliseGrowerNumber(value: string): string {
+    return value.replace(/\s+/g, ' ').trim().toUpperCase()
+}
+
 /** Trim, and drop empty optional fields so the API never stores blank strings. */
 export function buildGrowerPayload(values: GrowerFormValues): GrowerPayload {
     const payload: GrowerPayload = { name: values.name.trim() }
     const phone = values.phone.trim()
     const email = values.email.trim()
     const notes = values.notes.trim()
+    const timb = normaliseGrowerNumber(values.timbGrowerNumber ?? '')
     if (phone) payload.phone = phone
     if (email) payload.email = email
     if (notes) payload.notes = notes
+    if (timb) payload.timb_grower_number = timb
     return payload
 }
 
