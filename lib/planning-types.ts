@@ -252,3 +252,55 @@ export interface Retrospective {
     headline: string
     notes: string[]
 }
+
+// --- Zone diagnosis & history -----------------------------------------------
+
+export type ZoneSeverity = 'ok' | 'watch' | 'problem' | 'unknown'
+
+export interface ZoneDiagnosis {
+    index: number
+    label: string
+    ndvi: number | null
+    gap_vs_field: number | null
+    severity: ZoneSeverity
+    summary: string
+    causes: string[]
+    observation_count: number
+    action: string
+}
+
+export interface ZoneDiagnosisResponse {
+    field_id: string
+    grid: number
+    field_mean_ndvi: number | null
+    zones: ZoneDiagnosis[]
+}
+
+export type ZoneVerdict = 'persistent' | 'occasional' | 'consistent' | 'insufficient'
+
+export interface ZoneSeasonPoint {
+    season_id: string
+    season_label: string | null
+    ndvi: number | null
+    field_mean: number | null
+    gap: number | null
+    behind: boolean
+}
+
+export interface ZoneTrack {
+    index: number
+    label: string
+    seasons_compared: number
+    seasons_behind: number
+    verdict: ZoneVerdict
+    summary: string
+    action: string
+    points: ZoneSeasonPoint[]
+}
+
+export interface ZoneHistoryResponse {
+    field_id: string
+    seasons_compared: number
+    zones: ZoneTrack[]
+    notes: string[]
+}

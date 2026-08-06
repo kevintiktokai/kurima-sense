@@ -114,3 +114,35 @@ export function useFieldSections(fieldId: string | undefined, grid = 2): UseFiel
 
     return { data, loading, error, analyzing, analyze, refresh }
 }
+
+// --- Zone diagnosis & history ------------------------------------------------
+
+import useSWR from 'swr'
+import type { ZoneDiagnosisResponse, ZoneHistoryResponse } from '@/lib/planning-types'
+
+async function zoneJson<T>(path: string): Promise<T> {
+    const headers = await getAuthHeaders()
+    const res = await fetch(`${API_BASE_URL}${path}`, { headers })
+    if (!res.ok) throw new Error(`Request failed (${res.status})`)
+    return (await res.json()) as T
+}
+
+/** Why each zone is where it is, worst first. */
+export function useZoneDiagnosis(fieldId: string | undefined) {
+    const { data, error, isLoading } = useSWR<ZoneDiagnosisResponse>(
+        fieldId ? `zone-diagnosis:${fieldId}` : null,
+        () => zoneJson<ZoneDiagnosisResponse>(`/fields/${fieldId}/zones/diagnosis`),
+        { revalidateOnFocus: false, dedupingInterval: 60_000, shouldRetryOnError: false }
+    )
+    return { diagnosis: data, isLoading, error: error as Error | undefined }
+}
+
+/** Which parts of the field are weak every season vs. just had a bad year. */
+export function useZoneHistory(fieldId: string | undefined) {
+    const { data, error, isLoading } = useSWR<ZoneHistoryResponse>(
+        fieldId ? `zone-history:${fieldId}` : null,
+        () => zoneJson<ZoneHistoryResponse>(`/fields/${fieldId}/zones/history`),
+        { revalidateOnFocus: false, dedupingInterval: 300_000, shouldRetryOnError: false }
+    )
+    return { history: data, isLoading, error: error as Error | undefined }
+}
