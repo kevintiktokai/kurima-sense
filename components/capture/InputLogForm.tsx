@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/input'
 import { VoiceInput } from '@/components/capture/VoiceInput'
 import { extractQuantity } from '@/lib/voice/parse'
 import { InputLogValidationError, submitInputLog } from '@/services/inputLog'
+import {
+    METHOD_OPTIONS,
+    looksLikeNitrogen,
+    methodWarning,
+    type ApplicationMethod,
+} from '@/lib/input-execution'
 
 interface Props {
     fieldId: string
@@ -22,6 +28,7 @@ export function InputLogForm({ fieldId, fieldLabel }: Props) {
     const [inputType, setInputType] = useState('')
     const [quantity, setQuantity] = useState('')
     const [unit, setUnit] = useState('')
+    const [method, setMethod] = useState<ApplicationMethod | null>(null)
     const [heard, setHeard] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [outcome, setOutcome] = useState<Outcome | null>(null)
@@ -59,6 +66,12 @@ export function InputLogForm({ fieldId, fieldLabel }: Props) {
                 input_type: inputType.trim(),
                 quantity: Number(quantity),
                 unit: unit.trim(),
+                // Only sent when it was asked for, so a non-nitrogen entry
+                // carries no phantom method.
+                ...(method ? { application_method: method } : {}),
+                ...(method
+                    ? { incorporated: method === 'incorporated' || method === 'banded' }
+                    : {}),
             })
             setOutcome({ kind: res.status === 'submitted' ? 'submitted' : 'queued' })
             if (res.status === 'submitted') setTimeout(() => router.back(), 1200)
@@ -105,6 +118,54 @@ export function InputLogForm({ fieldId, fieldLabel }: Props) {
                     <Input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="kg, L, bags" required />
                 </Field>
             </div>
+
+            {/* Placement is asked ONLY for nitrogen. For urea broadcast on a dry
+                surface a large share of the bag goes to the air rather than the
+                crop — but asking every farmer logging herbicide the same
+                question is the kind of noise that teaches people to stop
+                filling forms in. */}
+            {looksLikeNitrogen(inputType) && (
+                <Field label="How did it go on?">
+                    <div className="grid grid-cols-2 gap-2">
+                        {METHOD_OPTIONS.map((o) => {
+                            const selected = method === o.value
+                            return (
+                                <button
+                                    key={o.value}
+                                    type="button"
+                                    onClick={() => setMethod(selected ? null : o.value)}
+                                    aria-pressed={selected}
+                                    className="rounded-[14px] p-3 text-left transition-all"
+                                    style={{
+                                        background: selected ? 'var(--ee-primary)' : 'var(--ee-bg)',
+                                        color: selected ? '#fff' : 'var(--ee-text)',
+                                        boxShadow: selected
+                                            ? 'var(--shadow-ambient)'
+                                            : 'var(--shadow-neu-inset)',
+                                    }}
+                                >
+                                    <span className="block text-sm font-bold">{o.label}</span>
+                                    <span
+                                        className="block text-[11px] leading-tight mt-0.5"
+                                        style={{ opacity: 0.8 }}
+                                    >
+                                        {o.hint}
+                                    </span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </Field>
+            )}
+
+            {methodWarning(inputType, method) && (
+                <p
+                    className="text-sm leading-relaxed rounded-[14px] p-3"
+                    style={{ background: '#eab30818', color: 'var(--ee-text)' }}
+                >
+                    {methodWarning(inputType, method)}
+                </p>
+            )}
 
             {outcome?.kind === 'error' && <p className="text-sm" style={{ color: '#c44' }}>{outcome.message}</p>}
 
