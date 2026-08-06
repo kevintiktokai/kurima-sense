@@ -27,6 +27,7 @@ export function GrowerForm({ grower, onSubmit, onClose }: GrowerFormProps) {
         phone: grower?.phone ?? '',
         email: grower?.email ?? '',
         notes: grower?.notes ?? '',
+        timbGrowerNumber: grower?.timb_grower_number ?? '',
     })
     const [errors, setErrors] = useState<{ name?: string; email?: string }>({})
     const [submitError, setSubmitError] = useState<string | null>(null)
@@ -83,6 +84,29 @@ export function GrowerForm({ grower, onSubmit, onClose }: GrowerFormProps) {
                             style={inputStyle} placeholder="Grower name"
                         />
                         {errors.name && <p className="text-xs font-bold mt-1" style={{ color: '#dc2626' }}>{errors.name}</p>}
+                    </div>
+
+                    {/*
+                      * Sits directly under the name because it is an identity
+                      * field, not a contact detail — and because a grower added
+                      * without it cannot appear in an evidence pack's
+                      * traceability table later. The hint says why rather than
+                      * what: nobody types a registration number by accident,
+                      * but plenty of people skip an unexplained one.
+                      */}
+                    <div>
+                        <label className="block text-xs font-bold uppercase mb-1.5" style={{ color: 'var(--ee-muted)' }}>
+                            TIMB grower number <span style={{ fontWeight: 400, textTransform: 'lowercase' }}>(optional)</span>
+                        </label>
+                        <input
+                            type="text" value={values.timbGrowerNumber} onChange={set('timbGrowerNumber')}
+                            className="w-full rounded-[16px] p-3 font-bold text-sm focus:outline-none"
+                            style={{ ...inputStyle, textTransform: 'uppercase' }} placeholder="As printed on the grower card"
+                        />
+                        <p className="text-xs mt-1.5" style={{ color: 'var(--ee-muted)' }}>
+                            Lets a buyer check this grower against TIMB&apos;s register. Without it,
+                            they appear in reports but not in traceability records.
+                        </p>
                     </div>
 
                     <div>

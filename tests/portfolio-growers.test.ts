@@ -12,6 +12,7 @@ import {
     sortGrowersDefault,
     validateGrowerForm,
     buildGrowerPayload,
+    normaliseGrowerNumber,
     isValidEmail,
     type Grower,
     type GrowerWithStats,
@@ -45,7 +46,7 @@ function field(id: string, growerId: string | null, score: number | null, ha = 4
 }
 
 function values(p: Partial<GrowerFormValues> = {}): GrowerFormValues {
-    return { name: '', phone: '', email: '', notes: '', ...p }
+    return { name: '', phone: '', email: '', notes: '', timbGrowerNumber: '', ...p }
 }
 
 // ---------------------------------------------------------------------------
@@ -165,6 +166,41 @@ test('buildGrowerPayload: trims and drops empty optionals', () => {
     assert.deepEqual(
         buildGrowerPayload(values({ name: 'T', phone: ' 077 ', email: '', notes: ' hi ' })),
         { name: 'T', phone: '077', notes: 'hi' },
+    )
+})
+
+test('normaliseGrowerNumber: folds case and collapses whitespace', () => {
+    // Read off a card and typed by different people at different offices.
+    assert.equal(normaliseGrowerNumber('  m 12345  '), 'M 12345')
+    assert.equal(normaliseGrowerNumber('M    12345'), 'M 12345')
+})
+
+test('normaliseGrowerNumber: keeps separators the grower actually has', () => {
+    // Collapsed whitespace is a typo fix; stripping punctuation would change
+    // the number. Mirrors normalise_grower_number on the backend.
+    assert.equal(normaliseGrowerNumber('m-12345/a'), 'M-12345/A')
+})
+
+test('normaliseGrowerNumber: accepts shapes a guessed regex would reject', () => {
+    // The load-bearing one. TIMB's format is not documented anywhere we can
+    // verify, and rejecting a valid grower drops them out of the traceability
+    // an evidence pack claims to provide.
+    for (const n of ['M12345', '12345678', 'ZW/M/12345', '0001']) {
+        assert.equal(normaliseGrowerNumber(n), n.toUpperCase())
+    }
+})
+
+test('buildGrowerPayload: sends the TIMB number normalised, or not at all', () => {
+    assert.deepEqual(
+        buildGrowerPayload(values({ name: 'T', timbGrowerNumber: ' m12345 ' })),
+        { name: 'T', timb_grower_number: 'M12345' },
+    )
+    // Blank must not become an empty string in the column — that is
+    // indistinguishable from a real number in a NOT NULL check and prints as a
+    // blank cell in a pack.
+    assert.deepEqual(
+        buildGrowerPayload(values({ name: 'T', timbGrowerNumber: '   ' })),
+        { name: 'T' },
     )
 })
 

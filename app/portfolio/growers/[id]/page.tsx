@@ -124,6 +124,26 @@ export default function GrowerDetailPage() {
                             {[grower.phone, grower.email].filter(Boolean).join(' · ')}
                         </p>
                     )}
+                    {/*
+                      * Shown as a chip rather than folded into the contact line,
+                      * because it is the value someone is looking for when they
+                      * open this page to check a grower against a register — and
+                      * absent, it is the reason this grower is missing from an
+                      * evidence pack. Silent absence is right for a card that
+                      * has no data; this one earns a nudge.
+                      */}
+                    {grower.timb_grower_number ? (
+                        <p
+                            className="mt-2 inline-block px-2.5 py-1 rounded-full text-xs font-bold tracking-wide"
+                            style={{ background: 'var(--ee-bg-dim)', color: 'var(--ee-text)' }}
+                        >
+                            TIMB {grower.timb_grower_number}
+                        </p>
+                    ) : (
+                        <p className="mt-2 text-xs font-medium" style={{ color: 'var(--ee-muted)' }}>
+                            No TIMB number — this grower won&apos;t appear in traceability records.
+                        </p>
+                    )}
                     {grower.notes && (
                         <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--ee-muted)' }}>{grower.notes}</p>
                     )}
