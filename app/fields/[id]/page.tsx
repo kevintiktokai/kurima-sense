@@ -13,6 +13,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { SeasonAccumulationCharts } from '@/components/field/SeasonAccumulationCharts';
 import { SoilProfileCard } from '@/components/field/SoilProfileCard';
 import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
+import { ZoneInsightCard } from '@/components/field/ZoneInsightCard';
 import { StandCheckPrompt } from '@/components/planning/StandCheckPrompt';
 import { SeasonHistoryCard } from '@/components/field/SeasonHistoryCard';
 import { ActionWindowsCard } from '@/components/planning/ActionWindowsCard';
@@ -570,6 +571,10 @@ export default function FieldInsightsPage() {
                         fieldName={field?.name}
                     />
                 </div>
+
+                {/* Sits under the zone map, which answers "where". This answers
+                    "what" and "is it worth fixing". */}
+                <ZoneInsightCard fieldId={fieldId} />
 
                 {/* Season-over-season comparison. Renders nothing until two
                     observed seasons exist, so it appears only once the field
