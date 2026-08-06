@@ -13,6 +13,7 @@ import { API_BASE_URL } from '@/lib/api-base'
 import type {
     ActionWindowsResponse,
     FieldHistory,
+    PostHarvestPlan,
     PrePlantBrief,
     RotationSummary,
     Season,
@@ -291,4 +292,27 @@ export function useActionWindows(
         { revalidateOnFocus: true, dedupingInterval: 60_000, shouldRetryOnError: false }
     )
     return { data, isLoading, error: error as Error | undefined }
+}
+
+// --- Post-harvest -----------------------------------------------------------
+
+export const postHarvestKey = (fieldId: string | null | undefined, crop?: string) =>
+    fieldId ? `post-harvest:${fieldId}:${crop ?? ''}` : null
+
+/**
+ * Drying, storage and monitoring guidance for a crop that is off the field.
+ * Cached hard: this is reference material for a crop, not live state.
+ */
+export function usePostHarvestPlan(
+    fieldId: string | null | undefined,
+    crop?: string,
+    enabled = true
+) {
+    const q = crop ? `?crop=${encodeURIComponent(crop)}` : ''
+    const { data, error, isLoading } = useSWR<PostHarvestPlan>(
+        enabled ? postHarvestKey(fieldId, crop) : null,
+        () => authedJson<PostHarvestPlan>(`/fields/${fieldId}/post-harvest${q}`),
+        { revalidateOnFocus: false, dedupingInterval: 600_000, shouldRetryOnError: false }
+    )
+    return { plan: data, isLoading, error: error as Error | undefined }
 }

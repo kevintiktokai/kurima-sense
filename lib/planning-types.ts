@@ -206,3 +206,25 @@ export interface ActionWindowsResponse {
     windows: ActionWindow[]
     reason?: string
 }
+
+// --- Post-harvest -----------------------------------------------------------
+
+export interface PostHarvestStep {
+    key: string
+    title: string
+    detail: string
+    why: string
+    target_moisture_pct: number | null
+    order: number
+    critical: boolean
+}
+
+export interface PostHarvestPlan {
+    crop: string
+    harvest_moisture_text: string
+    storage_moisture_pct: number | null
+    fumigation_possible: boolean
+    aflatoxin_risk: boolean
+    steps: PostHarvestStep[]
+    warnings: string[]
+}
