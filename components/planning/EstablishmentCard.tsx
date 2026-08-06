@@ -10,6 +10,13 @@
 
 import React from 'react'
 import { formatPopulation, formatSpacing } from '@/lib/planning-utils'
+import { useUserProfile } from '@/components/providers/UserProfileProvider'
+import {
+    establishmentEquipmentTips,
+    establishmentHandTips,
+    seedQuantityLabel,
+    spacingCheckInstruction,
+} from '@/lib/persona'
 import type { EstablishmentPlan } from '@/lib/planning-types'
 
 interface Props {
@@ -49,6 +56,10 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 }
 
 export function EstablishmentCard({ plan, crop, loading }: Props) {
+    // Persona changes how this is said and which instructions apply — never the
+    // agronomy. The target population is the same number for everyone.
+    const { profile } = useUserProfile()
+    const persona = profile?.persona ?? null
     if (loading) {
         return (
             <div className="neu-surface rounded-[20px] p-5 sm:p-6" style={{ background: 'var(--ee-surface)' }}>
@@ -125,7 +136,7 @@ export function EstablishmentCard({ plan, crop, loading }: Props) {
                     {formatSpacing(plan.row_spacing_cm, plan.in_row_spacing_cm)}
                 </p>
                 <p className="text-sm leading-relaxed opacity-95" style={{ fontFamily: 'var(--font-body)' }}>
-                    {plan.field_check}
+                    {spacingCheckInstruction(plan.in_row_spacing_cm, persona) || plan.field_check}
                 </p>
             </div>
 
@@ -141,12 +152,8 @@ export function EstablishmentCard({ plan, crop, loading }: Props) {
                 />
                 <Stat
                     label="Seed needed"
-                    value={
-                        plan.seed_required_kg !== null
-                            ? `${plan.seed_required_kg} kg`
-                            : `${plan.seed_rate_kg_ha} kg/ha`
-                    }
-                    hint={plan.seed_required_kg !== null ? 'for this field' : 'field area unknown'}
+                    value={seedQuantityLabel(plan.seed_rate_kg_ha, plan.seed_required_kg, persona)}
+                    hint={plan.seed_required_kg === null ? 'field area unknown' : undefined}
                 />
                 <Stat
                     label="Seeds per station"
@@ -190,6 +197,33 @@ export function EstablishmentCard({ plan, crop, loading }: Props) {
                     <span>{w}</span>
                 </p>
             ))}
+
+            {/* Advice that only applies to one way of planting. A smallholder
+                gets none of the planter guidance, and a mechanised grower gets
+                none of the string-line guidance — padding either screen with
+                the other is what makes an app feel like it was not built for
+                you. */}
+            {[...establishmentEquipmentTips(persona), ...establishmentHandTips(persona)].map(
+                (tip, i) => (
+                    <p
+                        key={i}
+                        className="text-xs leading-relaxed rounded-[12px] p-3 mt-2 flex gap-2"
+                        style={{
+                            background: 'var(--ee-bg)',
+                            color: 'var(--ee-text)',
+                            fontFamily: 'var(--font-body)',
+                        }}
+                    >
+                        <span
+                            className="material-symbols-outlined shrink-0"
+                            style={{ fontSize: '0.95rem', color: 'var(--ee-primary)', marginTop: '0.1rem' }}
+                        >
+                            tips_and_updates
+                        </span>
+                        <span>{tip}</span>
+                    </p>
+                )
+            )}
 
             <p
                 className="text-[11px] leading-relaxed mt-4 pt-3"
