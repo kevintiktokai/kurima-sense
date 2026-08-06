@@ -11,6 +11,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { API_BASE_URL } from '@/lib/api-base'
 import type {
+    ActionWindowsResponse,
     FieldHistory,
     PrePlantBrief,
     RotationSummary,
@@ -267,4 +268,27 @@ export function useSeasonHistory(fieldId: string | null | undefined) {
         { revalidateOnFocus: false, dedupingInterval: 300_000, shouldRetryOnError: false }
     )
     return { history: data, isLoading, error: error as Error | undefined }
+}
+
+// --- Action windows ---------------------------------------------------------
+
+export const windowsKey = (fieldId: string | null | undefined) =>
+    fieldId ? `windows:${fieldId}` : null
+
+/**
+ * The operations closing on this field, ranked by cost per remaining day.
+ * Revalidates on focus: a window's urgency changes with the calendar, so a
+ * farmer returning to the app after a few days must not see yesterday's ranking.
+ */
+export function useActionWindows(
+    fieldId: string | null | undefined,
+    soilTexture?: string
+) {
+    const q = soilTexture ? `?soil_texture=${encodeURIComponent(soilTexture)}` : ''
+    const { data, error, isLoading } = useSWR<ActionWindowsResponse>(
+        windowsKey(fieldId),
+        () => authedJson<ActionWindowsResponse>(`/fields/${fieldId}/windows${q}`),
+        { revalidateOnFocus: true, dedupingInterval: 60_000, shouldRetryOnError: false }
+    )
+    return { data, isLoading, error: error as Error | undefined }
 }

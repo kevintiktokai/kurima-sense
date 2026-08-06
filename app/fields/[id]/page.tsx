@@ -15,6 +15,7 @@ import { SoilProfileCard } from '@/components/field/SoilProfileCard';
 import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
 import { StandCheckPrompt } from '@/components/planning/StandCheckPrompt';
 import { SeasonHistoryCard } from '@/components/field/SeasonHistoryCard';
+import { ActionWindowsCard } from '@/components/planning/ActionWindowsCard';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
 const SCOUTING_CATEGORIES: { value: ScoutingCategory; label: string; icon: string; color: string }[] = [
@@ -320,6 +321,11 @@ export default function FieldInsightsPage() {
                     open, because unlike the cards below it, this measurement
                     expires. Renders nothing outside the window. */}
                 <StandCheckPrompt fieldId={fieldId} />
+
+                {/* What's closing. Sits high on the page because these are the
+                    items that expire — unlike the cards below, which describe
+                    state a farmer can read at any time. */}
+                <ActionWindowsCard fieldId={fieldId} />
 
                 {/* Row 1: Status Card (full width) */}
                 <div className="lg:col-span-12 neu-surface p-8 lg:p-10" style={{ background: 'var(--ee-surface)', borderRadius: '24px' }}>
