@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { AlertTriangle, CheckCircle2, Eye } from 'lucide-react'
 
 import { PortfolioPageHeader } from '@/components/portfolio/PortfolioPageHeader'
@@ -30,6 +31,37 @@ export default function PortfolioReportsPage() {
         <PageContainer variant="reading">
             <PortfolioPageHeader title="Reports" subtitle="Portfolio-level reporting and exports" />
             <div className="grid gap-6">
+                {/*
+                  * First, because it is the only card here that produces
+                  * something a client can forward. The rest of this page is for
+                  * reading on a screen; documents are the part that leaves the
+                  * building.
+                  */}
+                <Link
+                    href="/portfolio/reports/documents"
+                    className="flex items-center justify-between gap-4 p-6 rounded-[24px]"
+                    style={{ background: 'var(--ee-surface)', boxShadow: 'var(--shadow-neu)' }}
+                >
+                    <div className="min-w-0">
+                        <p
+                            className="font-black text-lg"
+                            style={{ color: 'var(--ee-text)', fontFamily: 'var(--font-heading)' }}
+                        >
+                            Documents
+                        </p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--ee-muted)' }}>
+                            Generate a Season Evidence Pack or a portfolio report, and see
+                            what has already been issued.
+                        </p>
+                    </div>
+                    <span
+                        className="material-symbols-outlined flex-shrink-0"
+                        style={{ color: 'var(--ee-primary)' }}
+                    >
+                        arrow_forward
+                    </span>
+                </Link>
+
                 <ContractPerformance data={data} isLoading={isLoading || !tenantId} error={error} />
                 <InputVerification
                     data={verification.data}
