@@ -368,16 +368,51 @@ Answered 6 August 2026.
 4. **Servemox data access** — still outstanding. The pack currently renders
    against fixtures. See §9.
 
-## 9. Still outstanding
+## 9. What was built
 
-- **Brand kit.** The only thing blocking a final cover.
-- **Real client data.** The pack will be wrong in ways only real data reveals —
-  growers with no fields, fields with no observations in a window, duplicate
-  TIMB numbers. The assembly handles all three deliberately, but "handles" is a
-  claim that needs testing against a real portfolio.
-- **Agronomist sign-off**, now including `THEME_ADEQUATE_SHARE`, which decides
-  what the pack presents as adequate coverage of an STP theme.
-- **Document registry.** Issue numbers are generated but not yet persisted, so
-  nothing tracks what was issued to whom. Needed before the playbook's
-  "evidence packs issued and forwarded" metric means anything.
-- **Recovery baseline capture** (§3.4) — still the date-critical one.
+All four documents ship, each reachable over HTTP and each recorded when issued.
+
+| Document | Route | Verification line |
+|---|---|---|
+| Season Evidence Pack | `POST /portfolio/documents/evidence-pack` | yes — observed hectares |
+| Portfolio report | `POST /portfolio/documents/portfolio-report` | yes — observed hectares |
+| Field report | `POST /fields/{id}/documents/field-report` | no, by design |
+| Season plan | `POST /fields/{id}/documents/season-plan` | no, by design |
+
+The two without a line are not missing one. A field report explains hectares
+rather than verifying coverage across them, and a plan describes what has not
+happened yet — verifying a forecast is a category error. Both are still
+identifiable by issue number, which is the registry's job rather than the mark's.
+
+**The registry** (`document_issues`, migration 022) records what each document
+claimed at issue time and a SHA-256 of the exact bytes. It records **issuance,
+not delivery**: no open tracking, no callback, no per-recipient token, and
+`forwarded_at` is set only when a client says they sent it. A test asserts no
+public name in the module contains `track`, `pixel`, `beacon`, `callback`,
+`webhook` or `open_rate`.
+
+**Surfaces.** `/portfolio/reports/documents` generates the two portfolio-level
+documents and lists what has been issued; the field page carries a card for the
+season plan and field report.
+
+## 10. Still outstanding
+
+- **Land use and deforestation is unevidenced.** Nothing in the database
+  sources it — it needs multi-year imagery compared against the boundary, which
+  the CDSE backfill can reach but nothing wires up. Until then no field carries
+  the theme and the pack prints "No evidence recorded", so a reader can tell we
+  did not check rather than that we checked and found nothing. **This is the
+  largest remaining gap in the Evidence Pack**, and it is the theme a leaf buyer
+  opens the pack for.
+- **Agronomist sign-off** on ten constants, three added by this work:
+  `THEME_ADEQUATE_SHARE` (what the pack calls adequate STP coverage),
+  `ATTENTION_URGENCIES` and `STALE_AFTER_DAYS` (which fields a lender is told to
+  look at, and when an observation stops counting).
+- **Real client data.** Growers with no fields, fields with no observations in a
+  window, duplicate TIMB numbers — the assembly handles all three deliberately,
+  but "handles" is a claim with only fixtures behind it. It is also the only way
+  to learn whether the pack's shape survives a contractor with 400 growers.
+- **A staging run** of migrations 019–022 and the CDSE backfill, neither
+  exercised against a real database.
+- **Recovery baseline capture** (§3.4) — still the date-critical one, and still
+  the only item where waiting costs something that cannot be recovered later.
