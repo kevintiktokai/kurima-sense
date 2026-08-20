@@ -16,6 +16,7 @@ import { FieldZoneAnalysis } from '@/components/field/FieldZoneAnalysis';
 import { ZoneInsightCard } from '@/components/field/ZoneInsightCard';
 import { StandCheckPrompt } from '@/components/planning/StandCheckPrompt';
 import { SeasonHistoryCard } from '@/components/field/SeasonHistoryCard';
+import { FieldDocumentsCard } from '@/components/field/FieldDocumentsCard';
 import { ActionWindowsCard } from '@/components/planning/ActionWindowsCard';
 import { PostHarvestCard } from '@/components/planning/PostHarvestCard';
 import { ClosedSeasonReview } from '@/components/planning/ClosedSeasonReview';
@@ -588,6 +589,11 @@ export default function FieldInsightsPage() {
 
                 {/* Soil Intelligence (additive; self-contained fetch, silent if absent) */}
                 <SoilProfileCard fieldId={fieldId} />
+
+                {/* Documents. Below the capture actions' subject matter because
+                    generating one is something you do once the season is set up,
+                    not part of setting it up. */}
+                <FieldDocumentsCard fieldId={fieldId} />
 
                 {/* Capture actions (additive; offline-capable capture — Sprint 3) */}
                 <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
