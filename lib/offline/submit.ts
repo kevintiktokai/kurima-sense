@@ -24,14 +24,31 @@ export async function submitCapture(args: {
     // wrongly divert submissions to the offline queue. httpSend already returns a
     // retriable result on an actual network failure, so a genuinely-offline send
     // simply falls through to the outbox below.
-    const res = await httpSend(args.endpoint, args.body, args.method ?? 'POST')
+    // One key for the live attempt AND the queued replay of that same attempt.
+    //
+    // This is the subtle half. The failure we queue on includes the ambiguous
+    // case — the request arrived, the row was committed, and only the response
+    // was lost. If the queued item got a fresh key, the replay would look like
+    // a brand-new capture to the server and the harvest would be recorded
+    // twice, which is precisely what the key exists to prevent. Minting it once
+    // here is what ties the two attempts together.
+    const idempotencyKey = crypto.randomUUID()
+
+    const res = await httpSend(args.endpoint, args.body, args.method ?? 'POST', idempotencyKey)
     if (res.ok) {
         void runSync() // opportunistically drain anything queued earlier
         return { status: 'submitted' }
     }
     if (!res.retriable) throw new CaptureValidationError(res.error)
 
-    // transient / offline → queue for automatic replay
-    await enqueue({ kind: args.kind, endpoint: args.endpoint, body: args.body, label: args.label, method: args.method })
+    // transient / offline → queue for automatic replay, under the same key
+    await enqueue({
+        kind: args.kind,
+        endpoint: args.endpoint,
+        body: args.body,
+        label: args.label,
+        method: args.method,
+        id: idempotencyKey,
+    })
     return { status: 'queued' }
 }

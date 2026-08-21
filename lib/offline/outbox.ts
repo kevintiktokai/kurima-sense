@@ -43,9 +43,24 @@ export async function httpSend(
     endpoint: string,
     body: unknown,
     method: 'POST' | 'PATCH' = 'POST',
+    idempotencyKey?: string,
 ): Promise<SendResult> {
     try {
-        const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
+        // Idempotency-Key is what makes retrying a POST safe here.
+        //
+        // lib/http refuses to retry POSTs because it cannot tell "never
+        // arrived" from "arrived, committed, response lost". The outbox has no
+        // such option — replaying is the whole point of it — so instead the
+        // server is given a stable token and recognises the second copy.
+        //
+        // Without it, a farmer logging a harvest at the edge of coverage — the
+        // exact user this feature exists for — gets the harvest recorded twice.
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+            ...(await getAuthHeaders()) as Record<string, string>,
+        }
+        if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey
+
         const res = await resilientFetch(`${API_URL}${endpoint}`, {
             method,
             headers,
@@ -75,10 +90,22 @@ export async function enqueue(args: {
     body: unknown
     label: string
     method?: 'POST' | 'PATCH'
+    /**
+     * Reuse a key already spent on a live attempt.
+     *
+     * This is load-bearing. `submitCapture` tries the network first and queues
+     * only if that fails — and the failure it queues on includes the ambiguous
+     * one, where the request arrived and committed and only the response was
+     * lost. Minting a fresh id here would give the replay a different key from
+     * the attempt it is replaying, and the server would have no way to tell
+     * they were the same capture. The duplicate this whole mechanism prevents
+     * would sail straight through it.
+     */
+    id?: string
 }): Promise<OutboxItem> {
     const now = Date.now()
     const item: OutboxItem = {
-        id: crypto.randomUUID(),
+        id: args.id ?? crypto.randomUUID(),
         kind: args.kind,
         endpoint: args.endpoint,
         method: args.method ?? 'POST',
@@ -122,7 +149,7 @@ export async function runSync() {
     if (_syncing) return
     _syncing = true
     try {
-        const summary = await syncOutbox(store(), (it) => httpSend(it.endpoint, it.body, it.method))
+        const summary = await syncOutbox(store(), (it) => httpSend(it.endpoint, it.body, it.method, it.id))
         await notify()
         return summary
     } finally {
