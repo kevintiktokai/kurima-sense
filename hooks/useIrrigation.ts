@@ -11,11 +11,12 @@ import { getAuthHeaders } from '@/lib/api-cache'
 import type { IrrigationOutlookResponse, IrrigationRecommendation } from '@/lib/irrigation-types'
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 const OUTLOOK_KEY = 'irrigation:outlook'
 
 async function authedFetch(path: string, init?: RequestInit): Promise<Response> {
     const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
-    return fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+    return resilientFetch(`${API_BASE_URL}${path}`, { ...init, headers })
 }
 
 interface FieldRecommendationResponse {

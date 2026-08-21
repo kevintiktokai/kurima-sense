@@ -17,6 +17,7 @@ import type { SeasonAccumulations } from '@/lib/season-chart-utils'
 export type { SeasonAccumulations, SeasonAccumulationDay } from '@/lib/season-chart-utils'
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http'
 
 /** Error that carries the HTTP status so the UI can branch on 422 vs other. */
 export class SeasonAccumulationsError extends Error {
@@ -31,7 +32,7 @@ export class SeasonAccumulationsError extends Error {
 export async function fetchSeasonAccumulations(
     url: string,
     getHeaders: () => Promise<HeadersInit> = getAuthHeaders,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<SeasonAccumulations> {
     const headers = await getHeaders()
     const res = await fetchImpl(url, { headers })

@@ -13,6 +13,7 @@ import type {
 } from '@/lib/notification-utils'
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 
 const INBOX_KEY = 'notifications:inbox'
 const PREFS_KEY = 'notifications:preferences'
@@ -25,7 +26,7 @@ interface InboxResponse {
 
 async function authedFetch(path: string, init?: RequestInit): Promise<Response> {
     const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
-    return fetch(`${API_BASE_URL}${path}`, { ...init, headers })
+    return resilientFetch(`${API_BASE_URL}${path}`, { ...init, headers })
 }
 
 async function fetchInbox(): Promise<InboxResponse> {

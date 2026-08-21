@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { resilientFetch } from '@/lib/http';
 
 interface WeatherData {
     temperature: number;
@@ -81,7 +82,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ lat, lon, compact 
 
             try {
                 // Using Open-Meteo API (free, no API key required)
-                const response = await fetch(
+                const response = await resilientFetch(
                     `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`
                 );
 

@@ -16,6 +16,7 @@ import type {
 import { getAuthHeaders, getCached, setCache, CACHE_TTL } from '@/lib/api-cache';
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 
 // Build query params from options + a stable cache-key suffix
 function buildKey(options: Record<string, any>): string {
@@ -62,7 +63,7 @@ async function cachedGet<T>(
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}${path}${buildQueryParams(options)}`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}${path}${buildQueryParams(options)}`, { headers });
             if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
             const data = await res.json() as T & { available?: boolean };
 

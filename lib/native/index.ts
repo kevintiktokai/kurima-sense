@@ -12,6 +12,7 @@ import { getAuthHeaders } from '@/lib/api-cache'
 import { runSync } from '@/lib/offline/outbox'
 
 import { API_BASE_URL as API_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 
 export function isNativePlatform(): boolean {
     if (typeof window === 'undefined') return false
@@ -45,7 +46,7 @@ export async function registerForPush(): Promise<void> {
             void (async () => {
                 try {
                     const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
-                    await fetch(`${API_URL}/notifications/devices`, {
+                    await resilientFetch(`${API_URL}/notifications/devices`, {
                         method: 'POST',
                         headers,
                         body: JSON.stringify({ token: token.value, platform }),

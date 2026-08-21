@@ -10,6 +10,7 @@ import { DisclaimerBanner } from '@/components/legal/DisclaimerBanner'
 import { trackEvent } from '@/lib/analytics'
 
 import { API_BASE_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 
 type AccountType = 'consumer' | 'institution'
 
@@ -150,7 +151,7 @@ export default function OnboardingPage() {
 
             // 2. Promote to institutional + create the tenant/membership.
             const headers = await getAuthHeaders()
-            const res = await fetch(`${API_BASE_URL}/me/institutional`, {
+            const res = await resilientFetch(`${API_BASE_URL}/me/institutional`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({

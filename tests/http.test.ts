@@ -302,6 +302,67 @@ test('resilientFetch does not retry a POST', async () => {
     }
 })
 
+// ── streamFetch ──────────────────────────────────────────────────────────────
+
+test('streamFetch deadlines the connect but not the body', async () => {
+    // The distinction that matters. AbortSignal.timeout would abort the whole
+    // exchange, cutting a healthy answer off mid-sentence at 20s; streamFetch
+    // disarms its timer once headers arrive, so the stream runs as long as it
+    // needs to.
+    const { streamFetch } = await import('@/lib/http')
+    let signal: AbortSignal | undefined
+    const original = globalThis.fetch
+    globalThis.fetch = (async (_u: string, i: RequestInit) => {
+        signal = i.signal as AbortSignal
+        return json(200)
+    }) as unknown as typeof fetch
+    try {
+        const res = await streamFetch('/chat/v2/stream', { method: 'POST', timeoutMs: 50 })
+        assert.equal(res.status, 200)
+        assert.ok(signal, 'no signal attached')
+        // Past the deadline, and the response is still not aborted.
+        await new Promise((r) => setTimeout(r, 120))
+        assert.equal(signal!.aborted, false, 'the body deadline was not disarmed')
+    } finally {
+        globalThis.fetch = original
+    }
+})
+
+test('streamFetch still fails a connect that never answers', async () => {
+    const { streamFetch } = await import('@/lib/http')
+    const original = globalThis.fetch
+    globalThis.fetch = ((_u: string, i: RequestInit) =>
+        new Promise((_resolve, reject) => {
+            ;(i.signal as AbortSignal).addEventListener('abort', () =>
+                reject(new DOMException('aborted', 'AbortError')),
+            )
+        })) as unknown as typeof fetch
+    try {
+        await assert.rejects(
+            streamFetch('/chat/v2/stream', { timeoutMs: 30 }),
+            (e: unknown) => e instanceof HttpError && e.kind === 'timeout',
+        )
+    } finally {
+        globalThis.fetch = original
+    }
+})
+
+test('streamFetch is never retried', async () => {
+    // Once tokens have been yielded there is nothing safe to replay, and the
+    // request is a POST besides.
+    const { streamFetch } = await import('@/lib/http')
+    const stub = stubFetch([new TypeError('Failed to fetch')])
+    try {
+        await assert.rejects(
+            streamFetch('/chat/v2/stream', { method: 'POST' }),
+            (e: unknown) => e instanceof HttpError && e.kind === 'network',
+        )
+        assert.equal(stub.calls, 1)
+    } finally {
+        stub.restore()
+    }
+})
+
 test('resilientFetch attaches a deadline', async () => {
     const { resilientFetch } = await import('@/lib/http')
     let init: RequestInit | undefined

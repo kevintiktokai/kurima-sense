@@ -9,6 +9,7 @@
 // import it without a browser or Supabase env.
 
 import { scoreToLabel } from '@/lib/field-state-types'
+import { resilientFetch } from '@/lib/http'
 
 // ---------------------------------------------------------------------------
 // Types — mirror kurimasense-backend GET /portfolio/aggregate exactly
@@ -264,7 +265,7 @@ export function distributionToSegments(dist: ScoreDistribution): DistributionSeg
 export async function fetchPortfolioAggregate(
     url: string,
     getHeaders: () => Promise<HeadersInit>,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<PortfolioAggregate> {
     const headers = await getHeaders()
     const res = await fetchImpl(url, { headers })

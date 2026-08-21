@@ -6,6 +6,11 @@ import { apiCache, getCached, setCache, invalidateCache, getAuthHeaders, CACHE_T
 
 import { API_BASE_URL } from '@/lib/api-base';
 import { trackEvent } from '@/lib/analytics';
+// resilientFetch rather than apiFetch throughout this file: it keeps fetch's
+// contract, so every `if (!res.ok)` branch below stays live. Swapping to a
+// throwing client here would silently delete ~30 error branches — including the
+// ones that deliberately distinguish "backend down" from "no fields yet".
+import { HttpError, messageFor, resilientFetch, streamFetch } from '@/lib/http';
 
 // ───── Soil Intelligence types ─────
 export interface SoilAttribute {
@@ -56,7 +61,7 @@ export const api = {
 
             // Fallback to backend API
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/user`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/user`, { headers });
             if (!res.ok) throw new Error('Failed to fetch user');
             return await res.json();
         } catch (e) {
@@ -87,7 +92,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/dashboard/init`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/dashboard/init`, { headers });
             if (!res.ok) return null;
             const data = await res.json();
 
@@ -111,7 +116,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/dashboard`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/dashboard`, { headers });
             const data = await res.json();
             setCache(cacheKey, data, CACHE_TTL.DASHBOARD);
             return data;
@@ -130,7 +135,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/fields`, { headers });
             if (!res.ok) {
                 // throwOnError lets the dashboard distinguish "backend down"
                 // from "genuinely no fields" — silently returning [] here made a
@@ -152,7 +157,7 @@ export const api = {
     async chatWithAgronomist(message: string, context?: any, image?: string) {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/send`, {
+            const res = await resilientFetch(`${API_BASE_URL}/chat/send`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ message, context, image })
@@ -169,7 +174,7 @@ export const api = {
         // fieldData: { name, crop, coordinates: [...] }
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(fieldData)
@@ -195,7 +200,7 @@ export const api = {
     async logInput(payload: { field_id: string, input_type: string, quantity: number, unit: string }) {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/inputs`, {
+            const res = await resilientFetch(`${API_BASE_URL}/inputs`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload)
@@ -210,7 +215,7 @@ export const api = {
     async analyzeField(fieldId: string) {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/analyze`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}/analyze`, {
                 method: 'POST',
                 headers
             });
@@ -229,7 +234,7 @@ export const api = {
     async getFieldHistory(fieldId: string) {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/history`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}/history`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -240,7 +245,7 @@ export const api = {
     async getChatHistory() {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/history`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/chat/history`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -256,7 +261,7 @@ export const api = {
     async getFieldSoil(fieldId: string): Promise<SoilProfileResponse | null> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/soil`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}/soil`, { headers });
             if (!res.ok) return null;
             return await res.json();
         } catch (e) {
@@ -267,7 +272,7 @@ export const api = {
     async refreshFieldSoil(fieldId: string): Promise<SoilProfileResponse | null> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/soil/refresh`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}/soil/refresh`, {
                 method: "POST", headers,
             });
             if (!res.ok) return null;
@@ -286,7 +291,7 @@ export const api = {
     }>> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/sessions`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/chat/sessions`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -298,7 +303,7 @@ export const api = {
     async createChatSession(title?: string): Promise<{ id: string; title: string } | null> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/sessions`, {
+            const res = await resilientFetch(`${API_BASE_URL}/chat/sessions`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(title ? { title } : {}),
@@ -316,7 +321,7 @@ export const api = {
     }>> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/messages`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/chat/sessions/${sessionId}/messages`, { headers });
             if (!res.ok) return [];
             return await res.json();
         } catch (e) {
@@ -328,7 +333,7 @@ export const api = {
     async renameChatSession(sessionId: string, title: string): Promise<boolean> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+            const res = await resilientFetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
                 method: 'PATCH',
                 headers,
                 body: JSON.stringify({ title }),
@@ -343,7 +348,7 @@ export const api = {
     async deleteChatSession(sessionId: string): Promise<boolean> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+            const res = await resilientFetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
                 method: 'DELETE',
                 headers,
             });
@@ -362,7 +367,7 @@ export const api = {
                 raw_message: "Give me a single, short, high-impact agronomic tip for my farm right now. Keep it under 20 words.",
                 context: context
             };
-            const res = await fetch(`${API_BASE_URL}/proactive`, {
+            const res = await resilientFetch(`${API_BASE_URL}/proactive`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ seeds: [seed] })
@@ -393,7 +398,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/yield`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}/yield`, {
                 method: 'POST',
                 headers
             });
@@ -414,7 +419,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/market/prices?region=${encodeURIComponent(region)}`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/market/prices?region=${encodeURIComponent(region)}`, { headers });
             if (!res.ok) throw new Error("Market prices fetch failed");
             const data = await res.json();
             setCache(cacheKey, data, CACHE_TTL.MARKET);
@@ -445,7 +450,7 @@ export const api = {
 
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/crops/${encodeURIComponent(cropName)}/varieties`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/crops/${encodeURIComponent(cropName)}/varieties`, { headers });
             if (!res.ok) return [];
             const data = await res.json();
             // Only cache a non-empty catalogue. Caching an empty result for the
@@ -481,7 +486,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/chat/v2/send`, {
+            const res = await resilientFetch(`${API_BASE_URL}/chat/v2/send`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -522,16 +527,27 @@ export const api = {
         language?: string;
     }): AsyncGenerator<{ token?: string; done?: boolean; detected_intent?: string; error?: string }> {
         const headers = await getAuthHeaders();
-        const res = await fetch(`${API_BASE_URL}/chat/v2/stream`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                message,
-                field_id: options?.fieldId,
-                session_id: options?.sessionId,
-                language: options?.language
-            })
-        });
+        // streamFetch, not resilientFetch: a blanket deadline aborts the body
+        // too, which would cut a healthy answer off mid-sentence at 20s. This
+        // deadlines the connect and then lets the stream run.
+        let res: Response;
+        try {
+            res = await streamFetch(`${API_BASE_URL}/chat/v2/stream`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    message,
+                    field_id: options?.fieldId,
+                    session_id: options?.sessionId,
+                    language: options?.language
+                })
+            });
+        } catch (e) {
+            // A generator that throws takes down the component consuming it.
+            // Yield the failure as an event like any other.
+            yield { error: e instanceof HttpError ? e.message : messageFor('network') };
+            return;
+        }
 
         if (!res.ok || !res.body) {
             yield { error: `Stream request failed: ${res.statusText}` };
@@ -590,7 +606,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/vision/analyze`, {
+            const res = await resilientFetch(`${API_BASE_URL}/vision/analyze`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -631,7 +647,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/capabilities`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/ai/capabilities`, { headers });
             if (!res.ok) throw new Error("Failed to fetch AI capabilities");
             return await res.json();
         } catch (e) {
@@ -692,7 +708,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/insights`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/ai/insights`, { headers });
             if (!res.ok) throw new Error("Failed to fetch AI insights");
             return await res.json();
         } catch (e) {
@@ -722,7 +738,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}`, {
                 method: 'DELETE',
                 headers
             });
@@ -759,7 +775,7 @@ export const api = {
     }): Promise<{ status: string; field: any }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}`, {
+            const res = await resilientFetch(`${API_BASE_URL}/fields/${fieldId}`, {
                 method: 'PATCH',
                 headers,
                 body: JSON.stringify(updates),
@@ -811,7 +827,7 @@ export const api = {
     }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/proactive-alerts/${fieldId}`, { headers });
+            const res = await resilientFetch(`${API_BASE_URL}/ai/proactive-alerts/${fieldId}`, { headers });
             if (!res.ok) throw new Error("Failed to fetch proactive alerts");
             return await res.json();
         } catch (e) {
@@ -830,7 +846,7 @@ export const api = {
             if (date) url += `date=${date}&`;
             if (fieldId) url += `field_id=${fieldId}&`;
 
-            const res = await fetch(url.replace(/[?&]$/, ''), { headers });
+            const res = await resilientFetch(url.replace(/[?&]$/, ''), { headers });
             if (!res.ok) throw new Error("Failed to fetch tasks");
             return await res.json();
         } catch (e) {
@@ -845,7 +861,7 @@ export const api = {
     async updateTask(taskId: string, updates: any): Promise<any> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/tasks/${taskId}`, {
+            const res = await resilientFetch(`${API_BASE_URL}/ai/tasks/${taskId}`, {
                 method: 'PATCH',
                 headers: { ...headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
@@ -864,7 +880,7 @@ export const api = {
     async createTask(task: any): Promise<any> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/tasks`, {
+            const res = await resilientFetch(`${API_BASE_URL}/ai/tasks`, {
                 method: 'POST',
                 headers: { ...headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify(task)
@@ -894,7 +910,7 @@ export const api = {
             const headers = await getAuthHeaders();
             let url = `${API_BASE_URL}/ai/tasks/history?days=${days}`;
             if (fieldId) url += `&field_id=${fieldId}`;
-            const res = await fetch(url, { headers });
+            const res = await resilientFetch(url, { headers });
             if (!res.ok) throw new Error("Failed to fetch task history");
             return await res.json();
         } catch (e) {
@@ -909,7 +925,7 @@ export const api = {
     async createTasksFromPlan(actions: string[], fieldId?: string): Promise<{ created: number; tasks: any[] }> {
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch(`${API_BASE_URL}/ai/tasks/from-plan`, {
+            const res = await resilientFetch(`${API_BASE_URL}/ai/tasks/from-plan`, {
                 method: 'POST',
                 headers: { ...headers, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ actions, field_id: fieldId })
