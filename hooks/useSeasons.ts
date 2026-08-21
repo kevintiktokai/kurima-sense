@@ -9,7 +9,7 @@
 
 import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
-import { API_BASE_URL } from '@/lib/api-base'
+import { HttpError, apiFetch } from '@/lib/http'
 import type {
     ActionWindowsResponse,
     FieldHistory,
@@ -39,23 +39,22 @@ export const prePlantKey = (
 
 async function authedJson<T>(path: string, init?: RequestInit): Promise<T> {
     const headers = await getAuthHeaders()
-    const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
-    if (res.status === 403) throw new Error('You do not have access to this field')
-    if (res.status === 404) throw new Error('Not found')
-    if (!res.ok) {
-        // The backend returns a `detail` string for 400/409/422 — surface it
-        // rather than a status code, since these are farmer-actionable
-        // ("this field already has an active season").
-        let detail = `Request failed (${res.status})`
-        try {
-            const body = await res.json()
-            if (body?.detail) detail = String(body.detail)
-        } catch {
-            /* keep the status-code message */
+    try {
+        // Non-idempotent calls are not retried — see lib/http. A retried season
+        // activation would be a second season on the same field.
+        const res = await apiFetch(path, { ...init, headers })
+        return (await res.json()) as T
+    } catch (e) {
+        if (e instanceof HttpError) {
+            if (e.status === 403) throw new Error('You do not have access to this field')
+            if (e.status === 404) throw new Error('Not found')
+            // apiFetch already surfaces the backend's `detail` for 400/409/422,
+            // which is farmer-actionable ("this field already has an active
+            // season") in a way a status code is not.
+            throw new Error(e.message)
         }
-        throw new Error(detail)
+        throw e
     }
-    return (await res.json()) as T
 }
 
 // --- Seasons list -----------------------------------------------------------

@@ -14,6 +14,7 @@
 
 import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
+import { resilientFetch } from '@/lib/http'
 import type { Grower, GrowerPayload } from '@/lib/portfolio-utils'
 
 export type { Grower, GrowerWithStats, GrowerPayload } from '@/lib/portfolio-utils'
@@ -35,14 +36,14 @@ async function errorFor(res: Response, fallback: string): Promise<Error> {
 
 async function fetchGrowers(url: string): Promise<Grower[]> {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { headers })
+    const res = await resilientFetch(url, { headers })
     if (!res.ok) throw await errorFor(res, 'Failed to load growers')
     return (await res.json()) as Grower[]
 }
 
 async function fetchGrower(url: string): Promise<Grower> {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { headers })
+    const res = await resilientFetch(url, { headers })
     if (res.status === 404) throw new Error('Grower not found')
     if (!res.ok) throw await errorFor(res, 'Failed to load grower')
     return (await res.json()) as Grower
@@ -96,7 +97,7 @@ type Headers = () => Promise<HeadersInit>
 export async function createGrower(
     payload: GrowerPayload,
     getHeaders: Headers = getAuthHeaders,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<Grower> {
     const res = await fetchImpl(GROWERS_URL, {
         method: 'POST', headers: await getHeaders(), body: JSON.stringify(payload),
@@ -109,7 +110,7 @@ export async function updateGrower(
     id: string,
     payload: Partial<GrowerPayload>,
     getHeaders: Headers = getAuthHeaders,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<Grower> {
     const res = await fetchImpl(`${GROWERS_URL}/${id}`, {
         method: 'PATCH', headers: await getHeaders(), body: JSON.stringify(payload),
@@ -121,7 +122,7 @@ export async function updateGrower(
 export async function deleteGrower(
     id: string,
     getHeaders: Headers = getAuthHeaders,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<void> {
     const res = await fetchImpl(`${GROWERS_URL}/${id}`, { method: 'DELETE', headers: await getHeaders() })
     if (!res.ok && res.status !== 204) throw await errorFor(res, 'Failed to remove grower')

@@ -16,6 +16,7 @@
 import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import { API_BASE_URL } from '@/lib/api-base'
+import { apiFetch } from '@/lib/http'
 import type { IssuedDocument } from '@/lib/document-utils'
 import { sortByIssued } from '@/lib/document-utils'
 
@@ -28,26 +29,13 @@ export interface GeneratedDocument {
     blob: Blob
 }
 
-async function errorFor(res: Response, fallback: string): Promise<Error> {
-    if (res.status === 403) return new Error("You don't have permission to generate documents")
-    if (res.status === 503) {
-        return new Error(
-            'The document could not be recorded, so it was not issued. Try again shortly.',
-        )
-    }
-    let detail = ''
-    try {
-        detail = (await res.json())?.detail || ''
-    } catch {
-        /* a PDF endpoint that failed may not return JSON */
-    }
-    return new Error(detail || `${fallback} (${res.status})`)
-}
-
+// No local error mapping: apiFetch surfaces the backend's own `detail`, and
+// those are more specific than anything this file said. "Cannot generate
+// another tenant's document" and "Could not allocate a document number just
+// now" beat "You don't have permission" and "(503)".
 async function fetchDocuments(url: string): Promise<IssuedDocument[]> {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { headers })
-    if (!res.ok) throw await errorFor(res, 'Failed to load documents')
+    const res = await apiFetch(url, { headers })
     const body = await res.json()
     return sortByIssued((body?.documents ?? []) as IssuedDocument[])
 }
@@ -71,8 +59,13 @@ export function invalidateDocuments() {
 
 async function generate(path: string): Promise<GeneratedDocument> {
     const headers = await getAuthHeaders()
-    const res = await fetch(`${API_BASE_URL}${path}`, { method: 'POST', headers })
-    if (!res.ok) throw await errorFor(res, 'Could not generate the document')
+    // Longer deadline: this renders a PDF server-side. Not retried — it is a
+    // POST, and a retry would issue a second numbered document.
+    const res = await apiFetch(path, {
+        method: 'POST',
+        headers,
+        timeoutMs: 60_000,
+    })
 
     const blob = await res.blob()
     // The backend puts the allocated number in a header so the caller can show
@@ -114,15 +107,14 @@ export function generateEvidencePack(coverageStart?: string, coverageEnd?: strin
  */
 export async function markForwarded(issueNumber: string, note?: string) {
     const headers = await getAuthHeaders()
-    const res = await fetch(
-        `${DOCUMENTS_URL}/${encodeURIComponent(issueNumber)}/forwarded`,
+    const res = await apiFetch(
+        `/documents/${encodeURIComponent(issueNumber)}/forwarded`,
         {
             method: 'POST',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify({ note: note || null }),
         },
     )
-    if (!res.ok) throw await errorFor(res, 'Could not record that')
     await invalidateDocuments()
     return (await res.json()) as IssuedDocument
 }

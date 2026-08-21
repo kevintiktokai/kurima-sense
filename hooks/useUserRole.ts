@@ -13,6 +13,7 @@
 
 import useSWR from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
+import { apiJson } from '@/lib/http'
 
 import { API_BASE_URL } from '@/lib/api-base';
 
@@ -28,9 +29,7 @@ export interface UserRoleContext {
 
 const fetcher = async (url: string): Promise<UserRoleContext> => {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { headers })
-    if (!res.ok) throw new Error(`Failed to fetch role: ${res.status}`)
-    return res.json()
+    return apiJson(url, { headers })
 }
 
 export interface UseUserRoleResult {
