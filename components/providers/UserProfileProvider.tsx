@@ -127,7 +127,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
             if (updates.has_seen_tutorial !== undefined) safeUpdates.has_seen_tutorial = updates.has_seen_tutorial
             if (updates.tutorial_progress !== undefined) safeUpdates.tutorial_progress = updates.tutorial_progress
 
-            const { data, error: updateError } = await supabase
+            const { error: updateError } = await supabase
                 .from('profiles')
                 .upsert(safeUpdates, { onConflict: 'id' })
                 .select()

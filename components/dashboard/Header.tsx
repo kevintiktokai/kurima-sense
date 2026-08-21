@@ -1,39 +1,13 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useDashboardData } from '@/components/providers/DashboardDataProvider';
 import InstallButton from '@/components/InstallButton';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
 const Header: React.FC = () => {
     const pathname = usePathname();
-    const { fields, marketData } = useDashboardData();
-
-    // Compute yield value from shared data (no independent fetch)
-    const yieldValue = useMemo(() => {
-        if (!fields.length || !marketData?.prices) return "—";
-
-        let totalValue = 0;
-        for (const field of fields) {
-            const crop = field.crop;
-            const projectedYield = (field as any).projected_yield || (field.area * 5);
-            const priceData = marketData.prices[crop];
-
-            if (priceData) {
-                let pricePerTonne = priceData.price;
-                if (priceData.unit === "$/kg") {
-                    pricePerTonne = priceData.price * 1000;
-                } else if (priceData.unit === "$/lb") {
-                    pricePerTonne = priceData.price * 2204.62;
-                }
-                totalValue += projectedYield * pricePerTonne;
-            }
-        }
-
-        return `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }, [fields, marketData]);
 
     const getHeaderTitle = () => {
         if (pathname === '/dashboard') return 'Agro-Feed';

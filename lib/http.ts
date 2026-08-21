@@ -242,7 +242,10 @@ export async function streamFetch(
     path: string,
     options: ApiFetchOptions = {},
 ): Promise<Response> {
-    const { timeoutMs = DEFAULT_TIMEOUT_MS, attempts: _attempts, ...init } = options
+    // `attempts` is accepted for signature parity with apiFetch and ignored:
+    // see the note above about replaying a stream.
+    const { timeoutMs = DEFAULT_TIMEOUT_MS, attempts, ...init } = options
+    void attempts
     const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`
 
     const controller = new AbortController()

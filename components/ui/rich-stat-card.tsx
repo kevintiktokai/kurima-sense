@@ -1,6 +1,6 @@
 "use client"
 
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, ResponsiveContainer } from "recharts"
 import { NeuCard } from "@/components/ui/glass-card"
 import { cn } from "@/lib/utils"
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react"

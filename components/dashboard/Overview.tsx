@@ -15,7 +15,6 @@ import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
 
 // Staleness thresholds
 const STALE_THRESHOLD_AI = 15 * 60 * 1000;         // 15 min — AI insights, proactive tips
-const STALE_THRESHOLD_YIELD = 10 * 60 * 1000;      // 10 min — yield projections
 
 const generateProjectionData = (bands: { low: number, mid: number, high: number } | undefined | null) => {
     if (!bands || typeof bands !== 'object') return [];
@@ -47,7 +46,7 @@ const AICardPlaceholder: React.FC<{ icon: string; label: string }> = ({ icon, la
 const Overview: React.FC = () => {
     const router = useRouter();
     const { profile } = useUserProfile();
-    const { fields, dashboardStats: stats, loading: dataLoading, backendError, refreshAll } = useDashboardData();
+    const { fields, loading: dataLoading, backendError, refreshAll } = useDashboardData();
 
     // Portfolio-level KurimaScore from the aggregator (one canonical state per
     // field), replacing the old client-side mean(field.ndvi). No batch endpoint

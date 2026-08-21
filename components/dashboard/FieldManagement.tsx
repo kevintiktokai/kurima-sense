@@ -10,10 +10,6 @@ import CropSearchSelect from './CropSearchSelect';
 import type { MapMode } from './MapComponent';
 import { MAPBOX_ENABLED } from '@/lib/mapbox';
 
-interface FieldManagementProps {
-    onSelectField?: (field: FieldData) => void;
-}
-
 // Dynamically import MapComponent to avoid SSR issues with Leaflet
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -35,7 +31,7 @@ const mapLoading = () => (
 const MapboxMap = dynamic(() => import('./MapComponentMapbox'), { ssr: false, loading: mapLoading });
 const LeafletMap = dynamic(() => import('./MapComponent'), { ssr: false, loading: mapLoading });
 
-const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
+const FieldManagement: React.FC = () => {
     const router = useRouter();
     const { fields, loading, refreshFields } = useDashboardData();
     const [deletingFieldId, setDeletingFieldId] = useState<string | null>(null);
@@ -51,7 +47,7 @@ const FieldManagement: React.FC<FieldManagementProps> = ({ onSelectField }) => {
     const [panelOpen, setPanelOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const handleDeleteField = async (fieldId: string, fieldName: string) => {
+    const handleDeleteField = async (fieldId: string) => {
         setDeletingFieldId(fieldId);
         try {
             await api.deleteField(fieldId);

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export interface ConfidenceBands {
     low: number;
@@ -53,7 +53,7 @@ export const YieldConfidenceChart: React.FC<YieldConfidenceChartProps> = ({
     unit = 'tonnes/ha',
     title = "Yield Projection",
     methodology,
-    disclaimer,
+
     confidenceScore
 }) => {
     const gapPercent = projectedYield && yieldPotential

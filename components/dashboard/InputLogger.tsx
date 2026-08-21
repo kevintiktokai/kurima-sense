@@ -30,7 +30,7 @@ const InputLogger: React.FC<InputLoggerProps> = ({ onClose, onSuccess }) => {
             alert("Input Logged Successfully! Yield projections updated.");
             onSuccess();
             onClose();
-        } catch (e) {
+        } catch {
             alert("Failed to log input.");
         } finally {
             setLoading(false);
