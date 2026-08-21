@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { setUnauthorizedHandler } from '@/lib/http'
 import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
@@ -147,6 +148,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut()
         router.push('/auth')
     }, [router])
+
+    // The case the refreshes above cannot catch: the *backend* rejects a token
+    // this client still believes in. Clock skew, a rotated JWT secret, a revoked
+    // tenant membership — the client session looks healthy, so RoleGuard does
+    // not redirect, and the user sits on a dashboard where every card reads
+    // "your session has expired" with nothing to act on. That is the same dead
+    // end as a spinner that never resolves.
+    //
+    // lib/http calls this on a 401, replays the request with whatever header we
+    // return, and gives up if we return null. Registered here because this is
+    // where the Supabase client lives; lib/http stays testable without one.
+    useEffect(() => {
+        setUnauthorizedHandler(async () => {
+            try {
+                const { data, error } = await supabase.auth.refreshSession()
+                const token = data?.session?.access_token
+                if (error || !token) {
+                    // The session is genuinely gone. Sign out so the guard can
+                    // send them somewhere they can do something about it —
+                    // rather than leaving them on a dashboard of dead cards.
+                    await signOut()
+                    return null
+                }
+                return `Bearer ${token}`
+            } catch {
+                return null
+            }
+        })
+        return () => setUnauthorizedHandler(null)
+    }, [signOut])
 
     const value = useMemo(
         () => ({ user, session, loading, signOut }),

@@ -302,6 +302,179 @@ test('resilientFetch does not retry a POST', async () => {
     }
 })
 
+// ── 401 recovery ─────────────────────────────────────────────────────────────
+
+test('a 401 triggers one refresh and replays with the new token', async () => {
+    // The dead end this closes: the backend rejects a token the client still
+    // believes in, RoleGuard sees a valid session so does not redirect, and the
+    // user sits on a dashboard of "session expired" cards with nothing to do.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    const seen: Array<string | null> = []
+    let calls = 0
+    const original = globalThis.fetch
+    globalThis.fetch = (async (_u: string, i: RequestInit) => {
+        calls += 1
+        seen.push(new Headers(i.headers as HeadersInit).get('Authorization'))
+        return calls === 1 ? json(401) : json(200, { ok: true })
+    }) as unknown as typeof fetch
+
+    setUnauthorizedHandler(async () => 'Bearer fresh-token')
+    try {
+        const res = await apiFetch('/fields', {
+            headers: { Authorization: 'Bearer stale-token' },
+        })
+        assert.equal(res.status, 200)
+        assert.equal(calls, 2)
+        assert.deepEqual(seen, ['Bearer stale-token', 'Bearer fresh-token'])
+    } finally {
+        setUnauthorizedHandler(null)
+        globalThis.fetch = original
+    }
+})
+
+test('the replay carries a fresh token, not the stale one', async () => {
+    // The whole reason the handler returns a header rather than a boolean.
+    // Callers bake Authorization in via getAuthHeaders() before calling, so a
+    // naive replay of `init` would re-send the dead token and 401 again.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    let lastAuth: string | null = null
+    const original = globalThis.fetch
+    globalThis.fetch = (async (_u: string, i: RequestInit) => {
+        lastAuth = new Headers(i.headers as HeadersInit).get('Authorization')
+        return lastAuth === 'Bearer good' ? json(200) : json(401)
+    }) as unknown as typeof fetch
+
+    setUnauthorizedHandler(async () => 'Bearer good')
+    try {
+        await apiFetch('/fields', { headers: { Authorization: 'Bearer dead' } })
+        assert.equal(lastAuth, 'Bearer good')
+    } finally {
+        setUnauthorizedHandler(null)
+        globalThis.fetch = original
+    }
+})
+
+test('a null from the handler means the session is gone — no endless replay', async () => {
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    const stub = stubFetch([json(401)])
+    setUnauthorizedHandler(async () => null)
+    try {
+        await assert.rejects(
+            apiFetch('/fields'),
+            (e: unknown) => e instanceof HttpError && e.status === 401,
+        )
+        assert.equal(stub.calls, 1, 'should not replay when there is no new token')
+    } finally {
+        setUnauthorizedHandler(null)
+        stub.restore()
+    }
+})
+
+test('a persistent 401 refreshes once, not forever', async () => {
+    // If the replay 401s too, that is the end of it. Without this bound a
+    // permanently-rejected token loops until the tab dies.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    let refreshes = 0
+    const stub = stubFetch([json(401)])
+    setUnauthorizedHandler(async () => { refreshes += 1; return 'Bearer still-bad' })
+    try {
+        await assert.rejects(apiFetch('/fields'), HttpError)
+        assert.equal(refreshes, 1)
+        assert.equal(stub.calls, 2, 'one original attempt, one replay')
+    } finally {
+        setUnauthorizedHandler(null)
+        stub.restore()
+    }
+})
+
+test('403 is never refreshed', async () => {
+    // "You are who you say you are, and you still may not." No amount of
+    // refreshing fixes that, and retrying only delays telling the user.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    let refreshes = 0
+    const stub = stubFetch([json(403)])
+    setUnauthorizedHandler(async () => { refreshes += 1; return 'Bearer x' })
+    try {
+        await assert.rejects(apiFetch('/portfolio'), HttpError)
+        assert.equal(refreshes, 0)
+        assert.equal(stub.calls, 1)
+    } finally {
+        setUnauthorizedHandler(null)
+        stub.restore()
+    }
+})
+
+test('a POST is replayed after a 401 — it never reached the handler', async () => {
+    // The one non-idempotent retry in this file that cannot double-issue: a 401
+    // is rejected at the auth boundary before the handler runs, so nothing was
+    // created. Contrast the 503 case, which must never be replayed.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    let calls = 0
+    const original = globalThis.fetch
+    globalThis.fetch = (async () => {
+        calls += 1
+        return calls === 1 ? json(401) : json(200, { issue_number: 'EP-2026-000143' })
+    }) as unknown as typeof fetch
+
+    setUnauthorizedHandler(async () => 'Bearer fresh')
+    try {
+        const res = await apiFetch('/documents', { method: 'POST' })
+        assert.equal(res.status, 200)
+        assert.equal(calls, 2)
+    } finally {
+        setUnauthorizedHandler(null)
+        globalThis.fetch = original
+    }
+})
+
+test('concurrent 401s share one refresh', async () => {
+    // A dashboard fires a dozen requests at mount. Twelve simultaneous
+    // refreshes race, and with a rotating refresh token the losers become hard
+    // sign-outs — turning one expired token into an eviction.
+    const { setUnauthorizedHandler } = await import('@/lib/http')
+    let refreshes = 0
+    let calls = 0
+    const original = globalThis.fetch
+    globalThis.fetch = (async (_u: string, i: RequestInit) => {
+        calls += 1
+        const auth = new Headers(i.headers as HeadersInit).get('Authorization')
+        return auth === 'Bearer fresh' ? json(200) : json(401)
+    }) as unknown as typeof fetch
+
+    setUnauthorizedHandler(async () => {
+        refreshes += 1
+        await new Promise((r) => setTimeout(r, 10))
+        return 'Bearer fresh'
+    })
+    try {
+        const results = await Promise.all(
+            Array.from({ length: 6 }, () =>
+                apiFetch('/fields', { headers: { Authorization: 'Bearer stale' } }),
+            ),
+        )
+        assert.equal(results.length, 6)
+        assert.ok(results.every((r) => r.status === 200))
+        assert.equal(refreshes, 1, `expected one shared refresh, got ${refreshes}`)
+        assert.equal(calls, 12, 'six originals, six replays')
+    } finally {
+        setUnauthorizedHandler(null)
+        globalThis.fetch = original
+    }
+})
+
+test('with no handler registered a 401 is just a 401', async () => {
+    const stub = stubFetch([json(401)])
+    try {
+        await assert.rejects(
+            apiFetch('/fields'),
+            (e: unknown) => e instanceof HttpError && e.kind === 'auth',
+        )
+        assert.equal(stub.calls, 1)
+    } finally {
+        stub.restore()
+    }
+})
+
 // ── streamFetch ──────────────────────────────────────────────────────────────
 
 test('streamFetch deadlines the connect but not the body', async () => {

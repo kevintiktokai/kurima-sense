@@ -127,6 +127,63 @@ export function messageFor(kind: HttpFailure, detail?: string): string {
     }
 }
 
+/**
+ * What to do when the backend says 401 but the client thinks it is signed in.
+ *
+ * The two can disagree. `AuthProvider` refreshes on tab focus and on bfcache
+ * restore, so a client session usually looks healthy — but the *backend* can
+ * still reject the token: clock skew, a rotated JWT secret, a revoked tenant
+ * membership. When that happens `RoleGuard` sees a valid session and does not
+ * redirect, so the user sits on a dashboard where every card reads "your
+ * session has expired" and nothing offers a way out. That is the same dead end
+ * as the spinner that never resolves.
+ *
+ * The handler is registered by the auth layer rather than imported here, so
+ * this module stays dependency-light and unit-testable without a browser or a
+ * Supabase client.
+ *
+ * It returns the **new `Authorization` header value**, not just a success flag.
+ * That matters: callers build their headers with `getAuthHeaders()` before they
+ * call in here, so by the time we see the 401 the stale token is already baked
+ * into `init`. Replaying the request unchanged would send the same dead token
+ * and 401 again. Returning null means the session is genuinely gone and the
+ * auth layer has taken over.
+ */
+export type UnauthorizedHandler = () => Promise<string | null>
+
+let unauthorizedHandler: UnauthorizedHandler | null = null
+/** In-flight refresh, so ten concurrent 401s cause one refresh and not ten. */
+let refreshInFlight: Promise<string | null> | null = null
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+    unauthorizedHandler = handler
+    refreshInFlight = null
+}
+
+/**
+ * Refresh once, at most once concurrently.
+ *
+ * Single-flighted because a dashboard fires a dozen requests at mount. Without
+ * this, one expired token produces a dozen simultaneous refreshes that race —
+ * and a rotating refresh token turns the losers into hard sign-outs.
+ */
+async function tryRefreshSession(): Promise<string | null> {
+    if (!unauthorizedHandler) return null
+    if (!refreshInFlight) {
+        refreshInFlight = unauthorizedHandler().finally(() => {
+            refreshInFlight = null
+        })
+    }
+    return refreshInFlight
+}
+
+/** `init` with the Authorization header swapped for a freshly-minted one. */
+function withAuthorization(init: RequestInit, header: string): RequestInit {
+    const headers = new Headers(init.headers as HeadersInit | undefined)
+    headers.set('Authorization', header)
+    return { ...init, headers }
+}
+
 /** `navigator.onLine` is only trustworthy when it says *false*. */
 function isOffline(): boolean {
     return typeof navigator !== 'undefined' && navigator.onLine === false
@@ -163,6 +220,37 @@ export async function apiFetch(
 
     const maxAttempts = isRetryableMethod(method) ? (attempts ?? MAX_ATTEMPTS) : 1
 
+    try {
+        return await attemptRequest(url, init, timeoutMs, maxAttempts)
+    } catch (error) {
+        // A 401 — and only a 401 — is worth one refresh and one replay.
+        //
+        // 403 is deliberately excluded: that is "you are who you say you are
+        // and you still may not", which no amount of refreshing fixes, and
+        // retrying it would just delay telling the user.
+        //
+        // Replaying is safe even for a POST. A 401 is rejected at the auth
+        // boundary before the handler runs, so nothing was created — this is
+        // the one non-idempotent retry in this file that cannot double-issue.
+        if (error instanceof HttpError && error.status === 401) {
+            const header = await tryRefreshSession()
+            if (header) {
+                return attemptRequest(
+                    url, withAuthorization(init, header), timeoutMs, maxAttempts,
+                )
+            }
+        }
+        throw error
+    }
+}
+
+/** One full attempt budget: the deadline, the retries, the typed errors. */
+async function attemptRequest(
+    url: string,
+    init: RequestInit,
+    timeoutMs: number,
+    maxAttempts: number,
+): Promise<Response> {
     let last: HttpError = new HttpError('network', messageFor('network'))
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
