@@ -2,6 +2,8 @@
 // GET /tenants/{id}/reconciliation (kurimasense-backend/schemas.py), plus pure
 // display helpers. Kept framework-free so node:test can import them.
 
+import { resilientFetch } from '@/lib/http'
+
 export type ReconFlag = 'none' | 'watch' | 'flag'
 
 export interface GrowerReconciliation {
@@ -64,7 +66,7 @@ export function formatTonnes(t: number | null | undefined): string {
 export async function fetchReconciliation(
     url: string,
     getHeaders: () => Promise<HeadersInit>,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<ReconciliationResponse> {
     const headers = await getHeaders()
     const res = await fetchImpl(url, { headers })

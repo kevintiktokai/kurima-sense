@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resilientFetch } from '@/lib/http'
 
 type SwState = {
   registered: boolean;
@@ -107,7 +108,7 @@ function useManifest() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/manifest.json")
+    resilientFetch("/manifest.json")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data) => {
         if (!cancelled) setManifest(data);

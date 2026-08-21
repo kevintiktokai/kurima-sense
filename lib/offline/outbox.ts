@@ -10,6 +10,7 @@ import { syncOutbox, type SendResult } from './sync'
 import type { CaptureKind, OutboxItem, OutboxStore } from './types'
 
 import { API_BASE_URL as API_URL } from '@/lib/api-base';
+import { resilientFetch } from '@/lib/http';
 
 let _store: OutboxStore | null = null
 function store(): OutboxStore {
@@ -45,7 +46,7 @@ export async function httpSend(
 ): Promise<SendResult> {
     try {
         const headers = { 'Content-Type': 'application/json', ...(await getAuthHeaders()) }
-        const res = await fetch(`${API_URL}${endpoint}`, {
+        const res = await resilientFetch(`${API_URL}${endpoint}`, {
             method,
             headers,
             body: JSON.stringify(body),

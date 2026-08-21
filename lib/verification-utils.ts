@@ -2,6 +2,8 @@
 // (kurimasense-backend/schemas.py) + pure display helpers. Framework-free so
 // node:test can import them.
 
+import { resilientFetch } from '@/lib/http'
+
 export type VerificationStatus = 'verified' | 'flagged' | 'unknown'
 
 export interface InputVerification {
@@ -51,7 +53,7 @@ export function verificationHeadline(v: FieldVerification): string {
 export async function fetchFieldVerification(
     url: string,
     getHeaders: () => Promise<HeadersInit>,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<FieldVerification> {
     const headers = await getHeaders()
     const res = await fetchImpl(url, { headers })
@@ -105,7 +107,7 @@ export function fieldSummaryHeadline(f: FieldVerificationSummary): string {
 export async function fetchPortfolioVerification(
     url: string,
     getHeaders: () => Promise<HeadersInit>,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch = resilientFetch,
 ): Promise<PortfolioVerification> {
     const headers = await getHeaders()
     const res = await fetchImpl(url, { headers })

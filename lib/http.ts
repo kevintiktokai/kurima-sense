@@ -223,6 +223,41 @@ async function detailFrom(response: Response): Promise<string | undefined> {
     }
 }
 
+/**
+ * A deadline on *connecting*, with no deadline on the body.
+ *
+ * For SSE and other streamed responses. `AbortSignal.timeout` aborts the whole
+ * exchange including the body, so using it on a stream kills a healthy stream
+ * mid-sentence at the 20s mark. But a stream still needs a connect deadline —
+ * a chat that hangs before the first token is the same forever-spinner as any
+ * other request.
+ *
+ * So: arm a timer, and disarm it the moment response headers arrive. After
+ * that the stream may take as long as it takes.
+ *
+ * Not retried. The response is a body being consumed by a generator; there is
+ * nothing safe to replay once tokens have been yielded.
+ */
+export async function streamFetch(
+    path: string,
+    options: ApiFetchOptions = {},
+): Promise<Response> {
+    const { timeoutMs = DEFAULT_TIMEOUT_MS, attempts: _attempts, ...init } = options
+    const url = path.startsWith('http') ? path : `${API_BASE_URL}${path}`
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+        return await fetch(url, { ...init, signal: controller.signal })
+    } catch (error) {
+        const aborted = error instanceof DOMException && error.name === 'AbortError'
+        const kind: HttpFailure = aborted ? 'timeout' : 'network'
+        throw new HttpError(kind, messageFor(kind))
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
 /** `apiFetch` plus JSON parsing, which is what almost every caller wanted. */
 export async function apiJson<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
     const response = await apiFetch(path, options)
