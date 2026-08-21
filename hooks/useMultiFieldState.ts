@@ -9,18 +9,19 @@
 
 import useSWR, { useSWRConfig, mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
+import { apiJson } from '@/lib/http'
 import type { FieldState } from '@/lib/field-state-types'
 import { fieldStateKey } from './useFieldState'
 
-import { API_BASE_URL } from '@/lib/api-base';
 const MAX_CONCURRENCY = 5
 
 async function fetchOne(fieldId: string): Promise<FieldState | null> {
     try {
         const headers = await getAuthHeaders()
-        const res = await fetch(`${API_BASE_URL}/field/${fieldId}/state`, { headers })
-        if (!res.ok) return null
-        const state = (await res.json()) as FieldState
+        // A single field failing must not fail the dashboard, so this still
+        // degrades to null — but with a deadline, so one unreachable field no
+        // longer holds the whole grid open.
+        const state = await apiJson<FieldState>(`/field/${fieldId}/state`, { headers })
         // Seed the PER-FIELD cache that useFieldState reads. Without this the
         // two hooks kept entirely separate caches, so opening a field after the
         // dashboard had already loaded it re-fetched the same

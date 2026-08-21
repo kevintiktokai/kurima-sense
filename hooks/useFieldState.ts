@@ -11,7 +11,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
 import type { FieldState } from '@/lib/field-state-types'
 
-import { API_BASE_URL } from '@/lib/api-base';
+import { HttpError, apiJson } from '@/lib/http';
 
 export function fieldStateKey(fieldId: string | null | undefined): string | null {
     return fieldId ? `field-state:${fieldId}` : null
@@ -19,11 +19,17 @@ export function fieldStateKey(fieldId: string | null | undefined): string | null
 
 async function fetchFieldState(fieldId: string): Promise<FieldState> {
     const headers = await getAuthHeaders()
-    const res = await fetch(`${API_BASE_URL}/field/${fieldId}/state`, { headers })
-    if (res.status === 403) throw new Error('You do not have access to this field')
-    if (res.status === 404) throw new Error('Field not found')
-    if (!res.ok) throw new Error(`Failed to load field state (${res.status})`)
-    return (await res.json()) as FieldState
+    // apiFetch supplies the deadline and the retry this never had: a hung
+    // socket used to leave the field page spinning with no error at all.
+    try {
+        return await apiJson<FieldState>(`/field/${fieldId}/state`, { headers })
+    } catch (e) {
+        if (e instanceof HttpError && e.status === 403) {
+            throw new Error('You do not have access to this field')
+        }
+        if (e instanceof HttpError && e.status === 404) throw new Error('Field not found')
+        throw e
+    }
 }
 
 export interface UseFieldStateResult {

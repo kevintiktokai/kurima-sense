@@ -10,6 +10,7 @@
 
 import useSWR, { mutate as globalMutate } from 'swr'
 import { getAuthHeaders } from '@/lib/api-cache'
+import { resilientFetch } from '@/lib/http'
 
 import { API_BASE_URL } from '@/lib/api-base';
 const MEMBERS_URL = `${API_BASE_URL}/team/members`
@@ -133,14 +134,14 @@ async function errorFor(res: Response, fallback: string): Promise<Error> {
 
 async function getJSON<T>(url: string, fallback: string): Promise<T> {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { headers })
+    const res = await resilientFetch(url, { headers })
     if (!res.ok) throw await errorFor(res, fallback)
     return (await res.json()) as T
 }
 
 async function sendJSON<T>(url: string, method: string, body: unknown, fallback: string): Promise<T> {
     const headers = await getAuthHeaders()
-    const res = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
+    const res = await resilientFetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
     if (!res.ok) throw await errorFor(res, fallback)
     if (res.status === 204) return undefined as T
     return (await res.json()) as T

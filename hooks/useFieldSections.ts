@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getAuthHeaders } from '@/lib/api-cache'
-import { API_BASE_URL } from '@/lib/api-base'
+import { apiFetch } from '@/lib/http'
 
 export interface FieldSection {
     index: number
@@ -50,8 +50,7 @@ export function useFieldSections(fieldId: string | undefined, grid = 2): UseFiel
     const fetchSections = useCallback(async (): Promise<SectionsResult | null> => {
         if (!fieldId) return null
         const headers = await getAuthHeaders()
-        const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/sections?grid=${grid}`, { headers })
-        if (!res.ok) throw new Error(`sections ${res.status}`)
+        const res = await apiFetch(`/fields/${fieldId}/sections?grid=${grid}`, { headers })
         return res.json()
     }, [fieldId, grid])
 
@@ -80,11 +79,12 @@ export function useFieldSections(fieldId: string | undefined, grid = 2): UseFiel
         const startedAt = data?.analyzed_at ?? null
         try {
             const headers = await getAuthHeaders()
-            const res = await fetch(`${API_BASE_URL}/fields/${fieldId}/sections/analyze?grid=${grid}`, {
+            // apiFetch throws on a non-ok status, so kicking the analysis off
+            // and polling below is all this needs — the response body is empty.
+            await apiFetch(`/fields/${fieldId}/sections/analyze?grid=${grid}`, {
                 method: 'POST',
                 headers,
             })
-            if (!res.ok) throw new Error(`analyze ${res.status}`)
 
             // Poll until analyzed_at advances past the pre-analysis value (or a cap).
             let attempts = 0
@@ -122,8 +122,7 @@ import type { ZoneDiagnosisResponse, ZoneHistoryResponse } from '@/lib/planning-
 
 async function zoneJson<T>(path: string): Promise<T> {
     const headers = await getAuthHeaders()
-    const res = await fetch(`${API_BASE_URL}${path}`, { headers })
-    if (!res.ok) throw new Error(`Request failed (${res.status})`)
+    const res = await apiFetch(path, { headers })
     return (await res.json()) as T
 }
 
