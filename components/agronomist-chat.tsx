@@ -73,7 +73,7 @@ export function AgronomistChat({ className }: { className?: string }) {
             }
 
             setMessages((prev) => [...prev, aiMsg])
-        } catch (error) {
+        } catch {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "ai",

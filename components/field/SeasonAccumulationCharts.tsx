@@ -60,25 +60,41 @@ function ChartHeader({ title, stat, caption, icon, color }: {
 
 // ─── Tooltip (date + daily + cumulative), app tokens ─────────────────────────
 
-function makeTooltip(dailyKey: 'precip_mm' | 'gdd', cumKey: 'precip_cumulative' | 'gdd_cumulative', unit: string, fmt: (n: number) => string) {
-    return function SeasonTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: Record<string, number> }>; label?: string }) {
-        if (!active || !payload || !payload.length) return null
-        const d = payload[0].payload
-        return (
-            <div style={{ background: '#FFFFFF', borderRadius: 16, boxShadow: '0 8px 32px rgba(45,58,48,0.08)', padding: '10px 12px', fontFamily: 'var(--font-body)' }}>
-                <p style={{ fontWeight: 800, fontSize: 12, color: 'var(--ee-text)', margin: 0 }}>{formatFullDate(label || '')}</p>
-                <p style={{ fontSize: 11, color: 'var(--ee-muted)', margin: '4px 0 0' }}>Day: {fmt(d[dailyKey])}{unit}</p>
-                <p style={{ fontSize: 11, color: 'var(--ee-muted)', margin: '2px 0 0' }}>Cumulative: {fmt(d[cumKey])}{unit}</p>
-            </div>
-        )
-    }
+// One component taking props, rather than a factory called during render.
+//
+// `const Tip = makeTooltip(...)` produced a NEW component type on every render,
+// so Recharts saw a different `content` each time and remounted the tooltip
+// instead of updating it — losing any state it held and re-running its effects
+// on a surface the farmer is actively hovering.
+interface SeasonTooltipProps {
+    active?: boolean
+    payload?: Array<{ payload: Record<string, number> }>
+    label?: string
+    dailyKey: 'precip_mm' | 'gdd'
+    cumKey: 'precip_cumulative' | 'gdd_cumulative'
+    unit: string
+    fmt: (n: number) => string
 }
+
+function SeasonTooltip({ active, payload, label, dailyKey, cumKey, unit, fmt }: SeasonTooltipProps) {
+    if (!active || !payload || !payload.length) return null
+    const d = payload[0].payload
+    return (
+        <div style={{ background: '#FFFFFF', borderRadius: 16, boxShadow: '0 8px 32px rgba(45,58,48,0.08)', padding: '10px 12px', fontFamily: 'var(--font-body)' }}>
+            <p style={{ fontWeight: 800, fontSize: 12, color: 'var(--ee-text)', margin: 0 }}>{formatFullDate(label || '')}</p>
+            <p style={{ fontSize: 11, color: 'var(--ee-muted)', margin: '4px 0 0' }}>Day: {fmt(d[dailyKey])}{unit}</p>
+            <p style={{ fontSize: 11, color: 'var(--ee-muted)', margin: '2px 0 0' }}>Cumulative: {fmt(d[cumKey])}{unit}</p>
+        </div>
+    )
+}
+
+const roundTenth = (n: number) => `${Math.round(n * 10) / 10}`
+const roundWhole = (n: number) => `${Math.round(n)}`
 
 // ─── The two charts ──────────────────────────────────────────────────────────
 
 function PrecipChart({ data }: { data: SeasonAccumulations }) {
     const ticks = monthTicks(data.series)
-    const Tip = makeTooltip('precip_mm', 'precip_cumulative', ' mm', (n) => `${Math.round(n * 10) / 10}`)
     return (
         <Card>
             <ChartHeader title="Accumulated Rainfall" icon="water_drop" color="var(--ee-water)"
@@ -97,7 +113,9 @@ function PrecipChart({ data }: { data: SeasonAccumulations }) {
                         <XAxis dataKey="date" ticks={ticks} axisLine={false} tickLine={false}
                             tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} tickFormatter={formatTickDate} tickMargin={8} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} width={36} />
-                        <Tooltip content={<Tip />} cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }} />
+                        <Tooltip
+                            content={<SeasonTooltip dailyKey="precip_mm" cumKey="precip_cumulative" unit=" mm" fmt={roundTenth} />}
+                            cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }} />
                         <Area type="monotone" dataKey="precip_cumulative" stroke="#5C9EAD" strokeWidth={3} fill="url(#seasonPrecip)" name="Cumulative rainfall" />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -108,7 +126,6 @@ function PrecipChart({ data }: { data: SeasonAccumulations }) {
 
 function GddChart({ data }: { data: SeasonAccumulations }) {
     const ticks = monthTicks(data.series)
-    const Tip = makeTooltip('gdd', 'gdd_cumulative', ' GDD', (n) => `${Math.round(n)}`)
     return (
         <Card>
             <ChartHeader title="Growing Degree-Days" icon="device_thermostat" color="var(--ee-sun)"
@@ -126,7 +143,9 @@ function GddChart({ data }: { data: SeasonAccumulations }) {
                         <XAxis dataKey="date" ticks={ticks} axisLine={false} tickLine={false}
                             tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} tickFormatter={formatTickDate} tickMargin={8} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8B9D8F', fontSize: 10, fontWeight: 700 }} width={36} />
-                        <Tooltip content={<Tip />} cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }} />
+                        <Tooltip
+                            content={<SeasonTooltip dailyKey="gdd" cumKey="gdd_cumulative" unit=" GDD" fmt={roundWhole} />}
+                            cursor={{ stroke: '#8B9D8F', strokeWidth: 1 }} />
                         <Area type="monotone" dataKey="gdd_cumulative" stroke="#E8A365" strokeWidth={3} fill="url(#seasonGdd)" name="Cumulative GDD" />
                     </AreaChart>
                 </ResponsiveContainer>

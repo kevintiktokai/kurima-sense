@@ -497,12 +497,12 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                                     <ReactMarkdown
                                         remarkPlugins={remarkPlugins}
                                         components={{
-                                            strong: ({ node, ...props }) => <strong className={`font-black ${m.role === 'ai' ? 'text-brand-dark' : 'text-brand-lime'}`} {...props} />,
-                                            ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-1 my-2" {...props} />,
-                                            ol: ({ node, ...props }) => <ol className="list-decimal pl-4 space-y-1 my-2" {...props} />,
-                                            li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                                            p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
-                                            a: ({ node, ...props }) => <a className="underline decoration-brand-lime underline-offset-2 font-bold" {...props} />,
+                                            strong: ({ ...props }) => <strong className={`font-black ${m.role === 'ai' ? 'text-brand-dark' : 'text-brand-lime'}`} {...props} />,
+                                            ul: ({ ...props }) => <ul className="list-disc pl-4 space-y-1 my-2" {...props} />,
+                                            ol: ({ ...props }) => <ol className="list-decimal pl-4 space-y-1 my-2" {...props} />,
+                                            li: ({ ...props }) => <li className="pl-1" {...props} />,
+                                            p: ({ ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+                                            a: ({ ...props }) => <a className="underline decoration-brand-lime underline-offset-2 font-bold" {...props} />,
                                         }}
                                     >
                                         {m.content}

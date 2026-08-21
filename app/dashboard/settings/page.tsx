@@ -110,7 +110,7 @@ export default function SettingsPage() {
             } else {
                 setMessage({ type: 'error', text: 'Failed to save settings. Please try again.' })
             }
-        } catch (err) {
+        } catch {
             setMessage({ type: 'error', text: 'An error occurred. Please try again.' })
         }
 

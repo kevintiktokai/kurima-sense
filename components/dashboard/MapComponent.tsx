@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, FeatureGroup, Circle, Polygon, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polygon, Polyline, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import L from 'leaflet';
@@ -161,7 +161,6 @@ const ManualDrawMode = ({
     onCancel: () => void;
 }) => {
     const [points, setPoints] = useState<{ lat: number; lon: number }[]>([]);
-    const map = useMap();
 
     // Tap on map to add a point
     useMapEvents({

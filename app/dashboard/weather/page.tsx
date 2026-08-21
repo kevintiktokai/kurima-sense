@@ -13,7 +13,7 @@ import type {
     HistoricalComparison
 } from '@/lib/climate-types';
 import { getWeatherIcon, getDayName, formatTime } from '@/lib/climate-types';
-import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ComposedChart, Line } from "recharts";
+import { Area, AreaChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart } from "recharts";
 import { PageContainer } from '@/components/layout/PageContainer';
 import IrrigationOutlook from '@/components/irrigation/IrrigationOutlook';
 
