@@ -157,18 +157,6 @@ export async function createPlannedSeason(
     return season
 }
 
-export async function updateSeason(
-    fieldId: string,
-    seasonId: string,
-    body: Record<string, unknown>
-): Promise<Season> {
-    const season = await authedJson<Season>(`/seasons/${seasonId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-    })
-    invalidateSeasons(fieldId)
-    return season
-}
 
 /** planned → active. Also refreshes field state: the crop mirror has changed. */
 export async function activateSeason(
