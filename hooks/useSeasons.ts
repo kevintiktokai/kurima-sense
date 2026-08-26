@@ -12,6 +12,7 @@ import { getAuthHeaders } from '@/lib/api-cache'
 import { HttpError, apiFetch } from '@/lib/http'
 import type {
     ActionWindowsResponse,
+    CuringPlan,
     FieldHistory,
     PostHarvestPlan,
     PrePlantBrief,
@@ -51,6 +52,32 @@ async function authedJson<T>(path: string, init?: RequestInit): Promise<T> {
             // apiFetch already surfaces the backend's `detail` for 400/409/422,
             // which is farmer-actionable ("this field already has an active
             // season") in a way a status code is not.
+            throw new Error(e.message)
+        }
+        throw e
+    }
+}
+
+/**
+ * As `authedJson`, but a 204 is an answer rather than a parse error.
+ *
+ * Some planning endpoints return "this does not apply to your crop" — the field
+ * is fine, the crop is fine, there is simply nothing to say. That is a 204, and
+ * `res.json()` on an empty body throws a `SyntaxError` that reaches the card as
+ * a failed fetch. The card renders nothing either way, so the bug would be
+ * invisible: silence caused by an error looks exactly like silence caused by
+ * "not applicable".
+ */
+async function authedJsonOrNull<T>(path: string, init?: RequestInit): Promise<T | null> {
+    const headers = await getAuthHeaders()
+    try {
+        const res = await apiFetch(path, { ...init, headers })
+        if (res.status === 204) return null
+        return (await res.json()) as T
+    } catch (e) {
+        if (e instanceof HttpError) {
+            if (e.status === 403) throw new Error('You do not have access to this field')
+            if (e.status === 404) throw new Error('Not found')
             throw new Error(e.message)
         }
         throw e
@@ -303,6 +330,33 @@ export function usePostHarvestPlan(
         { revalidateOnFocus: false, dedupingInterval: 600_000, shouldRetryOnError: false }
     )
     return { plan: data, isLoading, error: error as Error | undefined }
+}
+
+// --- Flue-curing ------------------------------------------------------------
+
+export const curingKey = (fieldId: string | null | undefined, crop?: string) =>
+    fieldId ? `curing:${fieldId}:${crop ?? ''}` : null
+
+/**
+ * The barn cycle for a flue-cured crop, and how many barns this field needs.
+ *
+ * `plan` is `null` — not undefined — when the backend says curing does not
+ * apply, which is the answer for every crop that is not flue-cured and for
+ * burley, which is tobacco and is air-cured. Cached hard: this is reference
+ * material for a crop, not live state.
+ */
+export function useCuringPlan(
+    fieldId: string | null | undefined,
+    crop?: string,
+    enabled = true
+) {
+    const q = crop ? `?crop=${encodeURIComponent(crop)}` : ''
+    const { data, error, isLoading } = useSWR<CuringPlan | null>(
+        enabled ? curingKey(fieldId, crop) : null,
+        () => authedJsonOrNull<CuringPlan>(`/fields/${fieldId}/curing${q}`),
+        { revalidateOnFocus: false, dedupingInterval: 600_000, shouldRetryOnError: false }
+    )
+    return { plan: data ?? null, isLoading, error: error as Error | undefined }
 }
 
 // --- Retrospective ----------------------------------------------------------
