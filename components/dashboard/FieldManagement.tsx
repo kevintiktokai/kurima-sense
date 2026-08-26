@@ -9,6 +9,7 @@ import { FieldData } from './types';
 import CropSearchSelect from './CropSearchSelect';
 import type { MapMode } from './MapComponent';
 import { MAPBOX_ENABLED } from '@/lib/mapbox';
+import { FieldCardMenu } from './FieldCardMenu';
 
 // Dynamically import MapComponent to avoid SSR issues with Leaflet
 import dynamic from 'next/dynamic';
@@ -864,6 +865,7 @@ const FieldCard: React.FC<FieldCardProps> = ({
 }) => {
     // Health, NDVI and moisture come from the aggregator (single source of truth);
     // no legacy field.healthStatus / field.ndvi threshold mapping.
+    const [starting, setStarting] = useState(false);
     const { fieldState: fs } = useFieldState(field.id);
     const ks = fs?.kurima_score;
     const health = ks ? { color: ks.color, label: ks.label } : { color: 'rgba(255,255,255,0.35)', label: '…' };
@@ -947,20 +949,17 @@ const FieldCard: React.FC<FieldCardProps> = ({
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: health.color }} />
                         {health.label}
                     </span>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onEditClick(field); }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
-                        title="Edit field"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'rgba(255,255,255,0.55)' }}>edit</span>
-                    </button>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onDeleteClick(field.id); }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
-                        title="Delete field"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#E05C5C' }}>delete</span>
-                    </button>
+                    {/* One always-visible control, with edit and delete inside.
+                        These were two `opacity-0 group-hover:opacity-100` icons
+                        — invisible until hover, and a phone has no hover. On the
+                        device this app is actually used on, in a field, they
+                        were unreachable: a tap near them hit the card and
+                        navigated away instead. */}
+                    <FieldCardMenu
+                        fieldName={field.name}
+                        onEdit={() => onEditClick(field)}
+                        onDelete={() => onDeleteClick(field.id)}
+                    />
                 </div>
             </div>
 
@@ -977,23 +976,35 @@ const FieldCard: React.FC<FieldCardProps> = ({
             </div>
 
             {/* Analyze button */}
+            {/* State, not innerText. This wrote "Starting..." straight into the
+                DOM node — React owns that text and overwrites it on the next
+                render, and nothing ever put the label back, so the button was
+                left reading "Starting..." on a card whose analysis had long
+                since finished. */}
             <button
+                type="button"
                 onClick={(e) => {
                     e.stopPropagation();
-                    const btn = e.currentTarget;
-                    btn.innerText = "Starting...";
+                    setStarting(true);
                     onAnalyze(field);
+                    // The analysis runs as a background task server-side, so
+                    // there is no completion to await here. Release the label
+                    // after a beat: a button stuck on "Starting…" reads as a
+                    // hang, which is the one thing it must not do.
+                    window.setTimeout(() => setStarting(false), 2500);
                 }}
-                className="w-full py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all active:scale-95"
+                disabled={starting}
+                aria-label={`Analyze insights for ${field.name}`}
+                className="w-full py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-60"
                 style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.7)',
+                    background: starting ? '#D7F26C' : 'rgba(255,255,255,0.08)',
+                    color: starting ? '#2D3A26' : 'rgba(255,255,255,0.7)',
                     fontFamily: 'var(--font-heading)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#D7F26C', e.currentTarget.style.color = '#2D3A26')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)', e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                onMouseEnter={e => { if (!starting) { e.currentTarget.style.background = '#D7F26C'; e.currentTarget.style.color = '#2D3A26'; } }}
+                onMouseLeave={e => { if (!starting) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; } }}
             >
-                Analyze Insights
+                {starting ? 'Starting…' : 'Analyze Insights'}
             </button>
         </div>
     );

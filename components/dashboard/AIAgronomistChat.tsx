@@ -316,9 +316,17 @@ const AIAgronomistChat: React.FC<AIAgronomistChatProps> = ({ selectedField: init
                                 <p className={`text-[10px] truncate ${compact ? 'opacity-60' : 'text-slate-400'}`}>{s.preview}</p>
                             )}
                         </div>
+                        {/* Always visible, not `opacity-0 group-hover:…`. A
+                            phone has no hover, so this was the only way to
+                            delete a chat and it could not be reached at all on
+                            the device most of these conversations happen on.
+                            Quiet by default, full strength on hover/focus. */}
                         <button
+                            type="button"
                             onClick={(e) => removeSession(s.id, e)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 flex-shrink-0"
+                            className="opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity flex-shrink-0 flex items-center justify-center rounded"
+                            style={{ width: 28, height: 28 }}
+                            aria-label={`Delete chat: ${s.title}`}
                             title="Delete chat"
                         >
                             <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#E05C5C' }}>delete</span>

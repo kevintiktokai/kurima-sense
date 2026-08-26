@@ -676,9 +676,20 @@ export default function FieldInsightsPage() {
                                                     {new Date(pin.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
+                                            {/* Always visible. A scouting pin is
+                                                recorded standing in the field on
+                                                a phone — the most touch-only
+                                                context in the app — and behind
+                                                `group-hover` this was the only
+                                                way to remove a mistaken
+                                                observation, reachable on none of
+                                                those devices. */}
                                             <button
+                                                type="button"
                                                 onClick={() => deleteScoutingPin(pin.id)}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-red-50"
+                                                className="opacity-60 hover:opacity-100 focus-visible:opacity-100 transition-opacity rounded-full hover:bg-red-50 flex items-center justify-center flex-shrink-0"
+                                                style={{ width: 32, height: 32 }}
+                                                aria-label="Delete this observation"
                                                 title="Delete observation"
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#EF4444' }}>close</span>
