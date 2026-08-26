@@ -17,6 +17,7 @@ import { getAuthHeaders, getCached, setCache, CACHE_TTL } from '@/lib/api-cache'
 
 import { API_BASE_URL } from '@/lib/api-base';
 import { resilientFetch } from '@/lib/http';
+import { coalesce, newInflightMap } from '@/lib/single-flight';
 
 // Build query params from options + a stable cache-key suffix
 function buildKey(options: Record<string, any>): string {
@@ -40,6 +41,11 @@ function buildQueryParams(options: Record<string, any>): string {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Requests in flight right now, keyed exactly as the cache is. Module-level so
+// every component calling climateApi shares it — the whole point is that four
+// separate callers coalesce onto one request.
+const inflight = newInflightMap<any>();
+
 /**
  * Resilient cached GET for climate data.
  *
@@ -60,6 +66,23 @@ async function cachedGet<T>(
     const cached = getCached<T>(cacheKey);
     if (cached) return cached;
 
+    // Single-flight. The cache above answers "have we fetched this?"; it cannot
+    // answer "are we fetching it right now?", and on a cold cache — a fresh page
+    // load, which is when the app is judged — four components mounted together
+    // all missed and all four fired the same request. See lib/single-flight.
+    return coalesce(cacheKey, inflight as Map<string, Promise<any>>, () =>
+        fetchAndCache<T>(path, options, cacheKey, ttlMs, retries),
+    ) as Promise<T | null>;
+}
+
+/** The actual fetch, retries and cache write. One caller at a time — see above. */
+async function fetchAndCache<T>(
+    path: string,
+    options: Record<string, any>,
+    cacheKey: string,
+    ttlMs: number,
+    retries: number,
+): Promise<T | null> {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             const headers = await getAuthHeaders();
