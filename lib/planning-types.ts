@@ -229,6 +229,58 @@ export interface PostHarvestPlan {
     warnings: string[]
 }
 
+// --- Flue-curing ------------------------------------------------------------
+//
+// Post-harvest above covers grain: dry to a target, keep the weevils out. None
+// of it applies to a leaf that has to be held at 85% humidity for two days on
+// purpose, and tobacco is what most of this product's farmers actually grow.
+//
+// The endpoint returns 204 for any crop that is not flue-cured — including
+// burley, which is tobacco and is air-cured. There is deliberately no "does not
+// apply" shape to render.
+
+export interface CuringStage {
+    key: string
+    name: string
+    /** (low, high) °C dry-bulb. */
+    temperature_c: [number, number]
+    /** (low, high) days. */
+    duration_days: [number, number]
+    /** Only colouring names one; the source gives no figure for the others. */
+    relative_humidity_pct: number | null
+    what_happens: string
+    watch_for: string
+}
+
+export interface CuringBarnOption {
+    key: string
+    name: string
+    /** Hectares one barn cures, at its typical rating. */
+    hectares: number
+    hectares_tolerance: number | null
+    /** kg of fuel per kg of cured leaf, where the source publishes one. */
+    fuel_kg_per_kg_cured: number | null
+    fuel: string | null
+    tiers: string | null
+    suits: string
+    notes: string
+    /** How many of this barn type this field would need. */
+    count: number
+    covers_hectares: number
+}
+
+export interface CuringPlan {
+    crop: string
+    stages: CuringStage[]
+    /** (low, high) days for the whole barn cycle. */
+    total_days: [number, number]
+    /** (low, high) % moisture added back before the leaf comes off the sticks. */
+    conditioning_moisture_pct: [number, number]
+    barn_options: CuringBarnOption[]
+    area_hectares: number | null
+    warnings: string[]
+}
+
 // --- Season retrospective ---------------------------------------------------
 
 export interface GapFactor {

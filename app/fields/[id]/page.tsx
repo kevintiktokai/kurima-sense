@@ -19,6 +19,7 @@ import { SeasonHistoryCard } from '@/components/field/SeasonHistoryCard';
 import { FieldDocumentsCard } from '@/components/field/FieldDocumentsCard';
 import { ActionWindowsCard } from '@/components/planning/ActionWindowsCard';
 import { PostHarvestCard } from '@/components/planning/PostHarvestCard';
+import { CuringCard } from '@/components/planning/CuringCard';
 import { ClosedSeasonReview } from '@/components/planning/ClosedSeasonReview';
 
 // ─── Scouting pin config ──────────────────────────────────────────────────────
@@ -335,6 +336,13 @@ export default function FieldInsightsPage() {
                     point at which the app used to go quiet, and 20-30% of the
                     crop starts being at risk. */}
                 <PostHarvestCard fieldId={fieldId} />
+
+                {/* Curing. Unlike the card above this does NOT wait for a
+                    harvested season: a grower decides how many barns to build,
+                    and cuts the wood to fire them, months before the first leaf
+                    is ready. Renders nothing for any crop that is not
+                    flue-cured — burley included, which is air-cured. */}
+                <CuringCard fieldId={fieldId} />
 
                 {/* Season review for the most recently closed season — the
                     artefact that turns a finished season into next season's
